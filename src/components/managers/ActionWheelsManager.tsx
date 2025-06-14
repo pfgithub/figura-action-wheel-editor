@@ -84,6 +84,7 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
                 const firstToggleGroup = Object.values(draft.toggleGroups)[0];
                 const newAction: Action = {
                     icon: '❓',
+                    label: `Action ${wheel.actions.length + 1}`,
                     color: [80, 80, 80],
                     effect: firstToggleGroup
                         ? { kind: 'toggle', toggleGroup: firstToggleGroup.uuid, value: firstToggleGroup.options[0] ?? '' }

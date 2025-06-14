@@ -119,11 +119,19 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
 
   return (
     <Card
-        title={`Edit Action: ${action.icon}`}
+        title={`Edit Action: ${action.label}`}
         controls={<Button onClick={deleteAction} className="bg-red-600 hover:bg-red-700">Delete Action</Button>}
     >
         <div className="space-y-4">
             <h4 className="text-lg font-semibold text-gray-300 border-b border-gray-600 pb-2">Appearance</h4>
+            <FormRow label="Label">
+                <Input
+                    type="text"
+                    placeholder="e.g., Crouch"
+                    value={action.label}
+                    onChange={e => updateAction({ ...action, label: e.target.value })}
+                />
+            </FormRow>
             <FormRow label="Icon">
                 <Input 
                     type="text" 

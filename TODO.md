@@ -10,3 +10,5 @@
 - [ ] The toggle group editor is annoying. Remove the 'Toggle Groups' section and allow creating toggle groups and adding options to them directly from where you use them
 
 - [ ] I forgot `label: string` in the Action type. Add it and update the action wheel display and action editor to use the label.
+
+- [ ] I forgot to make 'effect' optional in the Action type. Make it optional and default it to undefined.

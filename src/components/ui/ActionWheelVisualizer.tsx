@@ -45,7 +45,7 @@ export function ActionWheelVisualizer({
           <button
             key={index}
             onClick={() => onSelectAction(index)}
-            className={`absolute flex items-center justify-center rounded-full text-white text-3xl transition-all duration-200 ease-in-out transform hover:scale-110 focus:outline-none ${isSelected ? 'ring-4 ring-blue-500 shadow-lg z-10' : 'ring-2 ring-gray-600'}`}
+            className={`absolute flex items-center justify-center rounded-full text-white text-xs font-bold p-1 text-center leading-tight transition-all duration-200 ease-in-out transform hover:scale-110 focus:outline-none ${isSelected ? 'ring-4 ring-blue-500 shadow-lg z-10' : 'ring-2 ring-gray-600'}`}
             style={{
               width: `${BUTTON_SIZE}px`,
               height: `${BUTTON_SIZE}px`,
@@ -54,9 +54,9 @@ export function ActionWheelVisualizer({
               left: `calc(50% - ${BUTTON_SIZE / 2}px)`,
               transform: `translate(${x}px, ${y}px)`,
             }}
-            title={action.icon}
+            title={action.label}
           >
-            {action.icon}
+            {action.label}
           </button>
         );
       })}

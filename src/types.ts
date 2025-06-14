@@ -17,6 +17,7 @@ export type ActionWheel = {
 
 export type Action = {
     icon: string,
+    label: string,
     color: [number, number, number],
     effect: ActionEffect,
 };
