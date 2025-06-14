@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import type { UUID, Action, ActionWheel, ToggleGroup, Avatar } from '../../types';
+import React, { useState, useEffect } from 'react';
+import type { UUID, Action, Avatar, ToggleGroup, ActionWheel } from '../../types';
 import { UpdateAvatarFn } from '../../hooks/useAvatar';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { ActionEditor } from '../editors/ActionEditor';
+import { ActionWheelVisualizer } from '../ui/ActionWheelVisualizer';
 
 interface ActionWheelsManagerProps {
     avatar: Avatar;
@@ -12,8 +13,25 @@ interface ActionWheelsManagerProps {
     allActionWheels: ActionWheel[];
 }
 
+const MAX_ACTIONS_PER_WHEEL = 8;
+
 export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, allActionWheels }: ActionWheelsManagerProps) {
-    const [selectedAction, setSelectedAction] = useState<[UUID, number] | null>(null);
+    const [viewedWheelUuid, setViewedWheelUuid] = useState<UUID | null>(avatar?.mainActionWheel ?? allActionWheels[0]?.uuid ?? null);
+    const [selectedActionIndex, setSelectedActionIndex] = useState<number | null>(null);
+
+    // Reset selection when the viewed wheel changes
+    useEffect(() => {
+        setSelectedActionIndex(null);
+    }, [viewedWheelUuid]);
+
+    // If the currently viewed wheel is deleted or no longer exists, switch to a valid one.
+    useEffect(() => {
+        if (allActionWheels.length > 0 && (viewedWheelUuid === null || !allActionWheels.some(w => w.uuid === viewedWheelUuid))) {
+            setViewedWheelUuid(avatar.mainActionWheel ?? allActionWheels[0]?.uuid ?? null);
+        } else if (allActionWheels.length === 0) {
+            setViewedWheelUuid(null);
+        }
+    }, [allActionWheels, viewedWheelUuid, avatar.mainActionWheel]);
 
     const setMainWheel = (uuid: UUID) => {
         updateAvatar(draft => {
@@ -23,15 +41,30 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
 
     const deleteActionWheel = (uuid: UUID) => {
         if (avatar.mainActionWheel === uuid) {
-            alert("Cannot delete the main action wheel.");
+            alert("Cannot delete the main action wheel. Set another wheel as main first.");
             return;
         }
-        if (window.confirm("Are you sure you want to delete this action wheel?")) {
+
+        let usage = "";
+        for (const wheel of Object.values(avatar.actionWheels)) {
+            if (wheel.uuid === uuid) continue;
+            for (const action of wheel.actions) {
+                if (action.effect.kind === "switchPage" && action.effect.actionWheel === uuid) {
+                    usage = `an action in "${wheel.title}"`;
+                    break;
+                }
+            }
+            if (usage) break;
+        }
+
+        if (usage) {
+            alert(`Cannot delete. This wheel is used as a target in ${usage}.`);
+            return;
+        }
+
+        if (window.confirm(`Are you sure you want to delete the "${avatar.actionWheels[uuid].title}" wheel?`)) {
             updateAvatar((draft) => {
                 delete draft.actionWheels[uuid];
-                if (selectedAction && selectedAction[0] === uuid) {
-                    setSelectedAction(null);
-                }
             });
         }
     };
@@ -47,36 +80,37 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
     const addAction = (wheelUuid: UUID) => {
         updateAvatar(draft => {
             const wheel = draft.actionWheels[wheelUuid];
-            if (wheel) {
-                const firstWheelId = Object.keys(draft.actionWheels)[0] as UUID | undefined;
+            if (wheel && wheel.actions.length < MAX_ACTIONS_PER_WHEEL) {
+                const firstToggleGroup = Object.values(draft.toggleGroups)[0];
                 const newAction: Action = {
                     icon: '❓',
-                    color: [255, 255, 255],
-                    effect: { kind: 'switchPage', actionWheel: firstWheelId ?? ('' as UUID) },
+                    color: [80, 80, 80],
+                    effect: firstToggleGroup
+                        ? { kind: 'toggle', toggleGroup: firstToggleGroup.uuid, value: firstToggleGroup.options[0] ?? '' }
+                        : { kind: 'switchPage', actionWheel: Object.keys(draft.actionWheels)[0] as UUID ?? ('' as UUID) },
                 };
                 wheel.actions.push(newAction);
-                setSelectedAction([wheelUuid, wheel.actions.length - 1]);
+                setSelectedActionIndex(wheel.actions.length - 1);
+            } else if (wheel) {
+                alert(`A wheel can have a maximum of ${MAX_ACTIONS_PER_WHEEL} actions.`);
             }
         });
     };
 
+    const currentWheel = viewedWheelUuid ? avatar.actionWheels[viewedWheelUuid] : null;
+
     const selectedActionData = (() => {
-        if (!selectedAction) return null;
-        const [wheelUuid, actionIndex] = selectedAction;
-        const wheel = avatar.actionWheels[wheelUuid];
-        const action = wheel?.actions[actionIndex];
-        if (!wheel || !action) return null;
-        return { wheel, action, wheelUuid, actionIndex };
+        if (!currentWheel || selectedActionIndex === null) return null;
+        const action = currentWheel.actions[selectedActionIndex];
+        if (!action) return null;
+        return { wheel: currentWheel, action, wheelUuid: currentWheel.uuid, actionIndex: selectedActionIndex };
     })();
 
     const updateSelectedAction = (newAction: Action) => {
         if (!selectedActionData) return;
         const { wheelUuid, actionIndex } = selectedActionData;
         updateAvatar(draft => {
-            const wheel = draft.actionWheels[wheelUuid];
-            if (wheel) {
-                wheel.actions[actionIndex] = newAction;
-            }
+            draft.actionWheels[wheelUuid].actions[actionIndex] = newAction;
         });
     };
     
@@ -84,89 +118,93 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
         if (!selectedActionData) return;
         const { wheelUuid, actionIndex } = selectedActionData;
         updateAvatar(draft => {
-            const wheel = draft.actionWheels[wheelUuid];
-            if (wheel) {
-                wheel.actions.splice(actionIndex, 1);
-            }
+            draft.actionWheels[wheelUuid].actions.splice(actionIndex, 1);
         });
-        setSelectedAction(null);
+        setSelectedActionIndex(null);
     };
 
-    return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1 space-y-4">
-                {allActionWheels.map(wheel => (
-                    <div key={wheel.uuid} className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                        <div className="flex justify-between items-center mb-3">
-                            <Input 
-                                type="text"
-                                value={wheel.title}
-                                onChange={e => updateWheelTitle(wheel.uuid, e.target.value)}
-                                className="text-lg font-semibold bg-transparent border-0 p-0 focus:ring-0 w-full"
-                            />
-                            <div className="flex gap-2 flex-shrink-0 ml-2">
-                                {avatar.mainActionWheel !== wheel.uuid && (
-                                    <Button onClick={() => setMainWheel(wheel.uuid)} className="bg-yellow-600 hover:bg-yellow-700 text-xs">
-                                        Set Main
-                                    </Button>
-                                )}
-                                <Button onClick={() => deleteActionWheel(wheel.uuid)} className="bg-red-600 hover:bg-red-700 text-xs">
-                                    Delete
-                                </Button>
-                            </div>
-                        </div>
-                        
-                        {avatar.mainActionWheel === wheel.uuid && (
-                            <span className="text-xs font-bold text-yellow-400 mb-2 block">MAIN WHEEL</span>
-                        )}
+    if (allActionWheels.length === 0 || !currentWheel) {
+        return (
+             <div className="flex items-center justify-center h-48 bg-gray-800/50 rounded-lg p-8 text-gray-400 border-2 border-dashed border-gray-700">
+                <p className="text-center">No action wheels found. Add one to get started.</p>
+            </div>
+        );
+    }
 
-                        <div className="space-y-2">
-                           {wheel.actions.map((action, index) => {
-                               const isSelected = selectedAction?.[0] === wheel.uuid && selectedAction?.[1] === index;
-                               return (
-                                   <button 
-                                       key={index} 
-                                       onClick={() => setSelectedAction([wheel.uuid, index])}
-                                       className={`w-full text-left p-2 rounded flex items-center gap-3 transition-colors ${isSelected ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
-                                    >
-                                        <span className="flex-shrink-0" style={{
-                                            display: 'inline-block', width: '24px', height: '24px', borderRadius: '50%',
-                                            backgroundColor: `rgb(${action.color.join(',')})`,
-                                            textAlign: 'center', lineHeight: '24px', fontSize: '16px'
-                                        }}>
-                                            {action.icon}
-                                        </span>
-                                        <span className="truncate text-sm">
-                                            {action.effect.kind === 'toggle' 
-                                                ? `Toggle: ${allToggleGroups.find(g => g.uuid === action.effect.toggleGroup)?.name ?? 'N/A'}` 
-                                                : `Switch: ${allActionWheels.find(w => w.uuid === action.effect.actionWheel)?.title ?? 'N/A'}`}
-                                        </span>
-                                   </button>
-                               );
-                           })}
-                        </div>
-                        <Button onClick={() => addAction(wheel.uuid)} className="bg-green-600 hover:bg-green-700 mt-3 w-full">
-                            + Add Action
-                        </Button>
-                    </div>
+    return (
+        <div>
+            {/* Tabs for each wheel */}
+            <div className="flex items-center border-b border-gray-700 mb-6 -mx-2 px-2 pb-2 space-x-1 overflow-x-auto">
+                {allActionWheels.map(wheel => (
+                    <button
+                        key={wheel.uuid}
+                        onClick={() => setViewedWheelUuid(wheel.uuid)}
+                        className={`py-2 px-4 rounded-t-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
+                            viewedWheelUuid === wheel.uuid
+                                ? 'bg-gray-800 text-white'
+                                : 'text-gray-400 hover:bg-gray-700/50 hover:text-white'
+                        }`}
+                    >
+                        {avatar.mainActionWheel === wheel.uuid && <span className="mr-2 text-yellow-400" title="Main Wheel">★</span>}
+                        {wheel.title}
+                    </button>
                 ))}
             </div>
 
-            <div className="md:col-span-2">
-                {selectedActionData ? (
-                    <ActionEditor
-                        key={`${selectedActionData.wheelUuid}-${selectedActionData.actionIndex}`}
-                        action={selectedActionData.action}
-                        updateAction={updateSelectedAction}
-                        deleteAction={deleteSelectedAction}
-                        allToggleGroups={allToggleGroups}
-                        allActionWheels={allActionWheels}
+            <div className="space-y-6">
+                {/* Wheel Header Controls */}
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-gray-800 p-4 rounded-lg">
+                    <Input
+                        type="text"
+                        aria-label="Wheel Title"
+                        value={currentWheel.title}
+                        onChange={e => updateWheelTitle(currentWheel.uuid, e.target.value)}
+                        className="text-xl font-semibold bg-gray-700"
                     />
-                ) : (
-                    <div className="flex items-center justify-center h-full bg-gray-800/50 rounded-lg p-8 text-gray-400 border-2 border-dashed border-gray-700">
-                        <p className="text-center">Select an action on the left to edit it.<br/>Or add a new action wheel to get started.</p>
+                    <div className="flex gap-2 flex-shrink-0">
+                        {avatar.mainActionWheel !== currentWheel.uuid && (
+                            <Button onClick={() => setMainWheel(currentWheel.uuid)} className="bg-yellow-600 hover:bg-yellow-700">
+                                Set as Main
+                            </Button>
+                        )}
+                        {allActionWheels.length > 1 && (
+                            <Button onClick={() => deleteActionWheel(currentWheel.uuid)} className="bg-red-600 hover:bg-red-700">
+                                Delete Wheel
+                            </Button>
+                        )}
                     </div>
-                )}
+                </div>
+
+                {/* Main Content */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    <div className="flex justify-center items-center lg:sticky lg:top-24 py-4">
+                        <ActionWheelVisualizer
+                            key={currentWheel.uuid}
+                            actions={currentWheel.actions}
+                            onSelectAction={setSelectedActionIndex}
+                            onAddAction={() => addAction(currentWheel.uuid)}
+                            selectedActionIndex={selectedActionIndex}
+                            wheelTitle={currentWheel.title}
+                        />
+                    </div>
+
+                    <div>
+                        {selectedActionData ? (
+                            <ActionEditor
+                                key={`${selectedActionData.wheelUuid}-${selectedActionData.actionIndex}`}
+                                action={selectedActionData.action}
+                                updateAction={updateSelectedAction}
+                                deleteAction={deleteSelectedAction}
+                                allToggleGroups={allToggleGroups}
+                                allActionWheels={allActionWheels}
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center h-full bg-gray-800/50 rounded-lg p-8 text-gray-400 border-2 border-dashed border-gray-700 min-h-[400px]">
+                                <p className="text-center">Select an action on the wheel to edit it,<br/>or click the '+' slot to add a new one.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );

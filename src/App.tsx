@@ -29,22 +29,19 @@ export function App() {
 
   const deleteToggleGroup = (uuid: UUID) => {
     if (avatar) {
-        const isUsed = JSON.stringify(avatar).includes(uuid);
-        if (isUsed && Object.keys(avatar.toggleGroups ?? {}).find(k => k === uuid)) {
-            let usage = "";
-            for (const wheel of Object.values(avatar.actionWheels ?? {})) {
-                for (const action of wheel.actions) {
-                    if (action.effect.kind === "toggle" && action.effect.toggleGroup === uuid) {
-                        usage = `Action wheel "${wheel.title}"`;
-                        break;
-                    }
+        let usage = "";
+        for (const wheel of Object.values(avatar.actionWheels ?? {})) {
+            for (const action of wheel.actions) {
+                if (action.effect.kind === "toggle" && action.effect.toggleGroup === uuid) {
+                    usage = `an action in "${wheel.title}"`;
+                    break;
                 }
             }
-            // A more robust check for animation conditions would go here
-            if (usage) {
-                 alert(`Cannot delete. Toggle group is in use in ${usage}.`);
-                 return;
-            }
+        }
+        // A more robust check for animation conditions would go here
+        if (usage) {
+             alert(`Cannot delete. Toggle group is in use in ${usage}.`);
+             return;
         }
     }
 
@@ -59,7 +56,7 @@ export function App() {
     updateAvatar((draft) => {
       const newWheel: ActionWheel = {
         uuid: generateUUID(),
-        title: "New Action Wheel",
+        title: `Wheel ${Object.keys(draft.actionWheels).length + 1}`,
         actions: [],
       };
       draft.actionWheels[newWheel.uuid] = newWheel;
@@ -86,7 +83,10 @@ export function App() {
       </header>
 
       <main>
-        <Section title="Toggle Groups">
+        <Section 
+            title="Toggle Groups"
+            headerControls={<Button onClick={addToggleGroup} className="bg-blue-600 hover:bg-blue-700">+ Add Group</Button>}
+        >
           {allToggleGroups.map((group) => (
             <ToggleGroupEditor
               key={group.uuid}
@@ -95,17 +95,19 @@ export function App() {
               deleteGroup={() => deleteToggleGroup(group.uuid)}
             />
           ))}
-          <Button onClick={addToggleGroup} className="bg-blue-600 hover:bg-blue-700 mt-4">+ Add Toggle Group</Button>
+          {allToggleGroups.length === 0 && <p className="text-gray-400 text-center py-4">No toggle groups. Add one to get started.</p>}
         </Section>
 
-        <Section title="Action Wheels">
+        <Section 
+            title="Action Wheels"
+            headerControls={<Button onClick={addActionWheel} className="bg-blue-600 hover:bg-blue-700">+ Add Wheel</Button>}
+        >
           <ActionWheelsManager
             avatar={avatar}
             updateAvatar={updateAvatar}
             allActionWheels={allActionWheels}
             allToggleGroups={allToggleGroups}
           />
-          <Button onClick={addActionWheel} className="bg-blue-600 hover:bg-blue-700 mt-4">+ Add Action Wheel</Button>
         </Section>
 
         <Section title="Animation Settings">
