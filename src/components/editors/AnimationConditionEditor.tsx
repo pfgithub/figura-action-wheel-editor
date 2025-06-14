@@ -223,8 +223,7 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                                 disabled={!selectedGroup}
                                 className="w-auto flex-grow bg-slate-800/80"
                             >
-                                {!selectedGroup && <option value="" disabled>-- Select group --</option>}
-                                {selectedGroup && <option value="">-- Select option --</option>}
+                                <option value=""><em>None</em></option>
                                 {selectedGroup && Object.entries(selectedGroup.options).map(([uuid, option]) => <option key={uuid} value={uuid}>{option.name}</option>)}
                             </Select>
                         </div>
