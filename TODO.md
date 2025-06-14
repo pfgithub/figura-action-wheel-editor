@@ -4,3 +4,4 @@
 - [x] Implement an Animation Condition Editor based on drag and drop using dnd-kit and immer
 - [ ] Make it so you can drop a 'and', 'or', or 'not' component on another component to wrap that one
 - [ ] Make it so if you drag a component to the 'Conditions' sidebar, it deletes it.
+- [ ] 'effect' in Action is now optional, and so is toggleGroup and value in ActionEffect and AnimationConditionToggleGroup, switchPage in ActionWheel, and player in AnimationConditionPlayer. Update the UI to have these null by default.

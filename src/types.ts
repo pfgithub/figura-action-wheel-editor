@@ -19,17 +19,15 @@ export type Action = {
     icon: string,
     label: string,
     color: [number, number, number],
-    effect: ActionEffect,
+    effect?: ActionEffect,
 };
 export type ActionEffect = {
-    kind: "none",
-} | {
     kind: "toggle",
-    toggleGroup: UUID,
-    value: UUID,
+    toggleGroup?: UUID,
+    value?: UUID,
 } | {
     kind: "switchPage",
-    actionWheel: UUID,
+    actionWheel?: UUID,
 };
 
 export type ToggleGroupOption = {
@@ -62,11 +60,11 @@ export type AnimationConditionNot = {
 };
 export type AnimationConditionToggleGroup = {
     kind: "toggleGroup",
-    toggleGroup: UUID,
-    value: UUID,
+    toggleGroup?: UUID,
+    value?: UUID,
 };
 export type AnimationConditionPlayer = {
     kind: "player",
-    player: "crouching" | "sprinting" | "blocking" | "fishing" | "sleeping" | "swimming" | "flying" | "walking",
+    player?: "crouching" | "sprinting" | "blocking" | "fishing" | "sleeping" | "swimming" | "flying" | "walking",
 };
 export type AnimationCondition = AnimationConditionOr | AnimationConditionAnd | AnimationConditionNot | AnimationConditionToggleGroup | AnimationConditionPlayer;
