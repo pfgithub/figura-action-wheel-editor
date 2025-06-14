@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import type { Action, ActionEffect, ActionWheel, ToggleGroup, UUID, Avatar } from "../../types";
-import type { UpdateAvatarFn } from "../../hooks/useAvatar";
+import type { Action, ActionEffect, ActionWheel, ToggleGroup, UUID } from "../../types";
+import { useAvatarStore } from "../../store/avatarStore";
 import { useMinecraftItems } from "../../hooks/useMinecraftItems";
 import { MinecraftItemPickerDialog } from "../dialogs/MinecraftItemPickerDialog";
 import { Button } from "../ui/Button";
@@ -78,13 +78,11 @@ const hexToRgb = (hex: string): [number, number, number] | null => {
     ] : null;
 };
 
-function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWheels, avatar, updateAvatar }: {
+function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWheels }: {
   effect: ActionEffect;
   updateEffect: (e: ActionEffect) => void;
   allToggleGroups: ToggleGroup[];
   allActionWheels: ActionWheel[];
-  avatar: Avatar;
-  updateAvatar: UpdateAvatarFn;
 }) {
   const handleKindChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const kind = e.target.value as ActionEffect['kind'];
@@ -110,8 +108,6 @@ function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWh
             <>
                 <FormRow label="Toggle Group">
                     <ToggleGroupControls
-                        avatar={avatar}
-                        updateAvatar={updateAvatar}
                         allToggleGroups={allToggleGroups}
                         selectedGroupUUID={effect.toggleGroup}
                         onGroupChange={(newUUID) => {
@@ -155,11 +151,9 @@ interface ActionEditorProps {
     deleteAction: () => void;
     allToggleGroups: ToggleGroup[];
     allActionWheels: ActionWheel[];
-    avatar: Avatar;
-    updateAvatar: UpdateAvatarFn;
 }
 
-export function ActionEditor({ action, updateAction, deleteAction, allToggleGroups, allActionWheels, avatar, updateAvatar }: ActionEditorProps) {
+export function ActionEditor({ action, updateAction, deleteAction, allToggleGroups, allActionWheels }: ActionEditorProps) {
 
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rgb = hexToRgb(e.target.value);
@@ -226,8 +220,6 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
                     updateEffect={effect => updateAction({ ...action, effect })}
                     allToggleGroups={allToggleGroups}
                     allActionWheels={allActionWheels}
-                    avatar={avatar}
-                    updateAvatar={updateAvatar}
                 />
             ) : (
                 <div className="text-center py-4">

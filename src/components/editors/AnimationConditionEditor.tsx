@@ -4,25 +4,21 @@ import {
     DragOverlay,
     useDraggable,
     useDroppable,
-    // Import the more precise pointerWithin collision detection strategy
     pointerWithin,
     type DragEndEvent,
     type DragStartEvent,
 } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { produce, type WritableDraft } from 'immer';
-import type { AnimationCondition, Avatar, ToggleGroup, UUID, AnimationConditionNot, AnimationConditionAnd, AnimationConditionOr } from '../../types';
-import type { UpdateAvatarFn } from '../../hooks/useAvatar';
+import type { AnimationCondition, ToggleGroup, UUID, AnimationConditionNot, AnimationConditionAnd, AnimationConditionOr } from '../../types';
+import { useAvatarStore } from '../../store/avatarStore';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { ToggleGroupControls } from '../shared/ToggleGroupControls';
 
-// --- Icons (using simple SVGs for self-containment) ---
+// ... (Icons and other helpers remain the same) ...
 const GripVerticalIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>;
 const Trash2Icon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>;
-
-
-// --- Style Mapping & Types ---
 const kindStyles: { [key in AnimationCondition['kind']]: { label: string; border: string; bg: string; text: string; } } = {
   and: { label: 'AND (All Of)', border: 'border-sky-500', bg: 'bg-sky-900/30', text: 'text-sky-300' },
   or: { label: 'OR (Any Of)', border: 'border-emerald-500', bg: 'bg-emerald-900/30', text: 'text-emerald-300' },
@@ -30,11 +26,7 @@ const kindStyles: { [key in AnimationCondition['kind']]: { label: string; border
   toggleGroup: { label: 'Toggle Group State', border: 'border-violet-500', bg: 'bg-violet-900/30', text: 'text-violet-300' },
   player: { label: 'Player State', border: 'border-rose-500', bg: 'bg-rose-900/30', text: 'text-rose-300' },
 };
-
 type PaletteItemKind = 'and' | 'or' | 'not' | 'toggleGroup' | 'player';
-
-// --- Immutable Tree Helpers using path strings ---
-// Path format: "root.conditions.0.condition" etc.
 function getParentAndFinalKey(path: string): { parentPath: string | null; finalKey: string | number } {
     const parts = path.split('.');
     if (parts.length === 1) return { parentPath: null, finalKey: parts[0] };
@@ -42,20 +34,31 @@ function getParentAndFinalKey(path: string): { parentPath: string | null; finalK
     const finalKey = /^\d+$/.test(finalKeyStr) ? parseInt(finalKeyStr, 10) : finalKeyStr;
     return { parentPath: parts.join('.'), finalKey };
 }
-
 function getIn(obj: any, path: string): any {
-    if (path === 'root' || !obj) return obj;
-    const parts = path.split('.').filter(p => p !== 'root'); // Handle path starting with "root."
-    let current = obj;
+    // This helper assumes 'obj' is the wrapper { root: ... } and 'path' starts with "root"
+    if (!obj || !('root' in obj)) {
+        // If the root condition is undefined, obj.root will be undefined, so we return that.
+        // This handles the case of dragging onto the initial empty dropzone.
+        if (path === 'root') return obj?.root;
+        return undefined;
+    }
+    if (path === 'root') {
+        return obj.root;
+    }
+
+    // Paths are like "root.conditions.0", so we skip the 'root' part
+    const parts = path.split('.').slice(1);
+    let current = obj.root;
+
     for (const part of parts) {
-        if (current === undefined || current === null) return undefined;
+        if (current === undefined || current === null) {
+            return undefined;
+        }
         const key = /^\d+$/.test(part) ? parseInt(part, 10) : part;
-        current = current[key];
+        current = (current as any)[key];
     }
     return current;
 }
-
-// --- Component: Palette Item ---
 function PaletteItem({ kind }: { kind: PaletteItemKind }) {
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
         id: `palette-${kind}`,
@@ -74,8 +77,6 @@ function PaletteItem({ kind }: { kind: PaletteItemKind }) {
         </div>
     );
 }
-
-// --- Component: Condition Palette ---
 function ConditionPalette() {
     const paletteItems: PaletteItemKind[] = ['and', 'or', 'not', 'toggleGroup', 'player'];
     return (
@@ -85,8 +86,6 @@ function ConditionPalette() {
         </div>
     );
 }
-
-// --- Component: Drop Zone ---
 function DropZone({ id, path, label = "Drop condition here" }: { id: string, path: string, label?: string }) {
     const { setNodeRef, isOver } = useDroppable({
         id,
@@ -104,18 +103,15 @@ function DropZone({ id, path, label = "Drop condition here" }: { id: string, pat
     );
 }
 
-// --- Component: Recursive Condition Node Renderer ---
 interface ConditionNodeProps {
     path: string;
     condition?: AnimationCondition;
     allToggleGroups: ToggleGroup[];
-    avatar: Avatar;
-    updateAvatar: UpdateAvatarFn;
     updateCondition: (newCondition?: AnimationCondition) => void;
     deleteNode: () => void;
 }
 
-function ConditionNode({ path, condition, updateCondition, deleteNode, allToggleGroups, avatar, updateAvatar }: ConditionNodeProps) {
+function ConditionNode({ path, condition, updateCondition, deleteNode, allToggleGroups }: ConditionNodeProps) {
     if (!condition) {
         return <DropZone id={path} path={path} label={"Drag a condition from the panel to start"} />;
     }
@@ -132,7 +128,6 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
         data: { path, type: 'condition' },
     });
 
-    // Helper to combine refs from both hooks
     const setNodeRef = (node: HTMLElement | null) => {
         setDraggableNodeRef(node);
     };
@@ -176,8 +171,6 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                                     if (draft.kind === 'and' || draft.kind === 'or') draft.conditions.splice(i, 1);
                                 })}
                                 allToggleGroups={allToggleGroups}
-                                avatar={avatar}
-                                updateAvatar={updateAvatar}
                             />
                         ))}
                         <DropZone id={`${path}.add`} path={path} label="Add sub-condition" />
@@ -196,8 +189,6 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                                 if (draft.kind === 'not') draft.condition = undefined;
                             })}
                             allToggleGroups={allToggleGroups}
-                            avatar={avatar}
-                            updateAvatar={updateAvatar}
                         />
                     </div>
                 );
@@ -209,8 +200,6 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                             <span className="flex-shrink-0 pr-2">When</span>
                             <div className="flex-grow">
                                 <ToggleGroupControls
-                                    avatar={avatar}
-                                    updateAvatar={updateAvatar}
                                     allToggleGroups={allToggleGroups}
                                     selectedGroupUUID={condition.toggleGroup}
                                     onGroupChange={(newUUID) => {
@@ -277,22 +266,18 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
     );
 }
 
-// --- Main Drag-and-Drop Editor Component ---
 interface AnimationConditionEditorProps {
   condition?: AnimationCondition;
   updateCondition: (c: AnimationCondition | undefined) => void;
   allToggleGroups: ToggleGroup[];
-  avatar: Avatar;
-  updateAvatar: UpdateAvatarFn;
 }
 
 export function AnimationConditionEditor({
   condition,
   updateCondition,
   allToggleGroups,
-  avatar,
-  updateAvatar,
 }: AnimationConditionEditorProps) {
+    const { avatar } = useAvatarStore();
     const [activeId, setActiveId] = useState<string | null>(null);
     const activeConditionData = useMemo(() => {
         if (!activeId) return null;
@@ -300,9 +285,10 @@ export function AnimationConditionEditor({
             const kind = activeId.replace('palette-', '') as PaletteItemKind;
             return { kind, label: kindStyles[kind].label };
         }
-        const activeCondition = getIn(condition, activeId);
+        if (!avatar) return null;
+        const activeCondition = getIn({root: condition}, activeId);
         return activeCondition ? { kind: activeCondition.kind, label: kindStyles[activeCondition.kind]?.label } : null;
-    }, [activeId, condition]);
+    }, [activeId, condition, avatar]);
 
     const createNewConditionNode = (kind: PaletteItemKind): AnimationCondition => {
         switch (kind) {
@@ -339,45 +325,35 @@ export function AnimationConditionEditor({
             return;
         }
 
-        const updatedCondition = produce(condition, (draft: WritableDraft<AnimationCondition> | undefined) => {
+        const rootCondition = { root: condition };
+        const updatedCondition = produce(rootCondition, (draft) => {
             const isPaletteDrag = activeId.startsWith('palette-');
             
             let nodeToInsert: AnimationCondition;
 
-            // --- STEP 1: Determine the node being inserted ---
+            // STEP 1: Determine the node being inserted
             if (isPaletteDrag) {
-                // Create a new node from the palette
                 const kind = active.data.current?.kind as PaletteItemKind;
                 nodeToInsert = createNewConditionNode(kind);
             } else {
-                // Find the node being moved from its original position in the tree
                 const nodeToMove = getIn(draft, activeId);
-                if (!nodeToMove) return; // Node to move not found, abort.
-                
-                // Deep clone the node to prevent issues with Immer proxies and object references
+                if (!nodeToMove) return; 
                 nodeToInsert = JSON.parse(JSON.stringify(nodeToMove));
             }
 
-            // --- STEP 2: Insert the node at the destination ---
-            // This is done BEFORE removal to prevent stale path issues.
-            let isReplacingRoot = false;
-            
+            // STEP 2: Insert the node at the destination
             if (overId.endsWith('.add')) {
-                // Dropped into an "Add" drop zone of a container
                 const containerPath = over.data.current?.path as string;
                 const container = getIn(draft, containerPath);
                 if (container && 'conditions' in container && Array.isArray(container.conditions)) {
                     (container as WritableDraft<AnimationConditionAnd | AnimationConditionOr>).conditions.push(nodeToInsert);
                 }
             } else { 
-                // Dropped into a slot to replace an existing node (or fill an empty one)
                 const { parentPath: destParentPath, finalKey: destKey } = getParentAndFinalKey(overId);
                 
                 if (destParentPath === null) {
-                    // This will replace the root. We handle the return value at the end.
-                    isReplacingRoot = true;
+                    (draft as any)[destKey] = nodeToInsert;
                 } else {
-                    if (!draft) return; // Should not happen if parent exists
                     const destParent = getIn(draft, destParentPath);
                     if (destParent) {
                         (destParent as any)[destKey] = nodeToInsert;
@@ -385,33 +361,26 @@ export function AnimationConditionEditor({
                 }
             }
 
-            // --- STEP 3: If it was a move operation, remove the original node ---
+            // STEP 3: If it was a move operation, remove the original node
             if (!isPaletteDrag) {
                 const { parentPath, finalKey } = getParentAndFinalKey(activeId);
                 
-                if (parentPath === null) {
-                    // Moving the root node. This is handled by replacing it.
-                    // If we dragged the root to a child, this would be duplication.
-                    // The `overId.startsWith(activeId)` check should prevent this.
-                } else {
+                if (parentPath !== null) {
                     const parentContainer = getIn(draft, parentPath);
-
                     if (Array.isArray(parentContainer)) {
                         parentContainer.splice(finalKey as number, 1);
                     } 
                     else if (parentContainer && typeof finalKey === 'string' && finalKey === 'condition') {
                          (parentContainer as WritableDraft<AnimationConditionNot>).condition = undefined;
+                    } else if (parentPath === 'root') {
+                        // This case handles removing the root node if it's dragged somewhere else.
+                         (draft as any)[finalKey] = undefined;
                     }
                 }
             }
-            
-            // --- Final Step: If we replaced the root, we must return the new root from the producer ---
-            if (isReplacingRoot) {
-                return nodeToInsert;
-            }
         });
-
-        updateCondition(updatedCondition);
+        
+        updateCondition(updatedCondition.root);
     };
 
     return (
@@ -429,8 +398,6 @@ export function AnimationConditionEditor({
                         updateCondition={updateCondition}
                         deleteNode={() => updateCondition(undefined)}
                         allToggleGroups={allToggleGroups}
-                        avatar={avatar}
-                        updateAvatar={updateAvatar}
                     />
                 </div>
             </div>

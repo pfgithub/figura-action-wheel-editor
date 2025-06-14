@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Avatar, ToggleGroup, ToggleGroupOption, UUID, AnimationCondition } from '../../types';
-import type { UpdateAvatarFn } from '../../hooks/useAvatar';
+import { useAvatarStore } from '../../store/avatarStore';
 import { generateUUID } from '../../utils/uuid';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -60,13 +60,12 @@ function findToggleGroupUsage(avatar: Avatar, toggleGroupUUID: UUID): string[] {
 
 interface ToggleGroupDialogProps {
     groupToEdit: ToggleGroup | null;
-    avatar: Avatar;
-    updateAvatar: UpdateAvatarFn;
     onClose: () => void;
     onSave: (uuid: UUID) => void;
 }
 
-export function ToggleGroupDialog({ groupToEdit, avatar, updateAvatar, onClose, onSave }: ToggleGroupDialogProps) {
+export function ToggleGroupDialog({ groupToEdit, onClose, onSave }: ToggleGroupDialogProps) {
+    const { avatar, updateAvatar } = useAvatarStore();
     const [name, setName] = useState('');
     const [options, setOptions] = useState<{ uuid: UUID; name: string }[]>([]);
     const [nameError, setNameError] = useState('');
@@ -146,7 +145,7 @@ export function ToggleGroupDialog({ groupToEdit, avatar, updateAvatar, onClose, 
     };
 
     const handleDelete = () => {
-        if (!groupToEdit) return;
+        if (!groupToEdit || !avatar) return;
 
         const usages = findToggleGroupUsage(avatar, groupToEdit.uuid);
 

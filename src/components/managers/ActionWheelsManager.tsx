@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import type { UUID, Action, Avatar, ToggleGroup, ActionWheel } from '../../types';
-import type { UpdateAvatarFn } from '../../hooks/useAvatar';
+import type { UUID, Action, ActionWheel, ToggleGroup } from '../../types';
+import { useAvatarStore } from '../../store/avatarStore';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { ActionEditor } from '../editors/ActionEditor';
 import { ActionWheelVisualizer } from '../ui/ActionWheelVisualizer';
 
 interface ActionWheelsManagerProps {
-    avatar: Avatar;
-    updateAvatar: UpdateAvatarFn;
     allToggleGroups: ToggleGroup[];
     allActionWheels: ActionWheel[];
     addActionWheel: () => void;
@@ -19,20 +17,21 @@ interface ActionWheelsManagerProps {
 const MAX_ACTIONS_PER_WHEEL = 8;
 
 export function ActionWheelsManager({
-    avatar,
-    updateAvatar,
     allToggleGroups,
     allActionWheels,
     addActionWheel,
     viewedWheelUuid,
     setViewedWheelUuid
 }: ActionWheelsManagerProps) {
+    const { avatar, updateAvatar } = useAvatarStore();
     const [selectedActionIndex, setSelectedActionIndex] = useState<number | null>(null);
 
     // Reset selection when the viewed wheel changes
     useEffect(() => {
         setSelectedActionIndex(null);
     }, [viewedWheelUuid]);
+
+    if (!avatar) return null; // Should not happen if App component handles loading state
 
     const setMainWheel = (uuid: UUID) => {
         updateAvatar(draft => {
@@ -221,8 +220,6 @@ export function ActionWheelsManager({
                                 deleteAction={deleteSelectedAction}
                                 allToggleGroups={allToggleGroups}
                                 allActionWheels={allActionWheels}
-                                avatar={avatar}
-                                updateAvatar={updateAvatar}
                             />
                         ) : (
                              <div className="flex flex-col items-center justify-center h-full bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700 min-h-[400px]">

@@ -1,19 +1,17 @@
 import React, { useState } from 'react';
-import type { Avatar, ToggleGroup, UUID } from '../../types';
-import type { UpdateAvatarFn } from '../../hooks/useAvatar';
+import type { ToggleGroup, UUID } from '../../types';
+import { useAvatarStore } from '../../store/avatarStore';
 import { Select } from '../ui/Select';
 import { Button } from '../ui/Button';
 import { ToggleGroupDialog } from '../dialogs/ToggleGroupDialog';
 
 interface ToggleGroupControlsProps {
-    avatar: Avatar;
-    updateAvatar: UpdateAvatarFn;
     allToggleGroups: ToggleGroup[];
     selectedGroupUUID: UUID | undefined;
     onGroupChange: (newUUID: UUID) => void;
 }
 
-export function ToggleGroupControls({ avatar, updateAvatar, allToggleGroups, selectedGroupUUID, onGroupChange }: ToggleGroupControlsProps) {
+export function ToggleGroupControls({ allToggleGroups, selectedGroupUUID, onGroupChange }: ToggleGroupControlsProps) {
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [groupToEdit, setGroupToEdit] = useState<ToggleGroup | null>(null);
 
@@ -39,12 +37,12 @@ export function ToggleGroupControls({ avatar, updateAvatar, allToggleGroups, sel
         <>
             <div className="flex items-center gap-2">
                 <Select
-                    value={selectedGroupUUID}
+                    value={selectedGroupUUID ?? ''}
                     onChange={(e) => onGroupChange(e.target.value as UUID)}
                     disabled={allToggleGroups.length === 0}
                     className="flex-grow"
                 >
-                    <option>-- Choose Group --</option>
+                    <option value="">-- Choose Group --</option>
                     {allToggleGroups.map(g => <option key={g.uuid} value={g.uuid}>{g.name}</option>)}
                 </Select>
                 <Button onClick={openEditDialog} disabled={!selectedGroupUUID} className="bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400 flex-shrink-0 px-3">Edit</Button>
@@ -53,8 +51,6 @@ export function ToggleGroupControls({ avatar, updateAvatar, allToggleGroups, sel
             {isDialogOpen && (
                 <ToggleGroupDialog
                     groupToEdit={groupToEdit}
-                    avatar={avatar}
-                    updateAvatar={updateAvatar}
                     onClose={() => setDialogOpen(false)}
                     onSave={handleSave}
                 />

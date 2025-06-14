@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import type { Avatar, AnimationID, ToggleGroup, AnimationSetting, AnimationCondition } from '../../types';
-import type { UpdateAvatarFn } from '../../hooks/useAvatar';
+import type { AnimationID, ToggleGroup, AnimationSetting, AnimationCondition } from '../../types';
+import { useAvatarStore } from '../../store/avatarStore';
 import { Input } from '../ui/Input';
 import { AnimationSettingEditor } from '../editors/AnimationSettingEditor';
 
+interface AnimationSettingsManagerProps {
+    allToggleGroups: ToggleGroup[];
+}
+
 // Helper to summarize the condition for display in the UI
 const summarizeCondition = (condition?: AnimationCondition): string => {
-    if (!condition || condition.kind === 'empty') {
+    if (!condition) {
         return "Not configured";
     }
     // A simple function to recursively count non-container conditions
@@ -21,6 +25,7 @@ const summarizeCondition = (condition?: AnimationCondition): string => {
             case 'player':
                 return 1;
             default:
+                // This will handle any future unknown kinds gracefully.
                 return 0;
         }
     }
@@ -31,10 +36,13 @@ const summarizeCondition = (condition?: AnimationCondition): string => {
 };
 
 
-export function AnimationSettingsManager({ avatar, updateAvatar, allToggleGroups }: AnimationSettingsManagerProps) {
+export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsManagerProps) {
+    const { avatar, updateAvatar } = useAvatarStore();
     const [filter, setFilter] = useState('');
     const [expandedAnimId, setExpandedAnimId] = useState<AnimationID | null>(null);
     
+    if (!avatar) return null;
+
     const { animations, animationSettings } = avatar;
     const lowerFilter = filter.toLowerCase();
 
@@ -104,8 +112,6 @@ export function AnimationSettingsManager({ avatar, updateAvatar, allToggleGroups
                                         setting={setting}
                                         updateSetting={(s) => updateSetting(animId, s)}
                                         allToggleGroups={allToggleGroups}
-                                        avatar={avatar}
-                                        updateAvatar={updateAvatar}
                                     />
                                 </div>
                             )}

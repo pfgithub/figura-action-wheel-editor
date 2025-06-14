@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import type { UUID, ActionWheel, ToggleGroup, Avatar } from "./types";
-import { useAvatar } from "./hooks/useAvatar";
+import { useStore } from "zustand";
+import type { UUID, ActionWheel } from "./types";
+import { useAvatarStore } from "./store/avatarStore";
 import { generateUUID } from "./utils/uuid";
 import "./index.css";
 
@@ -12,8 +13,16 @@ import { ActionWheelsManager } from "./components/managers/ActionWheelsManager";
 import { AnimationSettingsManager } from "./components/managers/AnimationSettingsManager";
 
 export function App() {
-  const { avatar, loading, error, isSaving, handleSave, updateAvatar } = useAvatar();
+  const { avatar, loading, error, isSaving, fetchAvatar, saveAvatar, updateAvatar } = useAvatarStore();
   const [viewedWheelUuid, setViewedWheelUuid] = useState<UUID | null>(null);
+
+  // Get temporal state and actions for undo/redo
+  const { pastStates, futureStates, undo, redo, clear } = useAvatarStore.temporal.getState()
+
+  // Effect to fetch initial data
+  useEffect(() => {
+    fetchAvatar();
+  }, [fetchAvatar]);
 
   // Effect to keep viewedWheelUuid in sync with the available wheels
   useEffect(() => {
@@ -59,9 +68,13 @@ export function App() {
         <h1 className="text-3xl md:text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-500">
           Avatar Editor
         </h1>
-        <Button onClick={handleSave} disabled={isSaving} className="bg-violet-600 hover:bg-violet-500 text-base py-2 px-6 focus-visible:ring-violet-400">
-          {isSaving ? "Saving..." : "Save"}
-        </Button>
+        <div className="flex items-center gap-2">
+            <Button onClick={() => undo()} disabled={pastStates.length === 0} className="bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400">Undo</Button>
+            <Button onClick={() => redo()} disabled={futureStates.length === 0} className="bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400">Redo</Button>
+            <Button onClick={saveAvatar} disabled={isSaving || pastStates.length === 0} className="bg-violet-600 hover:bg-violet-500 text-base py-2 px-6 focus-visible:ring-violet-400">
+              {isSaving ? "Saving..." : "Save"}
+            </Button>
+        </div>
       </header>
 
       <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -71,8 +84,6 @@ export function App() {
                 <h2 className="text-2xl font-bold text-slate-100">Action Wheels</h2>
             </div>
             <ActionWheelsManager
-                avatar={avatar}
-                updateAvatar={updateAvatar}
                 allActionWheels={allActionWheels}
                 allToggleGroups={allToggleGroups}
                 addActionWheel={addActionWheel}
@@ -87,8 +98,6 @@ export function App() {
              <h2 className="text-2xl font-bold text-slate-100">Animation Settings</h2>
            </div>
            <AnimationSettingsManager
-                avatar={avatar}
-                updateAvatar={updateAvatar}
                 allToggleGroups={allToggleGroups}
            />
         </div>

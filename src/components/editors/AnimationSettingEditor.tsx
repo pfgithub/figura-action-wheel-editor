@@ -1,6 +1,5 @@
 import React from "react";
-import type { AnimationID, AnimationSetting, Avatar, ToggleGroup } from "../../types";
-import type { UpdateAvatarFn } from "../../hooks/useAvatar";
+import type { AnimationID, AnimationSetting, ToggleGroup } from "../../types";
 import { FormRow } from "../ui/FormRow";
 import { Input } from "../ui/Input";
 import { AnimationConditionEditor } from "./AnimationConditionEditor";
@@ -10,11 +9,9 @@ interface AnimationSettingEditorProps {
   setting: AnimationSetting;
   updateSetting: (s: AnimationSetting) => void;
   allToggleGroups: ToggleGroup[];
-  avatar: Avatar;
-  updateAvatar: UpdateAvatarFn;
 }
 
-export function AnimationSettingEditor({ animId, setting, updateSetting, allToggleGroups, avatar, updateAvatar }: AnimationSettingEditorProps) {
+export function AnimationSettingEditor({ animId, setting, updateSetting, allToggleGroups }: AnimationSettingEditorProps) {
   return (
     <div className="space-y-4">
       <FormRow label="Display Name">
@@ -28,8 +25,6 @@ export function AnimationSettingEditor({ animId, setting, updateSetting, allTogg
             condition={setting.activationCondition}
             updateCondition={(newCond) => updateSetting({ ...setting, activationCondition: newCond })}
             allToggleGroups={allToggleGroups}
-            avatar={avatar}
-            updateAvatar={updateAvatar}
           />
         </div>
       </div>
