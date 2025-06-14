@@ -40,8 +40,10 @@ function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWh
       const firstGroup = allToggleGroups[0];
       const firstOptionId = firstGroup ? Object.keys(firstGroup.options)[0] as UUID : undefined;
       updateEffect({ kind, toggleGroup: firstGroup?.uuid ?? '' as UUID, value: (firstOptionId ?? '') as UUID });
-    } else {
+    } else if(kind === 'switchPage') {
       updateEffect({ kind: 'switchPage', actionWheel: allActionWheels[0]?.uuid ?? '' as UUID });
+    } else {
+      updateEffect({ kind: 'none' });
     }
   };
 
@@ -51,6 +53,7 @@ function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWh
     <div className="space-y-3">
         <FormRow label="Effect Type">
             <Select value={effect.kind} onChange={handleKindChange}>
+                <option value="none">Choose an Effect Type</option>
                 <option value="toggle">Toggle an Option</option>
                 <option value="switchPage">Switch Action Wheel</option>
             </Select>

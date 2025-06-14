@@ -49,7 +49,7 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
         for (const wheel of Object.values(avatar.actionWheels)) {
             if (wheel.uuid === uuid) continue;
             for (const action of wheel.actions) {
-                if (action.effect?.kind === "switchPage" && action.effect.actionWheel === uuid) {
+                if (action.effect.kind === "switchPage" && action.effect.actionWheel === uuid) {
                     usage = `an action in "${wheel.title}"`;
                     break;
                 }
@@ -85,6 +85,7 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
                     icon: '❓',
                     label: `Action ${wheel.actions.length + 1}`,
                     color: [80, 80, 80],
+                    effect: { kind: 'none' },
                 };
                 wheel.actions.push(newAction);
                 setSelectedActionIndex(wheel.actions.length - 1);

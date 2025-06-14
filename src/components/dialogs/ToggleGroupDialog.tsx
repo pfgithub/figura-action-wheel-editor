@@ -100,7 +100,7 @@ export function ToggleGroupDialog({ groupToEdit, avatar, updateAvatar, onClose, 
         let usage = "";
         for (const wheel of Object.values(avatar.actionWheels ?? {})) {
             for (const action of wheel.actions) {
-                if (action.effect?.kind === "toggle" && action.effect.toggleGroup === groupToEdit.uuid) {
+                if (action.effect.kind === "toggle" && action.effect.toggleGroup === groupToEdit.uuid) {
                     usage = `an action in "${wheel.title}"`;
                     break;
                 }

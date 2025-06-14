@@ -19,9 +19,11 @@ export type Action = {
     icon: string,
     label: string,
     color: [number, number, number],
-    effect?: ActionEffect,
+    effect: ActionEffect,
 };
 export type ActionEffect = {
+    kind: "none",
+} | {
     kind: "toggle",
     toggleGroup: UUID,
     value: UUID,
