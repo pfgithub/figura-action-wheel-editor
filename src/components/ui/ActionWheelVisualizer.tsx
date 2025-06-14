@@ -30,8 +30,8 @@ export function ActionWheelVisualizer({
     if (item?.imageUrl) {
         return <img src={item.imageUrl} alt={action.label} className="w-8 h-8 image-pixelated" />
     }
-    // Fallback for non-item icons (like '❓') or if item not found
-    return <span className="text-2xl" style={{ lineHeight: 1 }}>{action.icon}</span>;
+    // Fallback for if item not found
+    return <span className="text-xs max-w-full break-words" style={{ lineHeight: 1 }}>{action.icon}</span>;
   };
 
   return (
@@ -53,22 +53,36 @@ export function ActionWheelVisualizer({
         const isSelected = selectedActionIndex === index;
 
         return (
-          <button
+          // Container for the button and its label, positioned on the wheel
+          <div
             key={index}
-            onClick={() => onSelectAction(index)}
-            className={`absolute flex items-center justify-center rounded-full text-white font-bold p-1 text-center leading-tight transition-all duration-200 ease-in-out transform hover:scale-110 focus:outline-none shadow-md hover:shadow-lg ${isSelected ? 'ring-4 ring-violet-500 shadow-xl z-10' : 'ring-2 ring-slate-600'}`}
+            className="absolute"
             style={{
               width: `${BUTTON_SIZE}px`,
               height: `${BUTTON_SIZE}px`,
-              backgroundColor: `rgb(${action.color.join(',')})`,
               top: `calc(50% - ${BUTTON_SIZE / 2}px)`,
               left: `calc(50% - ${BUTTON_SIZE / 2}px)`,
               transform: `translate(${x}px, ${y}px)`,
             }}
-            title={action.label}
           >
-            {renderIcon(action)}
-          </button>
+            <button
+              onClick={() => onSelectAction(index)}
+              className={`w-full h-full flex items-center justify-center rounded-full text-white p-1 text-center leading-tight transition-all duration-200 ease-in-out transform hover:scale-110 focus:outline-none shadow-md hover:shadow-lg ${isSelected ? 'ring-4 ring-violet-500 shadow-xl z-10' : 'ring-2 ring-slate-600'}`}
+              style={{
+                backgroundColor: `rgb(${action.color.join(',')})`,
+              }}
+              title={action.label}
+            >
+              {renderIcon(action)}
+            </button>
+            {/* Position label absolutely below the button's container */}
+            <span
+              className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-xs font-semibold text-white truncate w-24 text-center pointer-events-none"
+              title={action.label}
+            >
+              {action.label}
+            </span>
+          </div>
         );
       })}
 
