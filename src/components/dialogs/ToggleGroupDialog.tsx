@@ -43,7 +43,7 @@ function findToggleGroupUsage(avatar: Avatar, toggleGroupUUID: UUID): string[] {
     // Check Action Wheels
     for (const wheel of Object.values(avatar.actionWheels ?? {})) {
         for (const action of wheel.actions) {
-            if (action.effect.kind === 'toggle' && action.effect.toggleGroup === toggleGroupUUID) {
+            if (action.effect?.kind === 'toggle' && action.effect.toggleGroup === toggleGroupUUID) {
                 usages.push(`the action "${action.label}" in wheel "${wheel.title}"`);
             }
         }

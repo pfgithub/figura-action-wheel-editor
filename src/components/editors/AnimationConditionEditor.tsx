@@ -214,12 +214,10 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                                     allToggleGroups={allToggleGroups}
                                     selectedGroupUUID={condition.toggleGroup}
                                     onGroupChange={(newUUID) => {
-                                        const newGroup = avatar.toggleGroups[newUUID];
-                                        const firstOptionId = newGroup ? Object.keys(newGroup.options)[0] as UUID : undefined;
                                         handleUpdate(draft => {
                                             if (draft.kind === 'toggleGroup') {
                                                 draft.toggleGroup = newUUID;
-                                                draft.value = (firstOptionId ?? '') as UUID;
+                                                draft.value = undefined;
                                             }
                                         });
                                     }}
@@ -229,15 +227,16 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                         <div className="flex items-center gap-2">
                             <span className="font-semibold flex-shrink-0 pr-6">is</span>
                             <Select
-                                value={condition.value}
+                                value={condition.value ?? ''}
                                 onChange={(e) => handleUpdate(draft => {
-                                    if (draft.kind === 'toggleGroup') draft.value = e.target.value as UUID;
+                                    if (draft.kind === 'toggleGroup') draft.value = e.target.value ? e.target.value as UUID : undefined;
                                 })}
                                 disabled={!selectedGroup}
                                 className="w-auto flex-grow bg-slate-800/80"
                             >
+                                {!selectedGroup && <option value="" disabled>-- Select group --</option>}
+                                {selectedGroup && <option value="">-- Select option --</option>}
                                 {selectedGroup && Object.entries(selectedGroup.options).map(([uuid, option]) => <option key={uuid} value={uuid}>{option.name}</option>)}
-                                {!selectedGroup && <option>--</option>}
                             </Select>
                         </div>
                     </div>
@@ -248,12 +247,13 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                     <div className="flex items-center gap-2 text-slate-300 p-3 text-sm flex-wrap">
                         <span>When player is</span>
                         <Select
-                        value={condition.player}
+                        value={condition.player ?? ''}
                         onChange={(e) => handleUpdate(draft => {
-                            if (draft.kind === 'player') draft.player = e.target.value as any;
+                            if (draft.kind === 'player') draft.player = e.target.value ? e.target.value as any : undefined;
                         })}
                         className="w-auto flex-grow bg-slate-800/80"
                         >
+                        <option value="">-- Select state --</option>
                         {["crouching", "sprinting", "blocking", "fishing", "sleeping", "swimming", "flying", "walking"].map(p =>
                             <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
                         )}
@@ -312,16 +312,12 @@ export function AnimationConditionEditor({
             case 'not':
                 return { kind }; // condition is optional, defaults to undefined
             case 'toggleGroup': {
-                const firstGroup = allToggleGroups[0];
-                const firstOptionId = firstGroup ? Object.keys(firstGroup.options)[0] as UUID : undefined;
                 return {
-                    kind,
-                    toggleGroup: (firstGroup?.uuid ?? '') as UUID,
-                    value: (firstOptionId ?? '') as UUID,
+                    kind
                 };
             }
             case 'player':
-                return { kind: 'player', player: 'walking' };
+                return { kind: 'player' };
         }
     };
     

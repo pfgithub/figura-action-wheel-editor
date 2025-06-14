@@ -89,23 +89,18 @@ function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWh
   const handleKindChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const kind = e.target.value as ActionEffect['kind'];
     if (kind === 'toggle') {
-      const firstGroup = allToggleGroups[0];
-      const firstOptionId = firstGroup ? Object.keys(firstGroup.options)[0] as UUID : undefined;
-      updateEffect({ kind, toggleGroup: firstGroup?.uuid ?? '' as UUID, value: (firstOptionId ?? '') as UUID });
+      updateEffect({ kind });
     } else if(kind === 'switchPage') {
-      updateEffect({ kind: 'switchPage', actionWheel: allActionWheels[0]?.uuid ?? '' as UUID });
-    } else {
-      updateEffect({ kind: 'none' });
+      updateEffect({ kind: 'switchPage' });
     }
   };
 
-  const selectedToggleGroup = allToggleGroups.find(g => g.uuid === (effect.kind === 'toggle' ? effect.toggleGroup : ''));
+  const selectedToggleGroup = allToggleGroups.find(g => g.uuid === (effect.kind === 'toggle' ? effect.toggleGroup : undefined));
 
   return (
     <div className="space-y-3">
         <FormRow label="Effect Type">
             <Select value={effect.kind} onChange={handleKindChange}>
-                <option value="none">Choose an Effect Type</option>
                 <option value="toggle">Toggle an Option</option>
                 <option value="switchPage">Switch Action Wheel</option>
             </Select>
@@ -120,18 +115,18 @@ function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWh
                         allToggleGroups={allToggleGroups}
                         selectedGroupUUID={effect.toggleGroup}
                         onGroupChange={(newUUID) => {
-                            const newGroup = avatar.toggleGroups[newUUID];
-                            const firstOptionId = newGroup ? Object.keys(newGroup.options)[0] as UUID : undefined;
-                            updateEffect({ ...effect, toggleGroup: newUUID, value: (firstOptionId ?? '') as UUID });
+                            updateEffect({ ...effect, toggleGroup: newUUID, value: undefined });
                         }}
                     />
                 </FormRow>
                 <FormRow label="Value">
                     <Select
-                        value={effect.value}
-                        onChange={(e) => updateEffect({ ...effect, value: e.target.value as UUID })}
+                        value={effect.value ?? ''}
+                        onChange={(e) => updateEffect({ ...effect, value: e.target.value ? e.target.value as UUID : undefined })}
                         disabled={!selectedToggleGroup}
                     >
+                        {!selectedToggleGroup && <option value="" disabled>-- Select a group --</option>}
+                        {selectedToggleGroup && <option value="">-- Select an option --</option>}
                         {selectedToggleGroup && Object.entries(selectedToggleGroup.options).map(([uuid, option]) => <option key={uuid} value={uuid}>{option.name}</option>)}
                     </Select>
                 </FormRow>
@@ -141,10 +136,11 @@ function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWh
         {effect.kind === 'switchPage' && (
             <FormRow label="Target Wheel">
                 <Select
-                    value={effect.actionWheel}
-                    onChange={(e) => updateEffect({ ...effect, actionWheel: e.target.value as UUID })}
+                    value={effect.actionWheel ?? ''}
+                    onChange={(e) => updateEffect({ ...effect, actionWheel: e.target.value ? e.target.value as UUID : undefined })}
                     disabled={allActionWheels.length === 0}
                 >
+                    <option value="">-- Select a wheel --</option>
                     {allActionWheels.map(w => <option key={w.uuid} value={w.uuid}>{w.title}</option>)}
                 </Select>
             </FormRow>
@@ -174,19 +170,14 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
   
   const hexColor = rgbToHex(...action.color);
   const addEffect = () => {
-    const firstToggleGroup = allToggleGroups[0];
-    const firstOptionId = firstToggleGroup ? Object.keys(firstToggleGroup.options)[0] as UUID : undefined;
-    // Default to 'toggle' if possible, otherwise 'switchPage'
-    const newEffect: ActionEffect = firstToggleGroup && firstOptionId
-      ? { kind: 'toggle', toggleGroup: firstToggleGroup.uuid, value: firstOptionId }
-      : { kind: 'switchPage', actionWheel: allActionWheels[0]?.uuid ?? '' as UUID };
+    const newEffect: ActionEffect = { kind: 'toggle' };
     updateAction({ ...action, effect: newEffect });
   };
 
   const removeEffect = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { effect, ...restOfAction } = action;
-    updateAction({ ...restOfAction, effect: { kind: "none"} });
+    updateAction(restOfAction);
   };
 
   return (
@@ -224,12 +215,12 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
 
             <div className="flex justify-between items-center pt-4 border-b border-slate-700 pb-2">
                 <h4 className="text-lg font-semibold text-slate-300">Effect</h4>
-                {action.effect.kind !== 'none' && (
+                {action.effect && (
                     <Button onClick={removeEffect} className="bg-rose-600 hover:bg-rose-500 focus-visible:ring-rose-400 text-xs px-2 py-1">Remove Effect</Button>
                 )}
             </div>
             
-            {action.effect.kind !== 'none' ? (
+            {action.effect ? (
                 <ActionEffectEditor
                     effect={action.effect}
                     updateEffect={effect => updateAction({ ...action, effect })}

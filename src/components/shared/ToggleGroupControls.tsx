@@ -9,7 +9,7 @@ interface ToggleGroupControlsProps {
     avatar: Avatar;
     updateAvatar: UpdateAvatarFn;
     allToggleGroups: ToggleGroup[];
-    selectedGroupUUID: UUID;
+    selectedGroupUUID: UUID | undefined;
     onGroupChange: (newUUID: UUID) => void;
 }
 
@@ -44,7 +44,7 @@ export function ToggleGroupControls({ avatar, updateAvatar, allToggleGroups, sel
                     disabled={allToggleGroups.length === 0}
                     className="flex-grow"
                 >
-                    {allToggleGroups.length === 0 && <option>No groups available</option>}
+                    <option>-- Choose Group --</option>
                     {allToggleGroups.map(g => <option key={g.uuid} value={g.uuid}>{g.name}</option>)}
                 </Select>
                 <Button onClick={openEditDialog} disabled={!selectedGroupUUID} className="bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400 flex-shrink-0 px-3">Edit</Button>
