@@ -13,13 +13,7 @@ const defaultProject: Avatar = {
       "actions": [],
     },
   },
-  toggleGroups: {
-    ["1" as UUID]: {
-      "uuid": "1" as UUID,
-      "name": "Main",
-      "options": [],
-    },
-  },
+  toggleGroups: {},
   animationSettings: {
     ["model.sit" as AnimationID]: {
       animation: "model.sit" as AnimationID,

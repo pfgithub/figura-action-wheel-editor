@@ -38,7 +38,8 @@ function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWh
     const kind = e.target.value as ActionEffect['kind'];
     if (kind === 'toggle') {
       const firstGroup = allToggleGroups[0];
-      updateEffect({ kind, toggleGroup: firstGroup?.uuid ?? '' as UUID, value: firstGroup?.options[0] ?? '' });
+      const firstOptionId = firstGroup ? Object.keys(firstGroup.options)[0] as UUID : undefined;
+      updateEffect({ kind, toggleGroup: firstGroup?.uuid ?? '' as UUID, value: (firstOptionId ?? '') as UUID });
     } else {
       updateEffect({ kind: 'switchPage', actionWheel: allActionWheels[0]?.uuid ?? '' as UUID });
     }
@@ -65,17 +66,18 @@ function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWh
                         selectedGroupUUID={effect.toggleGroup}
                         onGroupChange={(newUUID) => {
                             const newGroup = avatar.toggleGroups[newUUID];
-                            updateEffect({ ...effect, toggleGroup: newUUID, value: newGroup?.options[0] ?? '' });
+                            const firstOptionId = newGroup ? Object.keys(newGroup.options)[0] as UUID : undefined;
+                            updateEffect({ ...effect, toggleGroup: newUUID, value: (firstOptionId ?? '') as UUID });
                         }}
                     />
                 </FormRow>
                 <FormRow label="Value">
                     <Select
                         value={effect.value}
-                        onChange={(e) => updateEffect({ ...effect, value: e.target.value })}
+                        onChange={(e) => updateEffect({ ...effect, value: e.target.value as UUID })}
                         disabled={!selectedToggleGroup}
                     >
-                        {selectedToggleGroup?.options.map(o => <option key={o} value={o}>{o}</option>)}
+                        {selectedToggleGroup && Object.entries(selectedToggleGroup.options).map(([uuid, option]) => <option key={uuid} value={uuid}>{option.name}</option>)}
                     </Select>
                 </FormRow>
             </>
@@ -118,9 +120,10 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
   const hexColor = rgbToHex(...action.color);
   const addEffect = () => {
     const firstToggleGroup = allToggleGroups[0];
+    const firstOptionId = firstToggleGroup ? Object.keys(firstToggleGroup.options)[0] as UUID : undefined;
     // Default to 'toggle' if possible, otherwise 'switchPage'
-    const newEffect: ActionEffect = firstToggleGroup
-      ? { kind: 'toggle', toggleGroup: firstToggleGroup.uuid, value: firstToggleGroup.options[0] ?? '' }
+    const newEffect: ActionEffect = firstToggleGroup && firstOptionId
+      ? { kind: 'toggle', toggleGroup: firstToggleGroup.uuid, value: firstOptionId }
       : { kind: 'switchPage', actionWheel: allActionWheels[0]?.uuid ?? '' as UUID };
     updateAction({ ...action, effect: newEffect });
   };

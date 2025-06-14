@@ -45,10 +45,11 @@ export function AnimationConditionEditor({
       newCondition = { kind, condition: { kind: 'empty' } };
     } else if (kind === 'toggleGroup') {
       const firstGroup = allToggleGroups[0];
+      const firstOptionId = firstGroup ? Object.keys(firstGroup.options)[0] as UUID : undefined;
       newCondition = { 
         kind, 
         toggleGroup: firstGroup?.uuid ?? '' as UUID, 
-        value: firstGroup?.options[0] ?? '' 
+        value: (firstOptionId ?? '') as UUID
       };
     } else if (kind === 'player') {
       newCondition = { kind: 'player', player: 'walking' };
@@ -141,7 +142,8 @@ export function AnimationConditionEditor({
                         selectedGroupUUID={condition.toggleGroup}
                         onGroupChange={(newUUID) => {
                             const newGroup = avatar.toggleGroups[newUUID];
-                            updateCondition({ ...condition, toggleGroup: newUUID, value: newGroup?.options[0] ?? '' });
+                            const firstOptionId = newGroup ? Object.keys(newGroup.options)[0] as UUID : undefined;
+                            updateCondition({ ...condition, toggleGroup: newUUID, value: (firstOptionId ?? '') as UUID });
                         }}
                     />
                 </div>
@@ -150,11 +152,11 @@ export function AnimationConditionEditor({
                 <span className="font-semibold flex-shrink-0 pr-6">is</span>
                 <Select
                     value={condition.value}
-                    onChange={(e) => updateCondition({ ...condition, value: e.target.value })}
+                    onChange={(e) => updateCondition({ ...condition, value: e.target.value as UUID })}
                     disabled={!selectedGroup}
                     className="w-auto flex-grow bg-gray-800"
                 >
-                    {selectedGroup?.options.map(o => <option key={o} value={o}>{o}</option>)}
+                    {selectedGroup && Object.entries(selectedGroup.options).map(([uuid, option]) => <option key={uuid} value={uuid}>{option.name}</option>)}
                     {!selectedGroup && <option>--</option>}
                 </Select>
             </div>

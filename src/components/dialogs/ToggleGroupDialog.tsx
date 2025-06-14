@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { Avatar, ToggleGroup, UUID } from '../../types';
+import type { Avatar, ToggleGroup, ToggleGroupOption, UUID } from '../../types';
 import type { UpdateAvatarFn } from '../../hooks/useAvatar';
 import { generateUUID } from '../../utils/uuid';
 import { Button } from '../ui/Button';
@@ -17,17 +17,17 @@ interface ToggleGroupDialogProps {
 
 export function ToggleGroupDialog({ groupToEdit, avatar, updateAvatar, onClose, onSave }: ToggleGroupDialogProps) {
     const [name, setName] = useState('');
-    const [options, setOptions] = useState<string[]>([]);
+    const [options, setOptions] = useState<{ uuid: UUID; name: string }[]>([]);
     const [nameError, setNameError] = useState('');
     const [optionsError, setOptionsError] = useState('');
 
     useEffect(() => {
         if (groupToEdit) {
             setName(groupToEdit.name);
-            setOptions(groupToEdit.options);
+            setOptions(Object.entries(groupToEdit.options).map(([uuid, option]) => ({ uuid: uuid as UUID, name: option.name })));
         } else {
             setName('New Toggle Group');
-            setOptions(['Default']);
+            setOptions([{ uuid: generateUUID(), name: 'Option 1' }]);
         }
         setNameError('');
         setOptionsError('');
@@ -35,12 +35,12 @@ export function ToggleGroupDialog({ groupToEdit, avatar, updateAvatar, onClose, 
 
     const handleOptionChange = (index: number, value: string) => {
         const newOptions = [...options];
-        newOptions[index] = value;
+        newOptions[index] = { ...newOptions[index], name: value };
         setOptions(newOptions);
     };
 
     const addOption = () => {
-        setOptions([...options, `Option ${options.length + 1}`]);
+        setOptions([...options, { uuid: generateUUID(), name: `Option ${options.length + 1}` }]);
     };
 
     const removeOption = (index: number) => {
@@ -61,10 +61,10 @@ export function ToggleGroupDialog({ groupToEdit, avatar, updateAvatar, onClose, 
             isValid = false;
         }
 
-        if (options.some(opt => !opt.trim())) {
+        if (options.some(opt => !opt.name.trim())) {
             setOptionsError('Option names cannot be empty.');
             isValid = false;
-        } else if (new Set(options.map(o => o.trim())).size !== options.length) {
+        } else if (new Set(options.map(o => o.name.trim())).size !== options.length) {
             setOptionsError('Option names must be unique.');
             isValid = false;
         }
@@ -75,10 +75,15 @@ export function ToggleGroupDialog({ groupToEdit, avatar, updateAvatar, onClose, 
         if (!validate()) return;
         
         const newUUID = groupToEdit?.uuid ?? generateUUID();
+        const optionsRecord: Record<UUID, ToggleGroupOption> = {};
+        for (const opt of options) {
+            optionsRecord[opt.uuid] = { name: opt.name.trim() };
+        }
+
         const newGroup: ToggleGroup = {
             uuid: newUUID,
             name: name.trim(),
-            options: options.map(o => o.trim()),
+            options: optionsRecord,
         };
 
         updateAvatar(draft => {
@@ -138,8 +143,8 @@ export function ToggleGroupDialog({ groupToEdit, avatar, updateAvatar, onClose, 
                 <FormRow label="Options"><div/></FormRow>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2 -mt-2">
                     {options.map((option, i) => (
-                        <div key={i} className="flex gap-2 items-center">
-                            <Input value={option} onChange={e => handleOptionChange(i, e.target.value)} aria-label={`Option ${i+1}`} />
+                        <div key={option.uuid} className="flex gap-2 items-center">
+                            <Input value={option.name} onChange={e => handleOptionChange(i, e.target.value)} aria-label={`Option ${i+1}`} />
                             <Button onClick={() => removeOption(i)} disabled={options.length <= 1} className="bg-red-600 hover:bg-red-700 w-8 h-8 flex-shrink-0 flex items-center justify-center p-0">-</Button>
                         </div>
                     ))}

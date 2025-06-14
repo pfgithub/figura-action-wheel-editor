@@ -24,16 +24,20 @@ export type Action = {
 export type ActionEffect = {
     kind: "toggle",
     toggleGroup: UUID,
-    value: string,
+    value: UUID,
 } | {
     kind: "switchPage",
     actionWheel: UUID,
 };
 
+export type ToggleGroupOption = {
+    name: string;
+};
+
 export type ToggleGroup = {
     uuid: UUID,
     name: string,
-    options: string[],
+    options: Record<UUID, ToggleGroupOption>,
 };
 
 export type AnimationSetting = {
@@ -60,7 +64,7 @@ export type AnimationConditionNot = {
 export type AnimationConditionToggleGroup = {
     kind: "toggleGroup",
     toggleGroup: UUID,
-    value: string,
+    value: UUID,
 };
 export type AnimationConditionPlayer = {
     kind: "player",
