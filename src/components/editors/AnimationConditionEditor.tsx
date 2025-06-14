@@ -113,12 +113,11 @@ interface ConditionNodeProps {
     updateAvatar: UpdateAvatarFn;
     updateCondition: (newCondition?: AnimationCondition) => void;
     deleteNode: () => void;
-    isRoot?: boolean;
 }
 
-function ConditionNode({ path, condition, updateCondition, deleteNode, allToggleGroups, avatar, updateAvatar, isRoot = false }: ConditionNodeProps) {
+function ConditionNode({ path, condition, updateCondition, deleteNode, allToggleGroups, avatar, updateAvatar }: ConditionNodeProps) {
     if (!condition) {
-        return <DropZone id={path} path={path} label={isRoot ? "Drag a condition from the panel to start" : "Drop a condition here"} />;
+        return <DropZone id={path} path={path} label={"Drag a condition from the panel to start"} />;
     }
 
     const styles = kindStyles[condition.kind];
@@ -131,19 +130,11 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
     } = useDraggable({
         id: path,
         data: { path, type: 'condition' },
-        disabled: isRoot,
-    });
-
-    const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
-        id: path,
-        data: { path },
-        disabled: false,
     });
 
     // Helper to combine refs from both hooks
     const setNodeRef = (node: HTMLElement | null) => {
         setDraggableNodeRef(node);
-        setDroppableNodeRef(node);
     };
 
     const handleUpdate = (updater: (draft: AnimationCondition) => void) => {
@@ -154,19 +145,16 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
         <div className={`flex items-center justify-between p-2 rounded-t-lg ${styles.bg.replace('30', '50')}`}>
             <div className="flex items-center gap-1">
                 <span
-                    {...(!isRoot ? dragListeners : {})}
-                    {...(!isRoot ? dragAttributes : {})}
-                    className={`p-1 ${isRoot ? 'cursor-default text-slate-600' : 'cursor-grab text-slate-500 hover:text-white'}`}
+                    {...dragListeners}
+                    className={`p-1 ${'cursor-grab text-slate-500 hover:text-white'}`}
                 >
                     <GripVerticalIcon />
                 </span>
                 <span className={`font-bold ${styles.text}`}>{styles.label}</span>
             </div>
-            {!isRoot && (
-                <button onClick={deleteNode} className="p-1 text-rose-400 hover:text-white hover:bg-rose-500 rounded-full w-6 h-6 flex items-center justify-center">
-                    <Trash2Icon />
-                </button>
-            )}
+            <button onClick={deleteNode} className="p-1 text-rose-400 hover:text-white hover:bg-rose-500 rounded-full w-6 h-6 flex items-center justify-center">
+                <Trash2Icon />
+            </button>
         </div>
     );
 
@@ -281,7 +269,7 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
         <div
             ref={setNodeRef}
             style={{ opacity: isDragging ? 0.4 : 1 }}
-            className={`rounded-lg border transition-shadow ${styles.border} ${styles.bg} ${isOver ? 'shadow-lg shadow-violet-500/50 ring-2 ring-violet-500' : ''}`}
+            className={`rounded-lg border transition-shadow ${styles.border} ${styles.bg}`}
         >
             {renderHeader()}
             {renderBody()}
@@ -296,7 +284,6 @@ interface AnimationConditionEditorProps {
   allToggleGroups: ToggleGroup[];
   avatar: Avatar;
   updateAvatar: UpdateAvatarFn;
-  isRoot?: boolean;
 }
 
 export function AnimationConditionEditor({
@@ -430,7 +417,6 @@ export function AnimationConditionEditor({
                         allToggleGroups={allToggleGroups}
                         avatar={avatar}
                         updateAvatar={updateAvatar}
-                        isRoot={true}
                     />
                 </div>
             </div>
