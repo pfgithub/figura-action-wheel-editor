@@ -5,3 +5,12 @@
 - [ ] Make it so you can drop a 'and', 'or', or 'not' component on another component to wrap that one
 - [ ] Make it so if you drag a component to the 'Conditions' sidebar, it deletes it.
 - [x] 'effect' in Action is now optional, and so is toggleGroup and value in ActionEffect and AnimationConditionToggleGroup, switchPage in ActionWheel, and player in AnimationConditionPlayer. Update the UI to have these null by default.
+- [ ] migrate the code to use a state manager and add undo/redo, or global context and immer
+- [ ] add support for showing/hiding model elements (ie hide head when `not (renderer:isFirstPerson() and context == "OTHER"`))
+- [ ] add a section where you can add custom code to your render fn and then use variables from it in conditions
+- [ ] add vanilla_model.PLAYER for setVisible and add false
+- [ ] add support for setting eye offsets and camera pivot offsets
+- [ ] switch alert()/confirm() for toasts and dialogs
+- [ ] migrate useMinecraftItems to tanstack query
+- [ ] split AnimationConditionEditor into multiple files
+- [ ] add the ability to drag and drop reorder items in the action wheel
