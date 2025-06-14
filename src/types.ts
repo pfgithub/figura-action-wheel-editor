@@ -47,23 +47,28 @@ export type AnimationSetting = {
 };
 
 export type AnimationConditionOr = {
+    id: UUID,
     kind: "or",
     conditions: AnimationCondition[],
 };
 export type AnimationConditionAnd = {
+    id: UUID,
     kind: "and",
     conditions: AnimationCondition[],
 };
 export type AnimationConditionNot = {
+    id: UUID,
     kind: "not",
     condition?: AnimationCondition,
 };
 export type AnimationConditionToggleGroup = {
+    id: UUID,
     kind: "toggleGroup",
     toggleGroup?: UUID,
     value?: UUID,
 };
 export type AnimationConditionPlayer = {
+    id: UUID,
     kind: "player",
     player?: "crouching" | "sprinting" | "blocking" | "fishing" | "sleeping" | "swimming" | "flying" | "walking",
 };

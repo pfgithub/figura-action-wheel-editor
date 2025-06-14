@@ -14,6 +14,7 @@ import { useAvatarStore } from '../../store/avatarStore';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { ToggleGroupControls } from '../shared/ToggleGroupControls';
+import { generateUUID } from '@/utils/uuid';
 
 // ... (Icons and other helpers remain the same) ...
 const GripVerticalIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>;
@@ -159,7 +160,7 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                     <div className="p-2 space-y-2">
                         {condition.conditions.map((cond, i) => (
                             <ConditionNode
-                                key={`${path}.conditions.${i}`}
+                                key={cond.id}
                                 path={`${path}.conditions.${i}`}
                                 condition={cond}
                                 updateCondition={(newCond) => handleUpdate(draft => {
@@ -288,19 +289,18 @@ export function AnimationConditionEditor({
     }, [activeId, condition, avatar]);
 
     const createNewConditionNode = (kind: PaletteItemKind): AnimationCondition => {
+        const id = generateUUID();
         switch (kind) {
             case 'and':
+                return { id, kind: 'and', conditions: [] };
             case 'or':
-                return { kind, conditions: [] };
+                return { id, kind: 'or', conditions: [] };
             case 'not':
-                return { kind }; // condition is optional, defaults to undefined
-            case 'toggleGroup': {
-                return {
-                    kind
-                };
-            }
+                return { id, kind: 'not' };
+            case 'toggleGroup':
+                return { id, kind: 'toggleGroup' };
             case 'player':
-                return { kind: 'player' };
+                return { id, kind: 'player' };
         }
     };
     
