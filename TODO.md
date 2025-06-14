@@ -16,5 +16,7 @@
 - [ ] add the ability to drag and drop reorder items in the action wheel
 - [ ] update the animation settings panel so it has a list of animations and you can select them and then there's a seperate panel below it where you can set the name and activation conditions for the selected one
 - [ ] AnimationConditionEditor.tsx : make it easier to use
+- [x] Currently, the project is loaded from the server and saved to the server. Change this. Instead, when you open the app it should be empty and have a drop area to choose files. You drop project.json and then the it opens the app. The save button now downloads the new project.json.
+- [ ] (context: types.ts, bbmodel.ts, App.tsx, avatarStore.tsx) Currently, the 'Avatar' type contains 'animations: AnimationID[]'. Instead of having animations here, the animations need to be loaded from '.bbmodel' files. When you open the page, it should ask you to drop all your avatar's bbmodel files and your project json. To get all the animation IDs, loop over each bbmodel file's animations and concatenate the name of the file + "." + the animation name.
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename)

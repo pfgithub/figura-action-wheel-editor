@@ -7,12 +7,11 @@ export type AvatarUpdater = (draft: WritableDraft<Avatar>) => void;
 
 interface AvatarState {
   avatar: Avatar | null;
-  loading: boolean;
-  error: string | null;
   isSaving: boolean;
-  fetchAvatar: () => Promise<void>;
-  saveAvatar: () => Promise<void>;
+  loadAvatar: (data: Avatar) => void;
+  saveAvatar: () => void;
   updateAvatar: (updater: AvatarUpdater) => void;
+  clearAvatar: () => void;
 }
 
 export const useAvatarStore = create<AvatarState>()(
@@ -20,42 +19,42 @@ export const useAvatarStore = create<AvatarState>()(
     (set, get) => ({
       // --- State ---
       avatar: null,
-      loading: true,
-      error: null,
       isSaving: false,
 
       // --- Actions ---
-      fetchAvatar: async () => {
-        try {
-          set({ loading: true, error: null });
-          const res = await fetch('/project.json');
-          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-          const data = await res.json();
-          set({ avatar: data, loading: false });
-          // After fetching fresh data, clear the local undo/redo history.
-          useAvatarStore.temporal.getState().clear();
-        } catch (err: any) {
-          set({ error: err.message, loading: false });
-        }
+      loadAvatar: (data) => {
+        set({ avatar: data });
+        // After loading a new project, clear the undo/redo history.
+        useAvatarStore.temporal.getState().clear();
       },
 
-      saveAvatar: async () => {
+      saveAvatar: () => {
         const { avatar } = get();
         if (!avatar) return;
+
         set({ isSaving: true });
         try {
-          const response = await fetch('/project.json', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(avatar, null, 2),
-          });
-          if (!response.ok) throw new Error(`Failed to save: ${response.statusText}`);
-          alert('Saved successfully!');
+          const avatarJson = JSON.stringify(avatar, null, 2);
+          const blob = new Blob([avatarJson], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'project.json';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
         } catch (err: any) {
+          console.error("Error saving file:", err);
           alert(`Error saving: ${err.message}`);
         } finally {
           set({ isSaving: false });
         }
+      },
+
+      clearAvatar: () => {
+        set({ avatar: null });
+        useAvatarStore.temporal.getState().clear();
       },
 
       updateAvatar: (updater) => {

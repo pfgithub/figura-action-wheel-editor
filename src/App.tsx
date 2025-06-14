@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import type { UUID, ActionWheel } from "./types";
+import React, { useState, useEffect, useRef } from "react";
+import type { UUID, ActionWheel, Avatar } from "./types";
 import { useAvatarStore } from "./store/avatarStore";
 import { generateUUID } from "./utils/uuid";
 import "./index.css";
@@ -11,19 +11,108 @@ import { Button } from "./components/ui/Button";
 import { ActionWheelsManager } from "./components/managers/ActionWheelsManager";
 import { AnimationSettingsManager } from "./components/managers/AnimationSettingsManager";
 
+// A component for the file drop area
+function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (data: Avatar) => void; setLoadError: (error: string | null) => void; }) {
+  const [isDragging, setIsDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = (file: File) => {
+    if (!file) return;
+
+    if (!file.name.endsWith('.json')) {
+      setLoadError('Invalid file type. Please select a ".json" file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        const data = JSON.parse(text);
+        // A simple validation check to see if it looks like a project file
+        if (data.mainActionWheel && data.actionWheels && data.animations) {
+          setLoadError(null);
+          onFileLoaded(data);
+        } else {
+          setLoadError('Invalid or corrupted project.json format.');
+        }
+      } catch (err) {
+        setLoadError('Failed to read or parse the JSON file.');
+      }
+    };
+    reader.onerror = () => {
+      setLoadError('Failed to read the file.');
+    };
+    reader.readAsText(file);
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleClick = () => {
+    inputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFile(e.target.files[0]);
+    }
+  };
+
+  return (
+    <div
+      onClick={handleClick}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      className={`w-full max-w-2xl h-80 rounded-2xl border-4 border-dashed flex flex-col items-center justify-center text-center p-8 cursor-pointer transition-colors duration-300 ${isDragging ? 'border-violet-500 bg-violet-900/20' : 'border-slate-700 hover:border-slate-600 bg-slate-800/20'}`}
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-20 h-20 mb-6 text-slate-600 transition-colors duration-300 ${isDragging ? 'text-violet-500' : ''}`}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <h2 className="text-2xl font-bold text-slate-200">Drop your project.json here</h2>
+      <p className="text-slate-400 mt-2">or click to browse your files</p>
+    </div>
+  );
+}
+
 export function App() {
-  const { avatar, loading, error, isSaving, fetchAvatar, saveAvatar, updateAvatar } = useAvatarStore();
+  const { avatar, isSaving, saveAvatar, updateAvatar, loadAvatar } = useAvatarStore();
   const [viewedWheelUuid, setViewedWheelUuid] = useState<UUID | null>(null);
-  // State for mobile tab view
   const [activeTab, setActiveTab] = useState('wheels'); // 'wheels' or 'settings'
+  const [fileLoadError, setFileLoadError] = useState<string | null>(null);
 
   // Get temporal state and actions for undo/redo
-  const { pastStates, futureStates, undo, redo } = useAvatarStore.temporal.getState()
-
-  // Effect to fetch initial data
-  useEffect(() => {
-    fetchAvatar();
-  }, [fetchAvatar]);
+  const { pastStates, futureStates, undo, redo } = useAvatarStore.temporal.getState();
 
   // Effect to keep viewedWheelUuid in sync with the available wheels
   useEffect(() => {
@@ -56,10 +145,24 @@ export function App() {
     setViewedWheelUuid(newWheelUuid);
   };
 
-  if (loading) return <div className="text-white text-center p-8">Loading...</div>;
-  if (error) return <div className="text-red-400 text-center p-8">Error: {error}</div>;
-  if (!avatar) return <div className="text-white text-center p-8">No data found.</div>;
+  // If no project is loaded, show the dropzone.
+  if (!avatar) {
+    return (
+      <div className="text-slate-100 h-screen flex flex-col items-center justify-center bg-slate-900 p-4" style={{ fontFamily: "'Inter', sans-serif" }}>
+          <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-500 mb-8">
+            Avatar Editor
+          </h1>
+          <FileDropzone onFileLoaded={loadAvatar} setLoadError={setFileLoadError} />
+          {fileLoadError && (
+              <div className="mt-6 p-4 bg-rose-900/50 border border-rose-700 text-rose-300 rounded-lg">
+                  <p><strong>Error:</strong> {fileLoadError}</p>
+              </div>
+          )}
+      </div>
+    );
+  }
 
+  // Once a project is loaded, show the main editor UI.
   const allToggleGroups = Object.values(avatar.toggleGroups);
   const allActionWheels = Object.values(avatar.actionWheels);
 
