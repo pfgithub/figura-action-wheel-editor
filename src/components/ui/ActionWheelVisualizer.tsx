@@ -8,12 +8,44 @@ interface ActionWheelVisualizerProps {
   onAddAction: () => void;
   selectedActionIndex: number | null;
   wheelTitle: string;
-  maxActions?: number;
 }
 
 const WHEEL_RADIUS = 140; // in px
 const BUTTON_SIZE = 64; // in px
 const MAX_ACTIONS = 8;
+
+/**
+ * Calculates the angles for actions on the wheel based on the total number of actions.
+ * - 1 action: on the right.
+ * - 2 actions: first on right, second on left.
+ * - 3+ actions: distributed evenly clockwise, starting from the top.
+ * @param numActions The total number of actions to position.
+ * @returns An array of angles in radians.
+ */
+const getActionAngles = (numActions: number): number[] => {
+  if (numActions <= 0) {
+    return [];
+  }
+  if (numActions === 1) {
+    // Right
+    return [0];
+  }
+  if (numActions === 2) {
+    // Right, then Left
+    return [0, Math.PI];
+  }
+
+  // 3 or more actions: distribute evenly, starting from top.
+  const angles: number[] = [];
+  const angleStep = (2 * Math.PI) / numActions;
+  const startAngle = -Math.PI / 2; // Start from the top (12 o'clock)
+
+  for (let i = 0; i < numActions; i++) {
+    angles.push(startAngle + i * angleStep);
+  }
+  return angles;
+};
+
 
 export function ActionWheelVisualizer({
   actions,
@@ -23,7 +55,9 @@ export function ActionWheelVisualizer({
   wheelTitle,
 }: ActionWheelVisualizerProps) {
   const { items } = useMinecraftItems();
-  const angleStep = (2 * Math.PI) / MAX_ACTIONS;
+  const numActions = actions.length;
+  
+  const actionAngles = getActionAngles(numActions === 8 ? 8 : numActions + 1);
 
   const renderIcon = (action: Action) => {
     const item = items?.[action.icon];
@@ -42,12 +76,12 @@ export function ActionWheelVisualizer({
       {/* Central Hub */}
       <div className="flex flex-col items-center justify-center text-center w-36">
         <h4 className="font-bold text-lg text-white truncate" title={wheelTitle}>{wheelTitle}</h4>
-        <p className="text-sm text-slate-400">{actions.length} / {MAX_ACTIONS} Actions</p>
+        <p className="text-sm text-slate-400">{numActions} / {MAX_ACTIONS} Actions</p>
       </div>
 
       {/* Action Buttons */}
       {actions.map((action, index) => {
-        const angle = index * angleStep - Math.PI / 2; // Start from top
+        const angle = actionAngles[index];
         const x = WHEEL_RADIUS * Math.cos(angle);
         const y = WHEEL_RADIUS * Math.sin(angle);
         const isSelected = selectedActionIndex === index;
@@ -87,9 +121,9 @@ export function ActionWheelVisualizer({
       })}
 
       {/* Add Action Button in the next empty slot */}
-      {actions.length < MAX_ACTIONS && (() => {
-        const index = actions.length;
-        const angle = index * angleStep - Math.PI / 2;
+      {numActions < MAX_ACTIONS && (() => {
+        const addSlotAngles = getActionAngles(numActions + 1);
+        const angle = addSlotAngles[numActions];
         const x = WHEEL_RADIUS * Math.cos(angle);
         const y = WHEEL_RADIUS * Math.sin(angle);
 
