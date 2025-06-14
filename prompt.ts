@@ -12,7 +12,7 @@ console.log(all);
         }catch(e) {
             continue;
         }
-        res += "# File `src/viewer/"+file+"`\n\n"
+        res += "# File `src/"+file+"`\n\n"
         res += "```"+extname(file).slice(1) + "\n";
         res += contents;
         res += "\n```\n\n";
