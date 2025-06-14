@@ -179,19 +179,19 @@ export function ToggleGroupDialog({ groupToEdit, avatar, updateAvatar, onClose, 
                     {options.map((option, i) => (
                         <div key={option.uuid} className="flex gap-2 items-center">
                             <Input value={option.name} onChange={e => handleOptionChange(i, e.target.value)} aria-label={`Option ${i+1}`} />
-                            <Button onClick={() => removeOption(i)} disabled={options.length <= 1} className="bg-red-600 hover:bg-red-700 w-8 h-8 flex-shrink-0 flex items-center justify-center p-0">-</Button>
+                            <Button onClick={() => removeOption(i)} disabled={options.length <= 1} className="bg-rose-600 hover:bg-rose-500 focus-visible:ring-rose-400 w-9 h-9 flex-shrink-0 flex items-center justify-center p-0 text-lg">-</Button>
                         </div>
                     ))}
                 </div>
                  {optionsError && <p className="text-red-500 text-xs mt-1">{optionsError}</p>}
-                <Button onClick={addOption} className="bg-green-600 hover:bg-green-700 w-full">+ Add Option</Button>
+                <Button onClick={addOption} className="bg-emerald-600 hover:bg-emerald-500 focus-visible:ring-emerald-400 w-full">+ Add Option</Button>
             </DialogContent>
             <DialogFooter>
                 {groupToEdit && (
-                    <Button onClick={handleDelete} className="bg-red-600 hover:bg-red-700 mr-auto">Delete Group</Button>
+                    <Button onClick={handleDelete} className="bg-rose-600 hover:bg-rose-500 focus-visible:ring-rose-400 mr-auto">Delete Group</Button>
                 )}
-                <Button onClick={onClose} className="bg-gray-600 hover:bg-gray-700">Cancel</Button>
-                <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">Save Group</Button>
+                <Button onClick={onClose} className="bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400">Cancel</Button>
+                <Button onClick={handleSave} className="bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-400">Save Group</Button>
             </DialogFooter>
         </Dialog>
     );

@@ -4,12 +4,6 @@ import type { UpdateAvatarFn } from '../../hooks/useAvatar';
 import { Input } from '../ui/Input';
 import { AnimationSettingEditor } from '../editors/AnimationSettingEditor';
 
-interface AnimationSettingsManagerProps {
-    avatar: Avatar;
-    updateAvatar: UpdateAvatarFn;
-    allToggleGroups: ToggleGroup[];
-}
-
 // Helper to summarize the condition for display in the UI
 const summarizeCondition = (condition?: AnimationCondition): string => {
     if (!condition || condition.kind === 'empty') {
@@ -71,7 +65,7 @@ export function AnimationSettingsManager({ avatar, updateAvatar, allToggleGroups
                     placeholder="Search animations by ID or display name..."
                     value={filter}
                     onChange={e => setFilter(e.target.value)}
-                    className="w-full bg-gray-900"
+                    className="w-full bg-slate-900/50"
                     aria-label="Filter animations"
                 />
             )}
@@ -86,25 +80,25 @@ export function AnimationSettingsManager({ avatar, updateAvatar, allToggleGroups
                     }
 
                     return (
-                        <div key={animId} className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden transition-all duration-300">
+                        <div key={animId} className="bg-slate-800 rounded-lg ring-1 ring-slate-700 overflow-hidden transition-all duration-300">
                             <button 
                                 onClick={() => toggleExpand(animId)}
-                                className="w-full text-left p-4 flex justify-between items-center hover:bg-gray-700/50 transition-colors"
+                                className="w-full text-left p-4 flex justify-between items-center hover:bg-slate-700/40 transition-colors"
                                 aria-expanded={isExpanded}
                                 aria-controls={`anim-details-${animId}`}
                             >
                                 <div className="flex-grow min-w-0 pr-4">
-                                    <h4 className="font-semibold text-lg text-white truncate">{setting.name}</h4>
-                                    <p className="text-sm text-gray-400 font-mono truncate">{animId}</p>
+                                    <h4 className="font-semibold text-lg text-slate-100 truncate">{setting.name}</h4>
+                                    <p className="text-sm text-slate-400 font-mono truncate">{animId}</p>
                                 </div>
                                 <div className="flex items-center gap-4 flex-shrink-0">
-                                    <span className="hidden sm:inline-block text-sm text-gray-300 bg-gray-700 px-2 py-1 rounded-md">{summarizeCondition(setting.activationCondition)}</span>
-                                    <svg className={`flex-shrink-0 w-6 h-6 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : 'rotate-0'}`} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                    <span className="hidden sm:inline-block text-sm text-slate-300 bg-slate-700 px-3 py-1 rounded-full">{summarizeCondition(setting.activationCondition)}</span>
+                                    <svg className={`flex-shrink-0 w-6 h-6 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : 'rotate-0'}`} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                                 </div>
                             </button>
                             
                             {isExpanded && (
-                                <div id={`anim-details-${animId}`} className="p-4 border-t border-gray-700 bg-gray-800/50">
+                                <div id={`anim-details-${animId}`} className="p-4 border-t border-slate-700 bg-slate-800/50">
                                     <AnimationSettingEditor
                                         animId={animId} 
                                         setting={setting}
@@ -118,8 +112,9 @@ export function AnimationSettingsManager({ avatar, updateAvatar, allToggleGroups
                         </div>
                     );
                 }) : (
-                     <div className="flex items-center justify-center h-24 bg-gray-800/50 rounded-lg p-8 text-gray-400 border-2 border-dashed border-gray-700">
-                        <p className="text-center">{hasAnimations ? "No animations match your search." : "There are no animations to configure."}</p>
+                     <div className="flex flex-col items-center justify-center h-24 bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 mb-2 text-slate-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        <p className="text-center font-medium">{hasAnimations ? "No animations match your search." : "There are no animations to configure."}</p>
                     </div>
                 )}
             </div>

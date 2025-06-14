@@ -23,13 +23,13 @@ export function AnimationSettingEditor({ animId, setting, updateSetting, allTogg
       </FormRow>
       
       <div>
-        <label className="text-gray-400 text-sm font-bold block mb-2">Activation Condition</label>
-        <div className="bg-gray-900/40 p-4 rounded-lg border border-gray-700">
+        <label className="text-slate-400 text-sm font-medium block mb-2">Activation Condition</label>
+        <div className="bg-slate-900/50 p-4 rounded-lg ring-1 ring-slate-700">
           {setting.activationCondition ? (
             <AnimationConditionEditor
               condition={setting.activationCondition}
               updateCondition={(newCond) => updateSetting({ ...setting, activationCondition: newCond })}
-              deleteCondition={() => updateSetting({ ...setting, activationCondition: undefined })}
+              deleteCondition={() => updateSetting({ ...setting, activationCondition: { kind: 'empty' } })}
               allToggleGroups={allToggleGroups}
               isRoot={true}
               avatar={avatar}
@@ -39,7 +39,7 @@ export function AnimationSettingEditor({ animId, setting, updateSetting, allTogg
             <div className="text-center">
               <Button
                 onClick={() => updateSetting({ ...setting, activationCondition: { kind: "empty" } })}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-400"
               >
                 + Add Activation Condition
               </Button>

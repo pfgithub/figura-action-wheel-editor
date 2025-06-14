@@ -27,11 +27,16 @@ const defaultProject: Avatar = {
       animation: "model.jump" as AnimationID,
       name: "Jump",
     },
+    ["model.idle" as AnimationID]: {
+      animation: "model.idle" as AnimationID,
+      name: "Idle",
+    },
   },
   animations: [
     "model.sit" as AnimationID,
     "model.lay" as AnimationID,
     "model.jump" as AnimationID,
+    "model.idle" as AnimationID,
   ],
 };
 

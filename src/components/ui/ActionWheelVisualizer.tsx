@@ -25,13 +25,13 @@ export function ActionWheelVisualizer({
 
   return (
     <div
-      className="relative flex items-center justify-center bg-gray-900/70 rounded-full border-4 border-gray-700"
+      className="relative flex items-center justify-center bg-slate-800/50 rounded-full ring-4 ring-slate-700"
       style={{ width: `${WHEEL_RADIUS * 2 + BUTTON_SIZE}px`, height: `${WHEEL_RADIUS * 2 + BUTTON_SIZE}px`, margin: '0 auto' }}
     >
       {/* Central Hub */}
       <div className="flex flex-col items-center justify-center text-center w-36">
         <h4 className="font-bold text-lg text-white truncate" title={wheelTitle}>{wheelTitle}</h4>
-        <p className="text-sm text-gray-400">{actions.length} / {MAX_ACTIONS} Actions</p>
+        <p className="text-sm text-slate-400">{actions.length} / {MAX_ACTIONS} Actions</p>
       </div>
 
       {/* Action Buttons */}
@@ -45,7 +45,7 @@ export function ActionWheelVisualizer({
           <button
             key={index}
             onClick={() => onSelectAction(index)}
-            className={`absolute flex items-center justify-center rounded-full text-white text-xs font-bold p-1 text-center leading-tight transition-all duration-200 ease-in-out transform hover:scale-110 focus:outline-none ${isSelected ? 'ring-4 ring-blue-500 shadow-lg z-10' : 'ring-2 ring-gray-600'}`}
+            className={`absolute flex items-center justify-center rounded-full text-white text-2xl font-bold p-1 text-center leading-tight transition-all duration-200 ease-in-out transform hover:scale-110 focus:outline-none shadow-md hover:shadow-lg ${isSelected ? 'ring-4 ring-violet-500 shadow-xl z-10' : 'ring-2 ring-slate-600'}`}
             style={{
               width: `${BUTTON_SIZE}px`,
               height: `${BUTTON_SIZE}px`,
@@ -56,7 +56,7 @@ export function ActionWheelVisualizer({
             }}
             title={action.label}
           >
-            {action.label}
+            {action.icon}
           </button>
         );
       })}
@@ -71,7 +71,7 @@ export function ActionWheelVisualizer({
         return (
             <button
                 onClick={onAddAction}
-                className="absolute flex items-center justify-center rounded-full bg-green-600 hover:bg-green-700 text-white text-4xl transition-all duration-200 ease-in-out transform hover:scale-110 focus:outline-none ring-2 ring-green-800"
+                className="absolute flex items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-4xl transition-all duration-200 ease-in-out transform hover:scale-110 focus:outline-none ring-2 ring-emerald-700/50 shadow-md"
                 style={{
                   width: `${BUTTON_SIZE}px`,
                   height: `${BUTTON_SIZE}px`,

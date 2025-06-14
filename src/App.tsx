@@ -38,24 +38,27 @@ function ToggleGroupsManager({ avatar, updateAvatar }: ToggleGroupsManagerProps)
     return (
         <div>
              <div className="flex justify-end mb-4">
-                 <Button onClick={() => handleOpenDialog(null)} className="bg-blue-600 hover:bg-blue-700">+ Add Group</Button>
+                 <Button onClick={() => handleOpenDialog(null)} className="bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-500">+ Add Group</Button>
             </div>
             {allToggleGroups.length === 0 ? (
-                 <div className="flex items-center justify-center h-24 bg-gray-800/50 rounded-lg p-8 text-gray-400 border-2 border-dashed border-gray-700">
-                    <p className="text-center">No toggle groups found. Add one to get started.</p>
+                 <div className="flex flex-col items-center justify-center h-24 bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 mb-2 text-slate-600"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <p className="text-center font-medium">No toggle groups found.</p>
+                    <p className="text-sm">Add one to get started.</p>
                 </div>
             ) : (
                 <div className="space-y-3">
                     {allToggleGroups.map(group => (
-                        <div key={group.uuid} className="bg-gray-900 p-4 rounded-lg flex flex-col sm:flex-row justify-between sm:items-center gap-3 border border-gray-700">
+                        <div key={group.uuid} className="bg-slate-800 p-4 rounded-lg flex flex-col sm:flex-row justify-between sm:items-center gap-3 ring-1 ring-slate-700/80 transition-all duration-200 hover:ring-violet-500 hover:shadow-md">
                             <div className="flex-grow min-w-0">
                                 <p className="font-semibold text-white text-lg truncate" title={group.name}>{group.name}</p>
-                                <p className="text-sm text-gray-400 truncate" title={Object.values(group.options).map(o => o.name).join(', ')}>
+
+                                <p className="text-sm text-slate-400 truncate" title={Object.values(group.options).map(o => o.name).join(', ')}>
                                     {Object.keys(group.options).length} options: {Object.values(group.options).map(o => o.name).join(', ')}
                                 </p>
                             </div>
                             <div className="flex gap-2 flex-shrink-0 self-end sm:self-center">
-                                <Button onClick={() => handleOpenDialog(group)} className="bg-gray-600 hover:bg-gray-700">Edit</Button>
+                                <Button onClick={() => handleOpenDialog(group)} className="bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400">Edit</Button>
                             </div>
                         </div>
                     ))}
@@ -101,10 +104,12 @@ export function App() {
   const allActionWheels = Object.values(avatar.actionWheels);
 
   return (
-    <div className="container mx-auto p-4 md:p-8 text-white min-h-screen font-sans">
-      <header className="flex justify-between items-center mb-8 sticky top-0 z-20 bg-gray-900/80 backdrop-blur-sm py-4 px-2 -mx-2">
-        <h1 className="text-2xl md:text-4xl font-bold">Avatar Editor</h1>
-        <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-base py-2 px-6">
+    <div className="container mx-auto p-4 md:p-8 text-slate-100 min-h-screen" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <header className="flex justify-between items-center mb-8 sticky top-0 z-20 bg-slate-900/70 backdrop-blur-lg py-4 px-2 -mx-2 border-b border-slate-800">
+        <h1 className="text-3xl md:text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-500">
+          Avatar Editor
+        </h1>
+        <Button onClick={handleSave} disabled={isSaving} className="bg-violet-600 hover:bg-violet-500 text-base py-2 px-6 focus-visible:ring-violet-400">
           {isSaving ? "Saving..." : "Save"}
         </Button>
       </header>
@@ -112,7 +117,7 @@ export function App() {
       <main>
         <Section 
             title="Action Wheels"
-            headerControls={<Button onClick={addActionWheel} className="bg-blue-600 hover:bg-blue-700">+ Add Wheel</Button>}
+            headerControls={<Button onClick={addActionWheel} className="bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-400">+ Add Wheel</Button>}
         >
           <ActionWheelsManager
             avatar={avatar}

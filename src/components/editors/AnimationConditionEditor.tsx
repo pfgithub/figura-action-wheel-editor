@@ -18,12 +18,12 @@ interface AnimationConditionEditorProps {
 // Style mapping to provide a unique look for each condition type
 // and to ensure Tailwind CSS picks up the class names.
 const kindStyles: { [key in AnimationCondition['kind']]: { label: string; border: string; bg: string; text: string; selectBg: string } } = {
-  empty: { label: '-- Select Condition Type --', border: 'border-gray-600', bg: 'bg-gray-800/50', text: 'text-gray-400', selectBg: 'bg-gray-700' },
-  and: { label: 'AND (All Of)', border: 'border-blue-500', bg: 'bg-blue-900/20', text: 'text-blue-300', selectBg: 'bg-blue-900/50' },
-  or: { label: 'OR (Any Of)', border: 'border-green-500', bg: 'bg-green-900/20', text: 'text-green-300', selectBg: 'bg-green-900/50' },
-  not: { label: 'NOT', border: 'border-yellow-500', bg: 'bg-yellow-900/20', text: 'text-yellow-300', selectBg: 'bg-yellow-900/50' },
-  toggleGroup: { label: 'Toggle Group State', border: 'border-purple-500', bg: 'bg-purple-900/20', text: 'text-purple-300', selectBg: 'bg-purple-900/50' },
-  player: { label: 'Player State', border: 'border-pink-500', bg: 'bg-pink-900/20', text: 'text-pink-300', selectBg: 'bg-pink-900/50' },
+  empty: { label: '-- Select Condition Type --', border: 'border-slate-600', bg: 'bg-slate-800/50', text: 'text-slate-400', selectBg: 'bg-slate-700' },
+  and: { label: 'AND (All Of)', border: 'border-sky-500', bg: 'bg-sky-900/30', text: 'text-sky-300', selectBg: 'bg-sky-900/50' },
+  or: { label: 'OR (Any Of)', border: 'border-emerald-500', bg: 'bg-emerald-900/30', text: 'text-emerald-300', selectBg: 'bg-emerald-900/50' },
+  not: { label: 'NOT', border: 'border-amber-500', bg: 'bg-amber-900/30', text: 'text-amber-300', selectBg: 'bg-amber-900/50' },
+  toggleGroup: { label: 'Toggle Group State', border: 'border-violet-500', bg: 'bg-violet-900/30', text: 'text-violet-300', selectBg: 'bg-violet-900/50' },
+  player: { label: 'Player State', border: 'border-rose-500', bg: 'bg-rose-900/30', text: 'text-rose-300', selectBg: 'bg-rose-900/50' },
 };
 
 export function AnimationConditionEditor({
@@ -65,7 +65,7 @@ export function AnimationConditionEditor({
     switch (condition.kind) {
       case 'empty':
         return (
-          <div className="text-center text-gray-400 py-3">
+          <div className="text-center text-slate-400 py-3">
             <p>Select a condition type to begin.</p>
           </div>
         );
@@ -102,7 +102,7 @@ export function AnimationConditionEditor({
                   const newConditions = [...condition.conditions, { kind: 'empty' } as AnimationCondition];
                   updateCondition({ ...condition, conditions: newConditions });
                 }}
-                className="bg-green-600 hover:bg-green-700 text-xs"
+                className="bg-emerald-600 hover:bg-emerald-500 focus-visible:ring-emerald-400 text-xs"
               >
                 + Add Sub-Condition
               </Button>
@@ -131,7 +131,7 @@ export function AnimationConditionEditor({
       case 'toggleGroup': {
         const selectedGroup = allToggleGroups.find(g => g.uuid === condition.toggleGroup);
         return (
-          <div className="space-y-2 text-gray-300 p-2 text-sm">
+          <div className="space-y-2 text-slate-300 p-2 text-sm">
             <div className="flex items-center gap-2">
                 <span className="flex-shrink-0 pr-2">When</span>
                 <div className="flex-grow">
@@ -154,7 +154,7 @@ export function AnimationConditionEditor({
                     value={condition.value}
                     onChange={(e) => updateCondition({ ...condition, value: e.target.value as UUID })}
                     disabled={!selectedGroup}
-                    className="w-auto flex-grow bg-gray-800"
+                    className="w-auto flex-grow bg-slate-800/80"
                 >
                     {selectedGroup && Object.entries(selectedGroup.options).map(([uuid, option]) => <option key={uuid} value={uuid}>{option.name}</option>)}
                     {!selectedGroup && <option>--</option>}
@@ -166,12 +166,12 @@ export function AnimationConditionEditor({
       
       case 'player':
         return (
-          <div className="flex items-center gap-2 text-gray-300 p-2 text-sm flex-wrap">
+          <div className="flex items-center gap-2 text-slate-300 p-2 text-sm flex-wrap">
             <span>When player is</span>
             <Select 
               value={condition.player} 
               onChange={(e) => updateCondition({ ...condition, player: e.target.value as any })}
-              className="w-auto flex-grow bg-gray-800"
+              className="w-auto flex-grow bg-slate-800/80"
             >
               {["crouching", "sprinting", "blocking", "fishing", "sleeping", "swimming", "flying", "walking"].map(p => 
                 <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
@@ -200,12 +200,12 @@ export function AnimationConditionEditor({
         </Select>
         {isRoot ? (
             condition.kind !== 'empty' && (
-              <Button onClick={deleteCondition} className="bg-gray-600 hover:bg-gray-700 text-xs flex-shrink-0">
+              <Button onClick={deleteCondition} className="bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400 text-xs flex-shrink-0">
                 Clear Condition
               </Button>
             )
         ) : (
-            <Button onClick={deleteCondition} className="bg-red-600 hover:bg-red-700 text-white font-mono w-7 h-7 flex items-center justify-center p-0 rounded-full flex-shrink-0" aria-label="Delete condition">
+            <Button onClick={deleteCondition} className="bg-rose-600 hover:bg-rose-500 focus-visible:ring-rose-400 text-white font-black w-7 h-7 flex items-center justify-center p-0 rounded-full flex-shrink-0" aria-label="Delete condition">
                 ✕
             </Button>
         )}

@@ -32,6 +32,7 @@ export function ToggleGroupControls({ avatar, updateAvatar, allToggleGroups, sel
     
     const handleSave = (uuid: UUID) => {
         onGroupChange(uuid);
+        setDialogOpen(false);
     };
 
     return (
@@ -46,8 +47,8 @@ export function ToggleGroupControls({ avatar, updateAvatar, allToggleGroups, sel
                     {allToggleGroups.length === 0 && <option>No groups available</option>}
                     {allToggleGroups.map(g => <option key={g.uuid} value={g.uuid}>{g.name}</option>)}
                 </Select>
-                <Button onClick={openEditDialog} disabled={!selectedGroupUUID} className="bg-gray-600 hover:bg-gray-700 flex-shrink-0">Edit</Button>
-                <Button onClick={openCreateDialog} className="bg-blue-600 hover:bg-blue-700 flex-shrink-0">New</Button>
+                <Button onClick={openEditDialog} disabled={!selectedGroupUUID} className="bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400 flex-shrink-0 px-3">Edit</Button>
+                <Button onClick={openCreateDialog} className="bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-400 flex-shrink-0 px-3">New</Button>
             </div>
             {isDialogOpen && (
                 <ToggleGroupDialog

@@ -134,16 +134,16 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
   const removeEffect = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { effect, ...restOfAction } = action;
-    updateAction(restOfAction);
+    updateAction({ ...restOfAction, effect: { kind: "none"} });
   };
 
   return (
     <Card
-        title={`Edit Action: ${action.label}`}
-        controls={<Button onClick={deleteAction} className="bg-red-600 hover:bg-red-700">Delete Action</Button>}
+        title={<>Edit Action: <span className="text-violet-400">{action.label}</span></>}
+        controls={<Button onClick={deleteAction} className="bg-rose-600 hover:bg-rose-500 focus-visible:ring-rose-400">Delete Action</Button>}
     >
         <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-gray-300 border-b border-gray-600 pb-2">Appearance</h4>
+            <h4 className="text-lg font-semibold text-slate-300 border-b border-slate-700 pb-2">Appearance</h4>
             <FormRow label="Label">
                 <Input
                     type="text"
@@ -162,25 +162,25 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
                 />
             </FormRow>
             <FormRow label="Color">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                     <Input
                         type="color"
                         value={hexColor}
                         onChange={handleColorChange}
-                        className="p-0 h-10 w-10"
+                        className="p-1 h-10 w-10 rounded-md"
                     />
-                    <span className="text-gray-400 font-mono">{hexColor.toUpperCase()}</span>
+                    <span className="text-slate-400 font-mono text-sm tracking-wider">{hexColor.toUpperCase()}</span>
                 </div>
             </FormRow>
 
-            <div className="flex justify-between items-center pt-4 border-b border-gray-600 pb-2">
-                <h4 className="text-lg font-semibold text-gray-300">Effect</h4>
-                {action.effect && (
-                    <Button onClick={removeEffect} className="bg-red-600 hover:bg-red-700 text-xs">Remove Effect</Button>
+            <div className="flex justify-between items-center pt-4 border-b border-slate-700 pb-2">
+                <h4 className="text-lg font-semibold text-slate-300">Effect</h4>
+                {action.effect.kind !== 'none' && (
+                    <Button onClick={removeEffect} className="bg-rose-600 hover:bg-rose-500 focus-visible:ring-rose-400 text-xs px-2 py-1">Remove Effect</Button>
                 )}
             </div>
             
-            {action.effect ? (
+            {action.effect.kind !== 'none' ? (
                 <ActionEffectEditor
                     effect={action.effect}
                     updateEffect={effect => updateAction({ ...action, effect })}
@@ -191,8 +191,8 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
                 />
             ) : (
                 <div className="text-center py-4">
-                    <p className="text-gray-400 mb-3">This action has no effect.</p>
-                    <Button onClick={addEffect} className="bg-blue-600 hover:bg-blue-700">+ Add Effect</Button>
+                    <p className="text-slate-400 mb-3">This action has no effect.</p>
+                    <Button onClick={addEffect} className="bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-400">+ Add Effect</Button>
                 </div>
             )}
         </div>

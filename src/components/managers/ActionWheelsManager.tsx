@@ -123,8 +123,10 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
 
     if (allActionWheels.length === 0 || !currentWheel) {
         return (
-             <div className="flex items-center justify-center h-48 bg-gray-800/50 rounded-lg p-8 text-gray-400 border-2 border-dashed border-gray-700">
-                <p className="text-center">No action wheels found. Add one to get started.</p>
+             <div className="flex flex-col items-center justify-center h-48 bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 mb-4 text-slate-600"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/></svg>
+                <p className="text-center font-medium">No action wheels found.</p>
+                <p className="text-sm">Add one to get started.</p>
             </div>
         );
     }
@@ -132,18 +134,18 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
     return (
         <div>
             {/* Tabs for each wheel */}
-            <div className="flex items-center border-b border-gray-700 mb-6 -mx-2 px-2 pb-2 space-x-1 overflow-x-auto">
+            <div className="flex items-center border-b border-slate-700 mb-6 -mx-2 px-2 pb-px space-x-1 overflow-x-auto">
                 {allActionWheels.map(wheel => (
                     <button
                         key={wheel.uuid}
                         onClick={() => setViewedWheelUuid(wheel.uuid)}
-                        className={`py-2 px-4 rounded-t-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
+                        className={`py-2 px-4 rounded-t-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 border-b-2 ${
                             viewedWheelUuid === wheel.uuid
-                                ? 'bg-gray-800 text-white'
-                                : 'text-gray-400 hover:bg-gray-700/50 hover:text-white'
+                                ? 'border-violet-500 text-white'
+                                : 'border-transparent text-slate-400 hover:text-white'
                         }`}
                     >
-                        {avatar.mainActionWheel === wheel.uuid && <span className="mr-2 text-yellow-400" title="Main Wheel">★</span>}
+                        {avatar.mainActionWheel === wheel.uuid && <span className="mr-2 text-amber-400" title="Main Wheel">★</span>}
                         {wheel.title}
                     </button>
                 ))}
@@ -151,22 +153,22 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
 
             <div className="space-y-6">
                 {/* Wheel Header Controls */}
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-gray-800 p-4 rounded-lg">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-slate-800 p-4 rounded-lg ring-1 ring-slate-700">
                     <Input
                         type="text"
                         aria-label="Wheel Title"
                         value={currentWheel.title}
                         onChange={e => updateWheelTitle(currentWheel.uuid, e.target.value)}
-                        className="text-xl font-semibold bg-gray-700"
+                        className="text-xl font-semibold bg-slate-700/80 border-slate-600"
                     />
                     <div className="flex gap-2 flex-shrink-0">
                         {avatar.mainActionWheel !== currentWheel.uuid && (
-                            <Button onClick={() => setMainWheel(currentWheel.uuid)} className="bg-yellow-600 hover:bg-yellow-700">
+                            <Button onClick={() => setMainWheel(currentWheel.uuid)} className="bg-amber-500 hover:bg-amber-400 focus-visible:ring-amber-300">
                                 Set as Main
                             </Button>
                         )}
                         {allActionWheels.length > 1 && (
-                            <Button onClick={() => deleteActionWheel(currentWheel.uuid)} className="bg-red-600 hover:bg-red-700">
+                            <Button onClick={() => deleteActionWheel(currentWheel.uuid)} className="bg-rose-600 hover:bg-rose-500 focus-visible:ring-rose-400">
                                 Delete Wheel
                             </Button>
                         )}
@@ -175,7 +177,7 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
 
                 {/* Main Content */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                    <div className="flex justify-center items-center lg:sticky lg:top-24 py-4">
+                    <div className="flex justify-center items-center lg:sticky lg:top-28 py-4">
                         <ActionWheelVisualizer
                             key={currentWheel.uuid}
                             actions={currentWheel.actions}
@@ -199,8 +201,10 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
                                 updateAvatar={updateAvatar}
                             />
                         ) : (
-                            <div className="flex items-center justify-center h-full bg-gray-800/50 rounded-lg p-8 text-gray-400 border-2 border-dashed border-gray-700 min-h-[400px]">
-                                <p className="text-center">Select an action on the wheel to edit it,<br/>or click the '+' slot to add a new one.</p>
+                             <div className="flex flex-col items-center justify-center h-full bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700 min-h-[400px]">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 mb-4 text-slate-600"><path d="m21.1 16.3-4.2-4.2a2 2 0 0 0-2.8 0L3.7 22a2 2 0 0 1-2.8-2.8l10.4-10.4a2 2 0 0 0 0-2.8L7.1 1.7a2 2 0 0 1 2.8 0l11.2 11.2a2 2 0 0 1 0 2.8z"/><path d="m22 22-2.5-2.5"/><path d="m3.5 3.5 2.5 2.5"/></svg>
+                                <p className="text-center font-medium">Select an action to edit</p>
+                                <p className="text-sm text-center">Click a slot on the wheel to edit its action,<br/>or click the '+' to add a new one.</p>
                             </div>
                         )}
                     </div>
