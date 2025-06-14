@@ -1,7 +1,6 @@
 import React from "react";
 import type { AnimationID, AnimationSetting, Avatar, ToggleGroup } from "../../types";
 import type { UpdateAvatarFn } from "../../hooks/useAvatar";
-import { Button } from "../ui/Button";
 import { FormRow } from "../ui/FormRow";
 import { Input } from "../ui/Input";
 import { AnimationConditionEditor } from "./AnimationConditionEditor";
@@ -29,7 +28,6 @@ export function AnimationSettingEditor({ animId, setting, updateSetting, allTogg
             condition={setting.activationCondition}
             updateCondition={(newCond) => updateSetting({ ...setting, activationCondition: newCond })}
             allToggleGroups={allToggleGroups}
-            isRoot={true}
             avatar={avatar}
             updateAvatar={updateAvatar}
           />

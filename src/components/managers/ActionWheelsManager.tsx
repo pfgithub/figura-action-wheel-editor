@@ -176,8 +176,8 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
                 </div>
 
                 {/* Main Content */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                    <div className="flex justify-center items-center lg:sticky lg:top-28 py-4">
+                <div className="flex flex-col gap-8">
+                    <div className="flex justify-center items-center py-4">
                         <ActionWheelVisualizer
                             key={currentWheel.uuid}
                             actions={currentWheel.actions}
