@@ -21,21 +21,24 @@ export function AnimationSettingEditor({ animId, setting, updateSetting, allTogg
       
       <div>
         <label className="text-gray-400 text-sm font-bold block mb-2">Activation Condition</label>
-        <div>
+        <div className="bg-gray-900/40 p-4 rounded-lg border border-gray-700">
           {setting.activationCondition ? (
             <AnimationConditionEditor
               condition={setting.activationCondition}
               updateCondition={(newCond) => updateSetting({ ...setting, activationCondition: newCond })}
               deleteCondition={() => updateSetting({ ...setting, activationCondition: undefined })}
               allToggleGroups={allToggleGroups}
+              isRoot={true}
             />
           ) : (
-            <Button
-              onClick={() => updateSetting({ ...setting, activationCondition: { kind: "empty" } })}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              + Add Condition
-            </Button>
+            <div className="text-center">
+              <Button
+                onClick={() => updateSetting({ ...setting, activationCondition: { kind: "empty" } })}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                + Add Activation Condition
+              </Button>
+            </div>
           )}
         </div>
       </div>
