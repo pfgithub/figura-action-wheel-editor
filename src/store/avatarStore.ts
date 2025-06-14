@@ -51,8 +51,6 @@ export const useAvatarStore = create<AvatarState>()(
           });
           if (!response.ok) throw new Error(`Failed to save: ${response.statusText}`);
           alert('Saved successfully!');
-          // After a successful save, clear the undo history as it represents "unsaved" changes.
-          // useAvatarStore.temporal.clear();
         } catch (err: any) {
           alert(`Error saving: ${err.message}`);
         } finally {

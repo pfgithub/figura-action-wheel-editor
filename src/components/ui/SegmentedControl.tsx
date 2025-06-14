@@ -1,7 +1,5 @@
 // src/components/ui/SegmentedControl.tsx
-import React from 'react';
-
-interface SegmentedControlProps<T extends string> {
+interface SegmentedControlProps<T> {
     options: { label: string; value: T }[];
     value: T;
     onChange: (value: T) => void;

@@ -4,10 +4,8 @@ import type { Action, ActionEffect, ActionWheel, ToggleGroup } from '../../types
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { FormRow } from '../ui/FormRow';
-import { Card } from '../ui/Card';
 import { MinecraftItemPicker } from '../ui/MinecraftItemPicker';
 import { ColorPicker } from '../ui/ColorPicker';
-import { Switch } from '../ui/Switch';
 import { ActionEffectEditor } from './ActionEffectEditor';
 import { TrashIcon } from '../ui/icons';
 
@@ -23,18 +21,8 @@ interface ActionEditorProps {
 }
 
 export function ActionEditor({ action, updateAction, deleteAction, allToggleGroups, allActionWheels }: ActionEditorProps) {
-    const handleEffectEnabledChange = (enabled: boolean) => {
-        if (enabled) {
-            updateAction({ ...action, effect: { kind: 'toggle' } });
-        } else {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { effect, ...restOfAction } = action;
-            updateAction(restOfAction);
-        }
-    };
-
     return (
-        <Card>
+        <div className="bg-slate-800 rounded-lg ring-1 ring-slate-700">
             <div className="p-2 sm:p-4">
                 <div className="flex justify-between items-start mb-6">
                     <div>
@@ -61,13 +49,11 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
 
                     <SectionDivider />
 
-                    <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-4">
-                         <h4 className="text-lg font-semibold text-slate-300">Action Effect</h4>
-                    </div>
+                    <h4 className="text-lg font-semibold text-slate-300 border-b border-slate-700 pb-2 mb-4">Action Effect</h4>
                     
                     <ActionEffectEditor effect={action.effect} updateEffect={effect => updateAction({ ...action, effect })} allToggleGroups={allToggleGroups} allActionWheels={allActionWheels} />
                 </div>
             </div>
-        </Card>
+        </div>
     );
 }

@@ -108,7 +108,6 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                             {isExpanded && (
                                 <div id={`anim-details-${animId}`} className="p-4 border-t border-slate-700 bg-slate-800/50">
                                     <AnimationSettingEditor
-                                        animId={animId} 
                                         setting={setting}
                                         updateSetting={(s) => updateSetting(animId, s)}
                                         allToggleGroups={allToggleGroups}

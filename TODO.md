@@ -16,4 +16,4 @@
 - [ ] add the ability to drag and drop reorder items in the action wheel
 - [ ] update the animation settings panel so it has a list of animations and you can select them and then there's a seperate panel below it where you can set the name and activation conditions for the selected one
 
-Output the list of created/modified/deleted files with the full content for each file (or if it's deleted, just the filename)
+Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename)

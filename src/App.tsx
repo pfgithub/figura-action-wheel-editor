@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useStore } from "zustand";
 import type { UUID, ActionWheel } from "./types";
 import { useAvatarStore } from "./store/avatarStore";
 import { generateUUID } from "./utils/uuid";

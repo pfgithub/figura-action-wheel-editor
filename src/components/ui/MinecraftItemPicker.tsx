@@ -1,4 +1,4 @@
-import { useMinecraftItems } from "@/hooks/useMinecraftItems";
+import { useMinecraftItems } from "../../hooks/useMinecraftItems";
 import { useState } from "react";
 import { Button } from "./Button";
 import { Input } from "./Input";

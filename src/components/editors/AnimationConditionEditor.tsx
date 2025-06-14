@@ -8,7 +8,6 @@ import {
     type DragEndEvent,
     type DragStartEvent,
 } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
 import { produce, type WritableDraft } from 'immer';
 import type { AnimationCondition, ToggleGroup, UUID, AnimationConditionNot, AnimationConditionAnd, AnimationConditionOr } from '../../types';
 import { useAvatarStore } from '../../store/avatarStore';
@@ -119,7 +118,6 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
     const styles = kindStyles[condition.kind];
 
     const {
-        attributes: dragAttributes,
         listeners: dragListeners,
         setNodeRef: setDraggableNodeRef,
         isDragging,

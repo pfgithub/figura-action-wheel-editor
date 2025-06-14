@@ -1,4 +1,3 @@
-import React from "react";
 import { twMerge } from 'tailwind-merge'
 
 export const Button = ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
