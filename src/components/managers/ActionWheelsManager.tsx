@@ -49,7 +49,7 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
         for (const wheel of Object.values(avatar.actionWheels)) {
             if (wheel.uuid === uuid) continue;
             for (const action of wheel.actions) {
-                if (action.effect.kind === "switchPage" && action.effect.actionWheel === uuid) {
+                if (action.effect?.kind === "switchPage" && action.effect.actionWheel === uuid) {
                     usage = `an action in "${wheel.title}"`;
                     break;
                 }
@@ -81,14 +81,10 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
         updateAvatar(draft => {
             const wheel = draft.actionWheels[wheelUuid];
             if (wheel && wheel.actions.length < MAX_ACTIONS_PER_WHEEL) {
-                const firstToggleGroup = Object.values(draft.toggleGroups)[0];
                 const newAction: Action = {
                     icon: '❓',
                     label: `Action ${wheel.actions.length + 1}`,
                     color: [80, 80, 80],
-                    effect: firstToggleGroup
-                        ? { kind: 'toggle', toggleGroup: firstToggleGroup.uuid, value: firstToggleGroup.options[0] ?? '' }
-                        : { kind: 'switchPage', actionWheel: Object.keys(draft.actionWheels)[0] as UUID ?? ('' as UUID) },
                 };
                 wheel.actions.push(newAction);
                 setSelectedActionIndex(wheel.actions.length - 1);

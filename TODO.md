@@ -12,3 +12,5 @@
 - [ ] I forgot `label: string` in the Action type. Add it and update the action wheel display and action editor to use the label.
 
 - [ ] I forgot to make 'effect' optional in the Action type. Make it optional and default it to undefined.
+
+- [ ] Update the ToggleGroup type so options is `Record<UUID, ToggleGroupOption>`

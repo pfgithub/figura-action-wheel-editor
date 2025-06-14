@@ -116,6 +116,20 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
   };
   
   const hexColor = rgbToHex(...action.color);
+  const addEffect = () => {
+    const firstToggleGroup = allToggleGroups[0];
+    // Default to 'toggle' if possible, otherwise 'switchPage'
+    const newEffect: ActionEffect = firstToggleGroup
+      ? { kind: 'toggle', toggleGroup: firstToggleGroup.uuid, value: firstToggleGroup.options[0] ?? '' }
+      : { kind: 'switchPage', actionWheel: allActionWheels[0]?.uuid ?? '' as UUID };
+    updateAction({ ...action, effect: newEffect });
+  };
+
+  const removeEffect = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { effect, ...restOfAction } = action;
+    updateAction(restOfAction);
+  };
 
   return (
     <Card
@@ -153,15 +167,28 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
                 </div>
             </FormRow>
 
-            <h4 className="text-lg font-semibold text-gray-300 border-b border-gray-600 pb-2 pt-4">Effect</h4>
-            <ActionEffectEditor
-                effect={action.effect}
-                updateEffect={effect => updateAction({ ...action, effect })}
-                allToggleGroups={allToggleGroups}
-                allActionWheels={allActionWheels}
-                avatar={avatar}
-                updateAvatar={updateAvatar}
-            />
+            <div className="flex justify-between items-center pt-4 border-b border-gray-600 pb-2">
+                <h4 className="text-lg font-semibold text-gray-300">Effect</h4>
+                {action.effect && (
+                    <Button onClick={removeEffect} className="bg-red-600 hover:bg-red-700 text-xs">Remove Effect</Button>
+                )}
+            </div>
+            
+            {action.effect ? (
+                <ActionEffectEditor
+                    effect={action.effect}
+                    updateEffect={effect => updateAction({ ...action, effect })}
+                    allToggleGroups={allToggleGroups}
+                    allActionWheels={allActionWheels}
+                    avatar={avatar}
+                    updateAvatar={updateAvatar}
+                />
+            ) : (
+                <div className="text-center py-4">
+                    <p className="text-gray-400 mb-3">This action has no effect.</p>
+                    <Button onClick={addEffect} className="bg-blue-600 hover:bg-blue-700">+ Add Effect</Button>
+                </div>
+            )}
         </div>
     </Card>
   );
