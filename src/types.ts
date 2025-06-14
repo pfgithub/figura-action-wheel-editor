@@ -36,10 +36,14 @@ export type ToggleGroup = {
 };
 
 export type AnimationSetting = {
+    animation: AnimationID,
     name: string,
-    activationCondition: AnimationCondition,
+    activationCondition?: AnimationCondition,
 };
 
+export type AnimationConditionEmpty = {
+    kind: "empty",
+};
 export type AnimationConditionOr = {
     kind: "or",
     conditions: AnimationCondition[],
@@ -50,7 +54,7 @@ export type AnimationConditionAnd = {
 };
 export type AnimationConditionNot = {
     kind: "not",
-    condition: AnimationCondition,
+    condition?: AnimationCondition,
 };
 export type AnimationConditionToggleGroup = {
     kind: "toggleGroup",
@@ -61,4 +65,4 @@ export type AnimationConditionPlayer = {
     kind: "player",
     player: "crouching" | "sprinting" | "blocking" | "fishing" | "sleeping" | "swimming" | "flying" | "walking",
 };
-export type AnimationCondition = AnimationConditionOr | AnimationConditionAnd | AnimationConditionNot | AnimationConditionToggleGroup | AnimationConditionPlayer;
+export type AnimationCondition = AnimationConditionEmpty | AnimationConditionOr | AnimationConditionAnd | AnimationConditionNot | AnimationConditionToggleGroup | AnimationConditionPlayer;

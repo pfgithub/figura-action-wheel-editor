@@ -14,7 +14,20 @@ const defaultProject: Avatar = {
     },
   },
   toggleGroups: {},
-  animationSettings: {},
+  animationSettings: {
+    ["model.sit" as AnimationID]: {
+      animation: "model.sit" as AnimationID,
+      name: "Sit",
+    },
+    ["model.lay" as AnimationID]: {
+      animation: "model.lay" as AnimationID,
+      name: "Lay",
+    },
+    ["model.jump" as AnimationID]: {
+      animation: "model.jump" as AnimationID,
+      name: "Jump",
+    },
+  },
   animations: [
     "model.sit" as AnimationID,
     "model.lay" as AnimationID,
