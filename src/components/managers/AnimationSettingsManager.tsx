@@ -13,7 +13,7 @@ interface AnimationSettingsManagerProps {
 // Helper to summarize the condition for display in the UI
 const summarizeCondition = (condition?: AnimationCondition): string => {
     if (!condition || condition.kind === 'empty') {
-        return "Always Active";
+        return "Not Configured";
     }
     // A simple function to recursively count non-container conditions
     const countLeafConditions = (c: AnimationCondition): number => {
