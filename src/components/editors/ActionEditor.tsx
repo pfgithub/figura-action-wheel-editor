@@ -1,10 +1,12 @@
 import React from "react";
-import type { Action, ActionEffect, ActionWheel, ToggleGroup, UUID } from "../../types";
+import type { Action, ActionEffect, ActionWheel, ToggleGroup, UUID, Avatar } from "../../types";
+import type { UpdateAvatarFn } from "../../hooks/useAvatar";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Select } from "../ui/Select";
 import { FormRow } from "../ui/FormRow";
 import { Card } from "../ui/Card";
+import { ToggleGroupControls } from "../shared/ToggleGroupControls";
 
 // Helper for color conversion
 const rgbToHex = (r: number, g: number, b: number): string => {
@@ -24,11 +26,13 @@ const hexToRgb = (hex: string): [number, number, number] | null => {
 };
 
 
-function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWheels }: {
+function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWheels, avatar, updateAvatar }: {
   effect: ActionEffect;
   updateEffect: (e: ActionEffect) => void;
   allToggleGroups: ToggleGroup[];
   allActionWheels: ActionWheel[];
+  avatar: Avatar;
+  updateAvatar: UpdateAvatarFn;
 }) {
   const handleKindChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const kind = e.target.value as ActionEffect['kind'];
@@ -54,16 +58,16 @@ function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWh
         {effect.kind === 'toggle' && (
             <>
                 <FormRow label="Toggle Group">
-                    <Select
-                        value={effect.toggleGroup}
-                        onChange={(e) => {
-                            const newGroup = allToggleGroups.find(g => g.uuid === e.target.value);
-                            updateEffect({ ...effect, toggleGroup: e.target.value as UUID, value: newGroup?.options[0] ?? '' });
+                    <ToggleGroupControls
+                        avatar={avatar}
+                        updateAvatar={updateAvatar}
+                        allToggleGroups={allToggleGroups}
+                        selectedGroupUUID={effect.toggleGroup}
+                        onGroupChange={(newUUID) => {
+                            const newGroup = avatar.toggleGroups[newUUID];
+                            updateEffect({ ...effect, toggleGroup: newUUID, value: newGroup?.options[0] ?? '' });
                         }}
-                        disabled={allToggleGroups.length === 0}
-                    >
-                        {allToggleGroups.map(g => <option key={g.uuid} value={g.uuid}>{g.name}</option>)}
-                    </Select>
+                    />
                 </FormRow>
                 <FormRow label="Value">
                     <Select
@@ -98,9 +102,11 @@ interface ActionEditorProps {
     deleteAction: () => void;
     allToggleGroups: ToggleGroup[];
     allActionWheels: ActionWheel[];
+    avatar: Avatar;
+    updateAvatar: UpdateAvatarFn;
 }
 
-export function ActionEditor({ action, updateAction, deleteAction, allToggleGroups, allActionWheels }: ActionEditorProps) {
+export function ActionEditor({ action, updateAction, deleteAction, allToggleGroups, allActionWheels, avatar, updateAvatar }: ActionEditorProps) {
 
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rgb = hexToRgb(e.target.value);
@@ -145,6 +151,8 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
                 updateEffect={effect => updateAction({ ...action, effect })}
                 allToggleGroups={allToggleGroups}
                 allActionWheels={allActionWheels}
+                avatar={avatar}
+                updateAvatar={updateAvatar}
             />
         </div>
     </Card>

@@ -8,49 +8,12 @@ import "./index.css";
 import { Button } from "./components/ui/Button";
 import { Section } from "./components/ui/Section";
 
-// Editor Components
-import { ToggleGroupEditor } from "./components/editors/ToggleGroupEditor";
+// Manager Components
 import { ActionWheelsManager } from "./components/managers/ActionWheelsManager";
 import { AnimationSettingsManager } from "./components/managers/AnimationSettingsManager";
 
 export function App() {
   const { avatar, loading, error, isSaving, handleSave, updateAvatar } = useAvatar();
-
-  const addToggleGroup = () => {
-    updateAvatar((draft) => {
-      const newGroup: ToggleGroup = {
-        uuid: generateUUID(),
-        name: "New Toggle Group",
-        options: ["Default"],
-      };
-      draft.toggleGroups[newGroup.uuid] = newGroup;
-    });
-  };
-
-  const deleteToggleGroup = (uuid: UUID) => {
-    if (avatar) {
-        let usage = "";
-        for (const wheel of Object.values(avatar.actionWheels ?? {})) {
-            for (const action of wheel.actions) {
-                if (action.effect.kind === "toggle" && action.effect.toggleGroup === uuid) {
-                    usage = `an action in "${wheel.title}"`;
-                    break;
-                }
-            }
-        }
-        // A more robust check for animation conditions would go here
-        if (usage) {
-             alert(`Cannot delete. Toggle group is in use in ${usage}.`);
-             return;
-        }
-    }
-
-    if (window.confirm("Are you sure you want to delete this toggle group?")) {
-      updateAvatar((draft) => {
-        delete draft.toggleGroups[uuid];
-      });
-    }
-  };
 
   const addActionWheel = () => {
     updateAvatar((draft) => {
@@ -83,21 +46,6 @@ export function App() {
       </header>
 
       <main>
-        <Section 
-            title="Toggle Groups"
-            headerControls={<Button onClick={addToggleGroup} className="bg-blue-600 hover:bg-blue-700">+ Add Group</Button>}
-        >
-          {allToggleGroups.map((group) => (
-            <ToggleGroupEditor
-              key={group.uuid}
-              group={group}
-              updateGroup={(updatedGroup) => updateAvatar((draft) => { draft.toggleGroups[updatedGroup.uuid] = updatedGroup; })}
-              deleteGroup={() => deleteToggleGroup(group.uuid)}
-            />
-          ))}
-          {allToggleGroups.length === 0 && <p className="text-gray-400 text-center py-4">No toggle groups. Add one to get started.</p>}
-        </Section>
-
         <Section 
             title="Action Wheels"
             headerControls={<Button onClick={addActionWheel} className="bg-blue-600 hover:bg-blue-700">+ Add Wheel</Button>}

@@ -1,13 +1,17 @@
 import React from "react";
-import type { AnimationCondition, ToggleGroup, UUID } from "../../types";
+import type { AnimationCondition, Avatar, ToggleGroup, UUID } from "../../types";
+import type { UpdateAvatarFn } from "../../hooks/useAvatar";
 import { Button } from "../ui/Button";
 import { Select } from "../ui/Select";
+import { ToggleGroupControls } from "../shared/ToggleGroupControls";
 
 interface AnimationConditionEditorProps {
   condition: AnimationCondition;
   updateCondition: (c: AnimationCondition) => void;
   deleteCondition: () => void;
   allToggleGroups: ToggleGroup[];
+  avatar: Avatar;
+  updateAvatar: UpdateAvatarFn;
   isRoot?: boolean;
 }
 
@@ -27,6 +31,8 @@ export function AnimationConditionEditor({
   updateCondition,
   deleteCondition,
   allToggleGroups,
+  avatar,
+  updateAvatar,
   isRoot = false,
 }: AnimationConditionEditorProps) {
 
@@ -86,6 +92,8 @@ export function AnimationConditionEditor({
                     }
                   }}
                   allToggleGroups={allToggleGroups}
+                  avatar={avatar}
+                  updateAvatar={updateAvatar}
                 />
               ))}
               <Button
@@ -111,6 +119,8 @@ export function AnimationConditionEditor({
                     updateCondition={(newCond) => updateCondition({ ...condition, condition: newCond })}
                     deleteCondition={() => updateCondition({ ...condition, condition: {kind: "empty"} })}
                     allToggleGroups={allToggleGroups}
+                    avatar={avatar}
+                    updateAvatar={updateAvatar}
                 />
               )}
             </div>
@@ -120,31 +130,34 @@ export function AnimationConditionEditor({
       case 'toggleGroup': {
         const selectedGroup = allToggleGroups.find(g => g.uuid === condition.toggleGroup);
         return (
-          <div className="flex items-center gap-2 text-gray-300 p-2 text-sm flex-wrap">
-            <span>When</span>
-            <Select
-              value={condition.toggleGroup}
-              onChange={(e) => {
-                const newGroupUUID = e.target.value as UUID;
-                const newGroup = allToggleGroups.find(g => g.uuid === newGroupUUID);
-                updateCondition({ ...condition, toggleGroup: newGroupUUID, value: newGroup?.options[0] ?? '' });
-              }}
-              disabled={allToggleGroups.length === 0}
-              className="w-auto flex-grow bg-gray-800"
-            >
-              {allToggleGroups.length === 0 && <option>No Toggle Groups</option>}
-              {allToggleGroups.map(g => <option key={g.uuid} value={g.uuid}>{g.name}</option>)}
-            </Select>
-            <span className="font-semibold">is</span>
-            <Select
-              value={condition.value}
-              onChange={(e) => updateCondition({ ...condition, value: e.target.value })}
-              disabled={!selectedGroup}
-              className="w-auto flex-grow bg-gray-800"
-            >
-              {selectedGroup?.options.map(o => <option key={o} value={o}>{o}</option>)}
-              {!selectedGroup && <option>--</option>}
-            </Select>
+          <div className="space-y-2 text-gray-300 p-2 text-sm">
+            <div className="flex items-center gap-2">
+                <span className="flex-shrink-0 pr-2">When</span>
+                <div className="flex-grow">
+                    <ToggleGroupControls
+                        avatar={avatar}
+                        updateAvatar={updateAvatar}
+                        allToggleGroups={allToggleGroups}
+                        selectedGroupUUID={condition.toggleGroup}
+                        onGroupChange={(newUUID) => {
+                            const newGroup = avatar.toggleGroups[newUUID];
+                            updateCondition({ ...condition, toggleGroup: newUUID, value: newGroup?.options[0] ?? '' });
+                        }}
+                    />
+                </div>
+            </div>
+            <div className="flex items-center gap-2">
+                <span className="font-semibold flex-shrink-0 pr-6">is</span>
+                <Select
+                    value={condition.value}
+                    onChange={(e) => updateCondition({ ...condition, value: e.target.value })}
+                    disabled={!selectedGroup}
+                    className="w-auto flex-grow bg-gray-800"
+                >
+                    {selectedGroup?.options.map(o => <option key={o} value={o}>{o}</option>)}
+                    {!selectedGroup && <option>--</option>}
+                </Select>
+            </div>
           </div>
         );
       }

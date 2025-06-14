@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Avatar, AnimationID, ToggleGroup, AnimationSetting, AnimationCondition } from '../../types';
-import { UpdateAvatarFn } from '../../hooks/useAvatar';
+import type { UpdateAvatarFn } from '../../hooks/useAvatar';
 import { Input } from '../ui/Input';
 import { AnimationSettingEditor } from '../editors/AnimationSettingEditor';
 
@@ -110,6 +110,8 @@ export function AnimationSettingsManager({ avatar, updateAvatar, allToggleGroups
                                         setting={setting}
                                         updateSetting={(s) => updateSetting(animId, s)}
                                         allToggleGroups={allToggleGroups}
+                                        avatar={avatar}
+                                        updateAvatar={updateAvatar}
                                     />
                                 </div>
                             )}

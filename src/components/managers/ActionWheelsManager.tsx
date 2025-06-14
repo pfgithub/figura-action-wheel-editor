@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { UUID, Action, Avatar, ToggleGroup, ActionWheel } from '../../types';
-import { UpdateAvatarFn } from '../../hooks/useAvatar';
+import type { UpdateAvatarFn } from '../../hooks/useAvatar';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { ActionEditor } from '../editors/ActionEditor';
@@ -197,6 +197,8 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
                                 deleteAction={deleteSelectedAction}
                                 allToggleGroups={allToggleGroups}
                                 allActionWheels={allActionWheels}
+                                avatar={avatar}
+                                updateAvatar={updateAvatar}
                             />
                         ) : (
                             <div className="flex items-center justify-center h-full bg-gray-800/50 rounded-lg p-8 text-gray-400 border-2 border-dashed border-gray-700 min-h-[400px]">
