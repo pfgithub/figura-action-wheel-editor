@@ -10,8 +10,8 @@ import { Section } from "./components/ui/Section";
 
 // Editor Components
 import { ToggleGroupEditor } from "./components/editors/ToggleGroupEditor";
-import { AnimationSettingEditor } from "./components/editors/AnimationSettingEditor";
 import { ActionWheelsManager } from "./components/managers/ActionWheelsManager";
+import { AnimationSettingsManager } from "./components/managers/AnimationSettingsManager";
 
 export function App() {
   const { avatar, loading, error, isSaving, handleSave, updateAvatar } = useAvatar();
@@ -111,19 +111,11 @@ export function App() {
         </Section>
 
         <Section title="Animation Settings">
-          {avatar.animations.map((animId) => {
-            const setting = avatar.animationSettings[animId];
-            if (!setting) return (<div key={animId} className="text-red-400">Error: Missing setting for {animId}</div>);
-            return (
-              <AnimationSettingEditor
-                key={animId}
-                animId={animId}
-                setting={setting}
-                updateSetting={(updatedSetting) => updateAvatar((draft) => { draft.animationSettings[animId] = updatedSetting; })}
-                allToggleGroups={allToggleGroups}
-              />
-            );
-          })}
+          <AnimationSettingsManager
+            avatar={avatar}
+            updateAvatar={updateAvatar}
+            allToggleGroups={allToggleGroups}
+          />
         </Section>
       </main>
     </div>
