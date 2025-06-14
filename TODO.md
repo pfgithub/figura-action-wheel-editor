@@ -1,16 +1,10 @@
 - [ ] improve the animation condition editor
 - [ ] update the layout to be three panels horizontally: Action Wheels, 
 - [ ] update actions to have a color picker. 
-- [ ] redesign the action wheel section:
-  - on the left: a list of action wheels with their actions
-  - when you select an action, on the right add the editor for it
-  - rather than a dropdown for main, you should be able to click 'set main' on an action wheel to set it as main
-  - redesign the action editor to be more intuitive
 
-- [ ] The toggle group editor is annoying. Remove the 'Toggle Groups' section and allow creating toggle groups and adding options to them directly from where you use them
 
-- [ ] I forgot `label: string` in the Action type. Add it and update the action wheel display and action editor to use the label.
 
-- [ ] I forgot to make 'effect' optional in the Action type. Make it optional and default it to undefined.
-
-- [ ] Update the ToggleGroup type so options is `Record<UUID, ToggleGroupOption>`
+- [ ] The 'icon' string in Actions is supposed to represent a minecraft item, like `minecraft:stone`. Add a picker to choose from any item in minecraft, and allow manually typing in an item id for if the item isn't found in the picker. To get the images, fetch `/minecraft-items.json`. It will return `Record<string, {id: string, name: string, imageUrl: string}>` which is a map from item ids to names and image urls.
+- [ ] Improve the color picker for actions and default it to white
+- [ ] Update the UI layout to take up the full page with two vertical columns. On the left is the action wheels editor with tabs for the action wheels on the top and edit action below. On the right is the animation settings panel. The toggle groups section can be removed.
+- [ ] Implement an Animation Condition Editor based on drag and drop using dnd-kit and immer

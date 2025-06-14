@@ -48,9 +48,6 @@ export type AnimationSetting = {
     activationCondition?: AnimationCondition,
 };
 
-export type AnimationConditionEmpty = {
-    kind: "empty",
-};
 export type AnimationConditionOr = {
     kind: "or",
     conditions: AnimationCondition[],
@@ -72,4 +69,4 @@ export type AnimationConditionPlayer = {
     kind: "player",
     player: "crouching" | "sprinting" | "blocking" | "fishing" | "sleeping" | "swimming" | "flying" | "walking",
 };
-export type AnimationCondition = AnimationConditionEmpty | AnimationConditionOr | AnimationConditionAnd | AnimationConditionNot | AnimationConditionToggleGroup | AnimationConditionPlayer;
+export type AnimationCondition = AnimationConditionOr | AnimationConditionAnd | AnimationConditionNot | AnimationConditionToggleGroup | AnimationConditionPlayer;

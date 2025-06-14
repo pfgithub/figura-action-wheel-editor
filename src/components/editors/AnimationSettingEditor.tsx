@@ -25,26 +25,14 @@ export function AnimationSettingEditor({ animId, setting, updateSetting, allTogg
       <div>
         <label className="text-slate-400 text-sm font-medium block mb-2">Activation Condition</label>
         <div className="bg-slate-900/50 p-4 rounded-lg ring-1 ring-slate-700">
-          {setting.activationCondition ? (
-            <AnimationConditionEditor
-              condition={setting.activationCondition}
-              updateCondition={(newCond) => updateSetting({ ...setting, activationCondition: newCond })}
-              deleteCondition={() => updateSetting({ ...setting, activationCondition: { kind: 'empty' } })}
-              allToggleGroups={allToggleGroups}
-              isRoot={true}
-              avatar={avatar}
-              updateAvatar={updateAvatar}
-            />
-          ) : (
-            <div className="text-center">
-              <Button
-                onClick={() => updateSetting({ ...setting, activationCondition: { kind: "empty" } })}
-                className="bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-400"
-              >
-                + Add Activation Condition
-              </Button>
-            </div>
-          )}
+          <AnimationConditionEditor
+            condition={setting.activationCondition}
+            updateCondition={(newCond) => updateSetting({ ...setting, activationCondition: newCond })}
+            allToggleGroups={allToggleGroups}
+            isRoot={true}
+            avatar={avatar}
+            updateAvatar={updateAvatar}
+          />
         </div>
       </div>
     </div>
