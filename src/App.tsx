@@ -15,9 +15,11 @@ import { AnimationSettingsManager } from "./components/managers/AnimationSetting
 export function App() {
   const { avatar, loading, error, isSaving, fetchAvatar, saveAvatar, updateAvatar } = useAvatarStore();
   const [viewedWheelUuid, setViewedWheelUuid] = useState<UUID | null>(null);
+  // State for mobile tab view
+  const [activeTab, setActiveTab] = useState('wheels'); // 'wheels' or 'settings'
 
   // Get temporal state and actions for undo/redo
-  const { pastStates, futureStates, undo, redo, clear } = useAvatarStore.temporal.getState()
+  const { pastStates, futureStates, undo, redo } = useAvatarStore.temporal.getState()
 
   // Effect to fetch initial data
   useEffect(() => {
@@ -63,9 +65,9 @@ export function App() {
   const allActionWheels = Object.values(avatar.actionWheels);
 
   return (
-    <div className="p-4 md:p-8 text-slate-100 min-h-screen" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <header className="flex justify-between items-center mb-8 sticky top-0 z-20 bg-slate-900/70 backdrop-blur-lg py-4 px-2 -mx-2 border-b border-slate-800">
-        <h1 className="text-3xl md:text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-500">
+    <div className="text-slate-100 h-screen flex flex-col bg-slate-900" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <header className="flex justify-between items-center p-2 px-4 border-b border-slate-800 flex-shrink-0 z-20 bg-slate-900/70 backdrop-blur-lg">
+        <h1 className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-500">
           Avatar Editor
         </h1>
         <div className="flex items-center gap-2">
@@ -77,29 +79,79 @@ export function App() {
         </div>
       </header>
 
-      <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column: Action Wheels Editor */}
-        <div className="bg-slate-800/40 p-6 rounded-xl ring-1 ring-slate-700/50 flex flex-col gap-4">
-            <div className="border-b border-slate-700 pb-3">
-                <h2 className="text-2xl font-bold text-slate-100">Action Wheels</h2>
+      <main className="flex-grow min-h-0">
+        {/* --- DESKTOP VIEW --- */}
+        {/* The original 2-column grid, hidden on small screens */}
+        <div className="hidden lg:grid lg:grid-cols-2 h-full">
+            {/* Left Column: Action Wheels Editor */}
+            <div className="bg-slate-800/40 p-6 flex flex-col gap-4 overflow-y-auto border-r border-slate-800">
+                <div className="border-b border-slate-700 pb-3">
+                    <h2 className="text-2xl font-bold text-slate-100">Action Wheels</h2>
+                </div>
+                <ActionWheelsManager
+                    allActionWheels={allActionWheels}
+                    allToggleGroups={allToggleGroups}
+                    addActionWheel={addActionWheel}
+                    viewedWheelUuid={viewedWheelUuid}
+                    setViewedWheelUuid={setViewedWheelUuid}
+                />
             </div>
-            <ActionWheelsManager
-                allActionWheels={allActionWheels}
-                allToggleGroups={allToggleGroups}
-                addActionWheel={addActionWheel}
-                viewedWheelUuid={viewedWheelUuid}
-                setViewedWheelUuid={setViewedWheelUuid}
-            />
+
+            {/* Right Column: Animation Settings */}
+            <div className="bg-slate-800/40 p-6 flex flex-col gap-4 overflow-y-auto">
+               <div className="border-b border-slate-700 pb-3">
+                 <h2 className="text-2xl font-bold text-slate-100">Animation Settings</h2>
+               </div>
+               <AnimationSettingsManager
+                    allToggleGroups={allToggleGroups}
+               />
+            </div>
         </div>
 
-        {/* Right Column: Animation Settings */}
-        <div className="bg-slate-800/40 p-6 rounded-xl ring-1 ring-slate-700/50 flex flex-col gap-4">
-           <div className="border-b border-slate-700 pb-3">
-             <h2 className="text-2xl font-bold text-slate-100">Animation Settings</h2>
-           </div>
-           <AnimationSettingsManager
-                allToggleGroups={allToggleGroups}
-           />
+        {/* --- MOBILE VIEW --- */}
+        {/* Tab-based layout, hidden on large screens */}
+        <div className="lg:hidden flex flex-col h-full">
+            {/* Tab Navigation */}
+            <div className="flex-shrink-0 flex border-b border-slate-700">
+                <button
+                    onClick={() => setActiveTab('wheels')}
+                    className={`flex-1 p-3 text-center text-sm font-semibold transition-colors duration-200 ${
+                        activeTab === 'wheels'
+                        ? 'bg-slate-700/80 text-white'
+                        : 'bg-transparent text-slate-400 hover:bg-slate-800/60'
+                    }`}
+                >
+                    Action Wheels
+                </button>
+                <button
+                    onClick={() => setActiveTab('settings')}
+                    className={`flex-1 p-3 text-center text-sm font-semibold transition-colors duration-200 ${
+                        activeTab === 'settings'
+                        ? 'bg-slate-700/80 text-white'
+                        : 'bg-transparent text-slate-400 hover:bg-slate-800/60'
+                    }`}
+                >
+                    Animation Settings
+                </button>
+            </div>
+
+            {/* Tab Content */}
+            <div className="flex-grow overflow-y-auto p-4 flex flex-col gap-4">
+              {activeTab === 'wheels' && (
+                <ActionWheelsManager
+                  allActionWheels={allActionWheels}
+                  allToggleGroups={allToggleGroups}
+                  addActionWheel={addActionWheel}
+                  viewedWheelUuid={viewedWheelUuid}
+                  setViewedWheelUuid={setViewedWheelUuid}
+                />
+              )}
+              {activeTab === 'settings' && (
+                <AnimationSettingsManager
+                  allToggleGroups={allToggleGroups}
+                />
+              )}
+            </div>
         </div>
       </main>
     </div>
