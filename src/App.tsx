@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import type { UUID, ActionWheel, ToggleGroup, Avatar } from "./types";
 import { useAvatar } from "./hooks/useAvatar";
 import { generateUUID } from "./utils/uuid";
@@ -13,11 +13,27 @@ import { AnimationSettingsManager } from "./components/managers/AnimationSetting
 
 export function App() {
   const { avatar, loading, error, isSaving, handleSave, updateAvatar } = useAvatar();
+  const [viewedWheelUuid, setViewedWheelUuid] = useState<UUID | null>(null);
+
+  // Effect to keep viewedWheelUuid in sync with the available wheels
+  useEffect(() => {
+    if (avatar) {
+      const currentWheels = Object.values(avatar.actionWheels);
+      const isViewedWheelValid = viewedWheelUuid && avatar.actionWheels[viewedWheelUuid];
+
+      if (!isViewedWheelValid) {
+        // If view is invalid (null or points to a deleted wheel), reset it.
+        setViewedWheelUuid(avatar.mainActionWheel ?? currentWheels[0]?.uuid ?? null);
+      }
+    }
+  }, [avatar, viewedWheelUuid]);
+
 
   const addActionWheel = () => {
+    const newWheelUuid = generateUUID();
     updateAvatar((draft) => {
       const newWheel: ActionWheel = {
-        uuid: generateUUID(),
+        uuid: newWheelUuid,
         title: `Wheel ${Object.keys(draft.actionWheels).length + 1}`,
         actions: [],
       };
@@ -26,6 +42,8 @@ export function App() {
         draft.mainActionWheel = newWheel.uuid;
       }
     });
+    // Set the view to the newly created wheel
+    setViewedWheelUuid(newWheelUuid);
   };
 
   if (loading) return <div className="text-white text-center p-8">Loading...</div>;
@@ -49,15 +67,17 @@ export function App() {
       <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Column: Action Wheels Editor */}
         <div className="bg-slate-800/40 p-6 rounded-xl ring-1 ring-slate-700/50 flex flex-col gap-4">
-            <div className="flex justify-between items-center border-b border-slate-700 pb-3">
+            <div className="border-b border-slate-700 pb-3">
                 <h2 className="text-2xl font-bold text-slate-100">Action Wheels</h2>
-                <Button onClick={addActionWheel} className="bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-400">+ Add Wheel</Button>
             </div>
             <ActionWheelsManager
                 avatar={avatar}
                 updateAvatar={updateAvatar}
                 allActionWheels={allActionWheels}
                 allToggleGroups={allToggleGroups}
+                addActionWheel={addActionWheel}
+                viewedWheelUuid={viewedWheelUuid}
+                setViewedWheelUuid={setViewedWheelUuid}
             />
         </div>
 

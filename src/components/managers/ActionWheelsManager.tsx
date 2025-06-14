@@ -11,27 +11,28 @@ interface ActionWheelsManagerProps {
     updateAvatar: UpdateAvatarFn;
     allToggleGroups: ToggleGroup[];
     allActionWheels: ActionWheel[];
+    addActionWheel: () => void;
+    viewedWheelUuid: UUID | null;
+    setViewedWheelUuid: (uuid: UUID | null) => void;
 }
 
 const MAX_ACTIONS_PER_WHEEL = 8;
 
-export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, allActionWheels }: ActionWheelsManagerProps) {
-    const [viewedWheelUuid, setViewedWheelUuid] = useState<UUID | null>(avatar?.mainActionWheel ?? allActionWheels[0]?.uuid ?? null);
+export function ActionWheelsManager({
+    avatar,
+    updateAvatar,
+    allToggleGroups,
+    allActionWheels,
+    addActionWheel,
+    viewedWheelUuid,
+    setViewedWheelUuid
+}: ActionWheelsManagerProps) {
     const [selectedActionIndex, setSelectedActionIndex] = useState<number | null>(null);
 
     // Reset selection when the viewed wheel changes
     useEffect(() => {
         setSelectedActionIndex(null);
     }, [viewedWheelUuid]);
-
-    // If the currently viewed wheel is deleted or no longer exists, switch to a valid one.
-    useEffect(() => {
-        if (allActionWheels.length > 0 && (viewedWheelUuid === null || !allActionWheels.some(w => w.uuid === viewedWheelUuid))) {
-            setViewedWheelUuid(avatar.mainActionWheel ?? allActionWheels[0]?.uuid ?? null);
-        } else if (allActionWheels.length === 0) {
-            setViewedWheelUuid(null);
-        }
-    }, [allActionWheels, viewedWheelUuid, avatar.mainActionWheel]);
 
     const setMainWheel = (uuid: UUID) => {
         updateAvatar(draft => {
@@ -120,35 +121,59 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
         setSelectedActionIndex(null);
     };
 
-    if (allActionWheels.length === 0 || !currentWheel) {
+    const renderTabBar = () => (
+        <div className="flex items-center border-b border-slate-700 mb-6 -mx-2 px-2 pb-px space-x-1 overflow-x-auto">
+            {allActionWheels.map(wheel => (
+                <button
+                    key={wheel.uuid}
+                    onClick={() => setViewedWheelUuid(wheel.uuid)}
+                    className={`py-2 px-4 rounded-t-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 border-b-2 ${
+                        viewedWheelUuid === wheel.uuid
+                            ? 'border-violet-500 text-white'
+                            : 'border-transparent text-slate-400 hover:text-white'
+                    }`}
+                >
+                    {avatar.mainActionWheel === wheel.uuid && <span className="mr-2 text-amber-400" title="Main Wheel">★</span>}
+                    {wheel.title}
+                </button>
+            ))}
+             <Button
+                onClick={addActionWheel}
+                className="ml-2 flex-shrink-0 bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-400 text-sm px-3 py-1 rounded-md"
+            >
+                + Add
+            </Button>
+        </div>
+    );
+
+    if (allActionWheels.length === 0) {
         return (
-             <div className="flex flex-col items-center justify-center h-48 bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 mb-4 text-slate-600"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/></svg>
-                <p className="text-center font-medium">No action wheels found.</p>
-                <p className="text-sm">Add one to get started.</p>
+            <div>
+                {renderTabBar()}
+                <div className="flex flex-col items-center justify-center h-48 bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 mb-4 text-slate-600"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/></svg>
+                    <p className="text-center font-medium">No action wheels found.</p>
+                    <p className="text-sm">Add one to get started.</p>
+                </div>
             </div>
         );
     }
 
+    if (!currentWheel) {
+        // This can happen briefly while the viewed wheel is being updated.
+        // It prevents a crash if currentWheel is null.
+        return (
+            <div>
+                {renderTabBar()}
+                 <div className="flex items-center justify-center h-48 text-slate-400">Loading wheel...</div>
+            </div>
+        );
+    }
+
+
     return (
         <div>
-            {/* Tabs for each wheel */}
-            <div className="flex items-center border-b border-slate-700 mb-6 -mx-2 px-2 pb-px space-x-1 overflow-x-auto">
-                {allActionWheels.map(wheel => (
-                    <button
-                        key={wheel.uuid}
-                        onClick={() => setViewedWheelUuid(wheel.uuid)}
-                        className={`py-2 px-4 rounded-t-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 border-b-2 ${
-                            viewedWheelUuid === wheel.uuid
-                                ? 'border-violet-500 text-white'
-                                : 'border-transparent text-slate-400 hover:text-white'
-                        }`}
-                    >
-                        {avatar.mainActionWheel === wheel.uuid && <span className="mr-2 text-amber-400" title="Main Wheel">★</span>}
-                        {wheel.title}
-                    </button>
-                ))}
-            </div>
+            {renderTabBar()}
 
             <div className="space-y-6">
                 {/* Wheel Header Controls */}
