@@ -101,7 +101,7 @@ export function App() {
   const allActionWheels = Object.values(avatar.actionWheels);
 
   return (
-    <div className="container mx-auto p-4 md:p-8 text-white bg-gray-900 min-h-screen font-sans">
+    <div className="container mx-auto p-4 md:p-8 text-white min-h-screen font-sans">
       <header className="flex justify-between items-center mb-8 sticky top-0 z-20 bg-gray-900/80 backdrop-blur-sm py-4 px-2 -mx-2">
         <h1 className="text-2xl md:text-4xl font-bold">Avatar Editor</h1>
         <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-base py-2 px-6">
