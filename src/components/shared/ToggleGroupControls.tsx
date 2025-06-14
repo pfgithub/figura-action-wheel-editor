@@ -1,9 +1,10 @@
+// src/components/shared/ToggleGroupControls.tsx
 import React, { useState } from 'react';
 import type { ToggleGroup, UUID } from '../../types';
-import { useAvatarStore } from '../../store/avatarStore';
 import { Select } from '../ui/Select';
 import { Button } from '../ui/Button';
 import { ToggleGroupDialog } from '../dialogs/ToggleGroupDialog';
+import { EditIcon, PlusIcon } from '../ui/icons';
 
 interface ToggleGroupControlsProps {
     allToggleGroups: ToggleGroup[];
@@ -36,25 +37,23 @@ export function ToggleGroupControls({ allToggleGroups, selectedGroupUUID, onGrou
     return (
         <>
             <div className="flex items-center gap-2">
-                <Select
-                    value={selectedGroupUUID ?? ''}
-                    onChange={(e) => onGroupChange(e.target.value as UUID)}
-                    disabled={allToggleGroups.length === 0}
-                    className="flex-grow"
-                >
-                    <option value="">-- Choose Group --</option>
-                    {allToggleGroups.map(g => <option key={g.uuid} value={g.uuid}>{g.name}</option>)}
-                </Select>
-                <Button onClick={openEditDialog} disabled={!selectedGroupUUID} className="bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400 flex-shrink-0 px-3">Edit</Button>
-                <Button onClick={openCreateDialog} className="bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-400 flex-shrink-0 px-3">New</Button>
+                <div className="relative flex-grow">
+                    <Select value={selectedGroupUUID ?? ''} onChange={(e) => onGroupChange(e.target.value as UUID)} disabled={allToggleGroups.length === 0} className="w-full !pr-10">
+                        <option value="">-- Choose Group --</option>
+                        {allToggleGroups.map(g => <option key={g.uuid} value={g.uuid}>{g.name}</option>)}
+                    </Select>
+                    {selectedGroupUUID && (
+                        <Button onClick={openEditDialog} className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-transparent hover:bg-slate-700">
+                            <EditIcon className="w-4 h-4 text-slate-400" />
+                        </Button>
+                    )}
+                </div>
+                <Button onClick={openCreateDialog} className="bg-violet-600 hover:bg-violet-500 flex-shrink-0 w-10 h-10 p-0">
+                    <PlusIcon className="w-5 h-5" />
+                    <span className="sr-only">New Group</span>
+                </Button>
             </div>
-            {isDialogOpen && (
-                <ToggleGroupDialog
-                    groupToEdit={groupToEdit}
-                    onClose={() => setDialogOpen(false)}
-                    onSave={handleSave}
-                />
-            )}
+            {isDialogOpen && <ToggleGroupDialog groupToEdit={groupToEdit} onClose={() => setDialogOpen(false)} onSave={handleSave}/>}
         </>
     );
 }
