@@ -63,16 +63,9 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
 
                     <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-4">
                          <h4 className="text-lg font-semibold text-slate-300">Action Effect</h4>
-                         <Switch checked={!!action.effect} onChange={handleEffectEnabledChange} label="Enabled" srLabel="Enable action effect"/>
                     </div>
                     
-                    {action.effect ? (
-                        <ActionEffectEditor effect={action.effect} updateEffect={effect => updateAction({ ...action, effect })} allToggleGroups={allToggleGroups} allActionWheels={allActionWheels} />
-                    ) : (
-                        <div className="text-center py-6 bg-slate-800/50 rounded-lg">
-                            <p className="text-slate-400">Enable the switch above to add an effect.</p>
-                        </div>
-                    )}
+                    <ActionEffectEditor effect={action.effect} updateEffect={effect => updateAction({ ...action, effect })} allToggleGroups={allToggleGroups} allActionWheels={allActionWheels} />
                 </div>
             </div>
         </Card>

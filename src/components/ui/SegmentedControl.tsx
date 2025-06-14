@@ -7,12 +7,12 @@ interface SegmentedControlProps<T extends string> {
     onChange: (value: T) => void;
 }
 
-export function SegmentedControl<T extends string>({ options, value, onChange }: SegmentedControlProps<T>) {
+export function SegmentedControl<T>({ options, value, onChange }: SegmentedControlProps<T>) {
     return (
         <div className="inline-flex rounded-md shadow-sm bg-slate-800 p-1" role="group">
             {options.map((option, index) => (
                 <button
-                    key={option.value}
+                    key={"" + option.value}
                     type="button"
                     onClick={() => onChange(option.value)}
                     className={`relative inline-flex items-center px-4 py-2 text-sm font-medium transition-colors focus:z-10 focus:outline-none focus:ring-2 focus:ring-violet-500

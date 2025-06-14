@@ -7,37 +7,40 @@ import { SegmentedControl } from '../ui/SegmentedControl';
 import { ToggleGroupControls } from '../shared/ToggleGroupControls';
 
 interface ActionEffectEditorProps {
-    effect: ActionEffect;
-    updateEffect: (e: ActionEffect) => void;
+    effect?: ActionEffect;
+    updateEffect: (e: ActionEffect| undefined) => void;
     allToggleGroups: ToggleGroup[];
     allActionWheels: ActionWheel[];
 }
 
 export function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWheels }: ActionEffectEditorProps) {
-    const handleKindChange = (kind: ActionEffect['kind']) => {
+    const handleKindChange = (kind: ActionEffect['kind'] | undefined) => {
         if (kind === 'toggle') {
             updateEffect({ kind });
         } else if (kind === 'switchPage') {
             updateEffect({ kind: 'switchPage' });
+        } else {
+            updateEffect(undefined);
         }
     };
 
-    const selectedToggleGroup = allToggleGroups.find(g => g.uuid === (effect.kind === 'toggle' ? effect.toggleGroup : undefined));
+    const selectedToggleGroup = allToggleGroups.find(g => g.uuid === (effect?.kind === 'toggle' ? effect.toggleGroup : undefined));
 
     return (
         <div className="space-y-4">
             <FormRow label="Effect Type">
                 <SegmentedControl
-                    value={effect.kind}
+                    value={effect?.kind}
                     onChange={handleKindChange}
                     options={[
+                        { label: 'None', value: undefined },
                         { label: 'Toggle Option', value: 'toggle' },
                         { label: 'Switch Wheel', value: 'switchPage' },
                     ]}
                 />
             </FormRow>
 
-            {effect.kind === 'toggle' && (
+            {effect?.kind === 'toggle' && (
                 <>
                     <FormRow label="Toggle Group">
                         <ToggleGroupControls
@@ -61,7 +64,7 @@ export function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allA
                 </>
             )}
 
-            {effect.kind === 'switchPage' && (
+            {effect?.kind === 'switchPage' && (
                 <FormRow label="Target Wheel">
                     <Select
                         value={effect.actionWheel ?? ''}
