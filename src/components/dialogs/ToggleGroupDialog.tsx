@@ -1,11 +1,62 @@
 import React, { useState, useEffect } from 'react';
-import type { Avatar, ToggleGroup, ToggleGroupOption, UUID } from '../../types';
+import type { Avatar, ToggleGroup, ToggleGroupOption, UUID, AnimationCondition } from '../../types';
 import type { UpdateAvatarFn } from '../../hooks/useAvatar';
 import { generateUUID } from '../../utils/uuid';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Dialog, DialogHeader, DialogContent, DialogFooter } from '../ui/Dialog';
 import { FormRow } from '../ui/FormRow';
+
+// --- Helper functions for robust usage checking ---
+
+function checkAnimationCondition(condition: AnimationCondition | undefined, toggleGroupUUID: UUID, settingName: string): string[] {
+    const usages: string[] = [];
+    if (!condition) return usages;
+    
+    function traverse(cond: AnimationCondition) {
+        if (!cond) return;
+        switch (cond.kind) {
+            case 'and':
+            case 'or':
+                cond.conditions.forEach(traverse);
+                break;
+            case 'not':
+                if (cond.condition) traverse(cond.condition);
+                break;
+            case 'toggleGroup':
+                if (cond.toggleGroup === toggleGroupUUID) {
+                    usages.push(`the animation condition for "${settingName}"`);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    
+    traverse(condition);
+    return usages;
+}
+
+function findToggleGroupUsage(avatar: Avatar, toggleGroupUUID: UUID): string[] {
+    const usages: string[] = [];
+
+    // Check Action Wheels
+    for (const wheel of Object.values(avatar.actionWheels ?? {})) {
+        for (const action of wheel.actions) {
+            if (action.effect.kind === 'toggle' && action.effect.toggleGroup === toggleGroupUUID) {
+                usages.push(`the action "${action.label}" in wheel "${wheel.title}"`);
+            }
+        }
+    }
+
+    // Check Animation Settings
+    for (const setting of Object.values(avatar.animationSettings ?? {})) {
+        usages.push(...checkAnimationCondition(setting.activationCondition, toggleGroupUUID, setting.name));
+    }
+    
+    return [...new Set(usages)];
+}
+
 
 interface ToggleGroupDialogProps {
     groupToEdit: ToggleGroup | null;
@@ -97,32 +148,15 @@ export function ToggleGroupDialog({ groupToEdit, avatar, updateAvatar, onClose, 
     const handleDelete = () => {
         if (!groupToEdit) return;
 
-        let usage = "";
-        for (const wheel of Object.values(avatar.actionWheels ?? {})) {
-            for (const action of wheel.actions) {
-                if (action.effect.kind === "toggle" && action.effect.toggleGroup === groupToEdit.uuid) {
-                    usage = `an action in "${wheel.title}"`;
-                    break;
-                }
-            }
-            if(usage) break;
-        }
-        if (!usage) {
-            // This is a simplified check. A robust solution would recursively traverse the condition tree.
-            for (const setting of Object.values(avatar.animationSettings ?? {})) {
-                if (JSON.stringify(setting.activationCondition).includes(groupToEdit.uuid)) {
-                    usage = `the animation condition for "${setting.name}"`;
-                    break;
-                }
-            }
-        }
+        const usages = findToggleGroupUsage(avatar, groupToEdit.uuid);
 
-        if (usage) {
-            alert(`Cannot delete. Toggle group is in use in ${usage}.`);
+        if (usages.length > 0) {
+            const usageList = usages.map(u => `• ${u}`).join('\n');
+            alert(`Cannot delete. This toggle group is in use.\n\nRemove it from the following locations first:\n${usageList}`);
             return;
         }
 
-        if (window.confirm(`Are you sure you want to delete the "${groupToEdit.name}" group?`)) {
+        if (window.confirm(`Are you sure you want to delete the "${groupToEdit.name}" group? This action cannot be undone.`)) {
             updateAvatar(draft => {
                 delete draft.toggleGroups[groupToEdit.uuid];
             });
