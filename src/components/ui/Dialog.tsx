@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-export const Dialog = ({ children, open, onClose }: { children: React.ReactNode; open: boolean; onClose: () => void; }) => {
+export const Dialog = ({ children, open, onClose, className }: { children: React.ReactNode; open: boolean; onClose: () => void; className?: string; }) => {
     useEffect(() => {
         const handleEsc = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -25,7 +25,7 @@ export const Dialog = ({ children, open, onClose }: { children: React.ReactNode;
             role="dialog"
         >
             <div 
-                className="bg-slate-800 rounded-lg shadow-2xl w-full max-w-md p-6 ring-1 ring-slate-700"
+                className={`bg-slate-800 rounded-lg shadow-2xl w-full max-w-md p-6 ring-1 ring-slate-700 ${className ?? ''}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {children}

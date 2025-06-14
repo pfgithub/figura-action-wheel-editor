@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Action } from '../../types';
+import { useMinecraftItems } from '../../hooks/useMinecraftItems';
 
 interface ActionWheelVisualizerProps {
   actions: Action[];
@@ -21,7 +22,17 @@ export function ActionWheelVisualizer({
   selectedActionIndex,
   wheelTitle,
 }: ActionWheelVisualizerProps) {
+  const { items } = useMinecraftItems();
   const angleStep = (2 * Math.PI) / MAX_ACTIONS;
+
+  const renderIcon = (action: Action) => {
+    const item = items?.[action.icon];
+    if (item?.imageUrl) {
+        return <img src={item.imageUrl} alt={action.label} className="w-8 h-8 image-pixelated" />
+    }
+    // Fallback for non-item icons (like '❓') or if item not found
+    return <span className="text-2xl" style={{ lineHeight: 1 }}>{action.icon}</span>;
+  };
 
   return (
     <div
@@ -45,7 +56,7 @@ export function ActionWheelVisualizer({
           <button
             key={index}
             onClick={() => onSelectAction(index)}
-            className={`absolute flex items-center justify-center rounded-full text-white text-2xl font-bold p-1 text-center leading-tight transition-all duration-200 ease-in-out transform hover:scale-110 focus:outline-none shadow-md hover:shadow-lg ${isSelected ? 'ring-4 ring-violet-500 shadow-xl z-10' : 'ring-2 ring-slate-600'}`}
+            className={`absolute flex items-center justify-center rounded-full text-white font-bold p-1 text-center leading-tight transition-all duration-200 ease-in-out transform hover:scale-110 focus:outline-none shadow-md hover:shadow-lg ${isSelected ? 'ring-4 ring-violet-500 shadow-xl z-10' : 'ring-2 ring-slate-600'}`}
             style={{
               width: `${BUTTON_SIZE}px`,
               height: `${BUTTON_SIZE}px`,
@@ -56,7 +67,7 @@ export function ActionWheelVisualizer({
             }}
             title={action.label}
           >
-            {action.icon}
+            {renderIcon(action)}
           </button>
         );
       })}

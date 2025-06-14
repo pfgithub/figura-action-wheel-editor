@@ -82,7 +82,7 @@ export function ActionWheelsManager({ avatar, updateAvatar, allToggleGroups, all
             const wheel = draft.actionWheels[wheelUuid];
             if (wheel && wheel.actions.length < MAX_ACTIONS_PER_WHEEL) {
                 const newAction: Action = {
-                    icon: '❓',
+                    icon: 'minecraft:air',
                     label: `Action ${wheel.actions.length + 1}`,
                     color: [80, 80, 80],
                     effect: { kind: 'none' },
