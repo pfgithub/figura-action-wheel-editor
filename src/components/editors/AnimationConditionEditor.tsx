@@ -334,10 +334,11 @@ export function AnimationConditionEditor({
         const { active, over } = event;
 
         if (!over || active.id === over.id) return;
-        
+
         const activeId = active.id as string;
         const overId = over.id as string;
-        
+
+        // Prevent dropping a component inside of itself
         if (!activeId.startsWith('palette-') && overId.startsWith(activeId + '.')) {
             return;
         }
@@ -347,48 +348,53 @@ export function AnimationConditionEditor({
             
             let nodeToInsert: AnimationCondition;
 
-            // 1. Determine the node to insert and remove from old position if it's a move op
+            // 1. Determine the node to insert. If it's a move, remove it from its original position.
             if (isPaletteDrag) {
                 const kind = active.data.current?.kind as PaletteItemKind;
                 nodeToInsert = createNewConditionNode(kind);
             } else {
-                // If moving, the draft (tree) must exist.
-                if (!draft) return;
+                // This is a "move" operation.
+                if (!draft) return; // Cannot move from an empty state.
+                
                 const nodeToMove = getIn(draft, activeId);
-                if (!nodeToMove) return;
-                nodeToInsert = JSON.parse(JSON.stringify(nodeToMove));
+                if (!nodeToMove) return; // Node to move not found.
+                
+                nodeToInsert = JSON.parse(JSON.stringify(nodeToMove)); // Deep clone the node
 
-                // Remove from old position
+                // --- FIX: Remove the original node from its parent ---
                 const { parentPath, finalKey } = getParentAndFinalKey(activeId);
-                // If parentPath is null, we are moving the root. The 'removal' is implicit
-                // in the fact that we're replacing the root below.
                 if (parentPath) {
-                    const parent = getIn(draft, parentPath);
-                    if (parent && 'conditions' in parent && Array.isArray(parent.conditions)) {
-                        (parent as WritableDraft<AnimationConditionAnd | AnimationConditionOr>).conditions.splice(finalKey as number, 1);
-                    } else if (parent && 'condition' in parent) {
-                        (parent as WritableDraft<AnimationConditionNot>).condition = undefined;
+                    const parentContainer = getIn(draft, parentPath);
+
+                    // Case 1: The parent container is an array (e.g., 'conditions' of an 'and'/'or' node)
+                    if (Array.isArray(parentContainer)) {
+                        parentContainer.splice(finalKey as number, 1);
+                    } 
+                    // Case 2: The parent container is an object and we are removing a property
+                    // (e.g., the 'condition' of a 'not' node)
+                    else if (parentContainer && typeof finalKey === 'string' && finalKey === 'condition') {
+                         (parentContainer as WritableDraft<AnimationConditionNot>).condition = undefined;
                     }
                 }
             }
 
-            // 2. Determine where to insert it
+            // 2. Determine where to insert the node.
             if (overId.endsWith('.add')) {
+                // Dropped into an "Add" drop zone of a container
                 const containerPath = over.data.current?.path as string;
                 const container = getIn(draft, containerPath);
                 if (container && 'conditions' in container && Array.isArray(container.conditions)) {
                     (container as WritableDraft<AnimationConditionAnd | AnimationConditionOr>).conditions.push(nodeToInsert);
                 }
-            } else { // This is a replacement drop
+            } else { 
+                // Dropped onto another component to replace it
                 const { parentPath: destParentPath, finalKey: destKey } = getParentAndFinalKey(overId);
                 
                 if (destParentPath === null) {
-                    // This is a root replacement. We must return the new value from the recipe.
-                    // This correctly handles replacing an existing tree or setting it when it was undefined.
+                    // Replacing the root node. We must return the new value from the Immer recipe.
                     return nodeToInsert;
                 } else {
-                    // For any other replacement, the draft must exist.
-                    if (!draft) return;
+                    if (!draft) return; // Should not happen if parent exists
                     const destParent = getIn(draft, destParentPath);
                     if (destParent) {
                         (destParent as any)[destKey] = nodeToInsert;
