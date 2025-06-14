@@ -247,14 +247,14 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                  return (
                     <div className="flex items-center gap-2 text-slate-300 p-3 text-sm flex-wrap">
                         <span>When player is</span>
-                        <Select 
-                        value={condition.player} 
+                        <Select
+                        value={condition.player}
                         onChange={(e) => handleUpdate(draft => {
                             if (draft.kind === 'player') draft.player = e.target.value as any;
                         })}
                         className="w-auto flex-grow bg-slate-800/80"
                         >
-                        {["crouching", "sprinting", "blocking", "fishing", "sleeping", "swimming", "flying", "walking"].map(p => 
+                        {["crouching", "sprinting", "blocking", "fishing", "sleeping", "swimming", "flying", "walking"].map(p =>
                             <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
                         )}
                         </Select>
@@ -338,7 +338,7 @@ export function AnimationConditionEditor({
         const activeId = active.id as string;
         const overId = over.id as string;
 
-        // Prevent dropping a component inside of itself
+        // Prevent dropping a component inside of itself or its children
         if (!activeId.startsWith('palette-') && overId.startsWith(activeId + '.')) {
             return;
         }
@@ -348,37 +348,24 @@ export function AnimationConditionEditor({
             
             let nodeToInsert: AnimationCondition;
 
-            // 1. Determine the node to insert. If it's a move, remove it from its original position.
+            // --- STEP 1: Determine the node being inserted ---
             if (isPaletteDrag) {
+                // Create a new node from the palette
                 const kind = active.data.current?.kind as PaletteItemKind;
                 nodeToInsert = createNewConditionNode(kind);
             } else {
-                // This is a "move" operation.
-                if (!draft) return; // Cannot move from an empty state.
-                
+                // Find the node being moved from its original position in the tree
                 const nodeToMove = getIn(draft, activeId);
-                if (!nodeToMove) return; // Node to move not found.
+                if (!nodeToMove) return; // Node to move not found, abort.
                 
-                nodeToInsert = JSON.parse(JSON.stringify(nodeToMove)); // Deep clone the node
-
-                // --- FIX: Remove the original node from its parent ---
-                const { parentPath, finalKey } = getParentAndFinalKey(activeId);
-                if (parentPath) {
-                    const parentContainer = getIn(draft, parentPath);
-
-                    // Case 1: The parent container is an array (e.g., 'conditions' of an 'and'/'or' node)
-                    if (Array.isArray(parentContainer)) {
-                        parentContainer.splice(finalKey as number, 1);
-                    } 
-                    // Case 2: The parent container is an object and we are removing a property
-                    // (e.g., the 'condition' of a 'not' node)
-                    else if (parentContainer && typeof finalKey === 'string' && finalKey === 'condition') {
-                         (parentContainer as WritableDraft<AnimationConditionNot>).condition = undefined;
-                    }
-                }
+                // Deep clone the node to prevent issues with Immer proxies and object references
+                nodeToInsert = JSON.parse(JSON.stringify(nodeToMove));
             }
 
-            // 2. Determine where to insert the node.
+            // --- STEP 2: Insert the node at the destination ---
+            // This is done BEFORE removal to prevent stale path issues.
+            let isReplacingRoot = false;
+            
             if (overId.endsWith('.add')) {
                 // Dropped into an "Add" drop zone of a container
                 const containerPath = over.data.current?.path as string;
@@ -387,12 +374,12 @@ export function AnimationConditionEditor({
                     (container as WritableDraft<AnimationConditionAnd | AnimationConditionOr>).conditions.push(nodeToInsert);
                 }
             } else { 
-                // Dropped onto another component to replace it
+                // Dropped into a slot to replace an existing node (or fill an empty one)
                 const { parentPath: destParentPath, finalKey: destKey } = getParentAndFinalKey(overId);
                 
                 if (destParentPath === null) {
-                    // Replacing the root node. We must return the new value from the Immer recipe.
-                    return nodeToInsert;
+                    // This will replace the root. We handle the return value at the end.
+                    isReplacingRoot = true;
                 } else {
                     if (!draft) return; // Should not happen if parent exists
                     const destParent = getIn(draft, destParentPath);
@@ -400,6 +387,31 @@ export function AnimationConditionEditor({
                         (destParent as any)[destKey] = nodeToInsert;
                     }
                 }
+            }
+
+            // --- STEP 3: If it was a move operation, remove the original node ---
+            if (!isPaletteDrag) {
+                const { parentPath, finalKey } = getParentAndFinalKey(activeId);
+                
+                if (parentPath === null) {
+                    // Moving the root node. This is handled by replacing it.
+                    // If we dragged the root to a child, this would be duplication.
+                    // The `overId.startsWith(activeId)` check should prevent this.
+                } else {
+                    const parentContainer = getIn(draft, parentPath);
+
+                    if (Array.isArray(parentContainer)) {
+                        parentContainer.splice(finalKey as number, 1);
+                    } 
+                    else if (parentContainer && typeof finalKey === 'string' && finalKey === 'condition') {
+                         (parentContainer as WritableDraft<AnimationConditionNot>).condition = undefined;
+                    }
+                }
+            }
+            
+            // --- Final Step: If we replaced the root, we must return the new root from the producer ---
+            if (isReplacingRoot) {
+                return nodeToInsert;
             }
         });
 
