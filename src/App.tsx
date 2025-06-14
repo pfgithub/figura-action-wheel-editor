@@ -6,14 +6,12 @@ import "./index.css";
 
 // UI Components
 import { Button } from "./components/ui/Button";
-import { Select } from "./components/ui/Select";
 import { Section } from "./components/ui/Section";
-import { FormRow } from "./components/ui/FormRow";
 
 // Editor Components
 import { ToggleGroupEditor } from "./components/editors/ToggleGroupEditor";
-import { ActionWheelEditor } from "./components/editors/ActionWheelEditor";
 import { AnimationSettingEditor } from "./components/editors/AnimationSettingEditor";
+import { ActionWheelsManager } from "./components/managers/ActionWheelsManager";
 
 export function App() {
   const { avatar, loading, error, isSaving, handleSave, updateAvatar } = useAvatar();
@@ -65,20 +63,10 @@ export function App() {
         actions: [],
       };
       draft.actionWheels[newWheel.uuid] = newWheel;
+      if (Object.keys(draft.actionWheels).length === 1) {
+        draft.mainActionWheel = newWheel.uuid;
+      }
     });
-  };
-
-  const deleteActionWheel = (uuid: UUID) => {
-    if (avatar?.mainActionWheel === uuid) {
-      alert("Cannot delete the main action wheel.");
-      return;
-    }
-    // A more robust check for usage in other wheels would be needed for a real app
-    if (window.confirm("Are you sure you want to delete this action wheel?")) {
-      updateAvatar((draft) => {
-        delete draft.actionWheels[uuid];
-      });
-    }
   };
 
   if (loading) return <div className="text-white text-center p-8">Loading...</div>;
@@ -98,14 +86,6 @@ export function App() {
       </header>
 
       <main>
-        <Section title="General Settings">
-          <FormRow label="Main Action Wheel">
-            <Select value={avatar.mainActionWheel} onChange={(e) => updateAvatar((draft) => { draft.mainActionWheel = e.target.value as UUID; })}>
-              {allActionWheels.map((w) => (<option key={w.uuid} value={w.uuid}>{w.title}</option>))}
-            </Select>
-          </FormRow>
-        </Section>
-
         <Section title="Toggle Groups">
           {allToggleGroups.map((group) => (
             <ToggleGroupEditor
@@ -119,16 +99,12 @@ export function App() {
         </Section>
 
         <Section title="Action Wheels">
-          {allActionWheels.map((wheel) => (
-            <ActionWheelEditor
-              key={wheel.uuid}
-              wheel={wheel}
-              updateWheel={(updatedWheel) => updateAvatar((draft) => { draft.actionWheels[updatedWheel.uuid] = updatedWheel; })}
-              deleteWheel={() => deleteActionWheel(wheel.uuid)}
-              allToggleGroups={allToggleGroups}
-              allActionWheels={allActionWheels}
-            />
-          ))}
+          <ActionWheelsManager
+            avatar={avatar}
+            updateAvatar={updateAvatar}
+            allActionWheels={allActionWheels}
+            allToggleGroups={allToggleGroups}
+          />
           <Button onClick={addActionWheel} className="bg-blue-600 hover:bg-blue-700 mt-4">+ Add Action Wheel</Button>
         </Section>
 

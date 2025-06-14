@@ -1,8 +1,8 @@
 - [ ] improve the animation condition editor
 - [ ] update the layout to be three panels horizontally: Action Wheels, 
 - [ ] update actions to have a color picker. 
-- [ ] update the action wheel editor to have:
+- [ ] redesign the action wheel section:
   - on the left: a list of action wheels with their actions
   - when you select an action, on the right add the editor for it
-- [ ] update the action wheel editor so you can click 'set main' instead of
-  choosing tha main action wheel from a dropdown
+  - rather than a dropdown for main, you should be able to click 'set main' on an action wheel to set it as main
+  - redesign the action editor to be more intuitive
