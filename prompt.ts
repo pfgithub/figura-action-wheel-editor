@@ -13,6 +13,8 @@ export function genViewerPrompt(): string {
             continue;
         }
         allFiles += "- src/" + file + "\n";
+        if(file.startsWith("data/")) continue;
+        if(file === "renderSettings.ts") continue;
         res += "# File `src/"+file+"`\n\n"
         res += "```"+extname(file).slice(1) + "\n";
         res += contents;

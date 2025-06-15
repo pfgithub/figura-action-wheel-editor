@@ -1,6 +1,8 @@
 import React from "react";
-import type { ConditionalSetting, ToggleGroup } from "../../types";
+import type { ConditionalSetting, HidePlayerSetting, ToggleGroup } from "../../types";
 import { AnimationConditionEditor } from "./AnimationConditionEditor";
+import { FormRow } from "../ui/FormRow";
+import { Select } from "../ui/Select";
 
 interface AnimationSettingEditorProps {
   setting: ConditionalSetting;

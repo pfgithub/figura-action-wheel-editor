@@ -14,18 +14,19 @@ import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { ToggleGroupControls } from '../shared/ToggleGroupControls';
 import { generateUUID } from '@/utils/uuid';
+import { renderValues } from '../data/renderSettings';
 
 // ... (Icons and other helpers remain the same) ...
 const GripVerticalIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>;
 const Trash2Icon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>;
-const kindStyles: { [key in AnimationCondition['kind']]: { label: string; border: string; bg: string; text: string; } } = {
+const kindStyles: { [key in PaletteItemKind]: { label: string; border: string; bg: string; text: string; } } = {
   and: { label: 'AND (All Of)', border: 'border-sky-500', bg: 'bg-sky-900/30', text: 'text-sky-300' },
   or: { label: 'OR (Any Of)', border: 'border-emerald-500', bg: 'bg-emerald-900/30', text: 'text-emerald-300' },
   not: { label: 'NOT', border: 'border-amber-500', bg: 'bg-amber-900/30', text: 'text-amber-300' },
   toggleGroup: { label: 'Toggle Group State', border: 'border-violet-500', bg: 'bg-violet-900/30', text: 'text-violet-300' },
-  player: { label: 'Player State', border: 'border-rose-500', bg: 'bg-rose-900/30', text: 'text-rose-300' },
+  render: { label: 'Other State', border: 'border-rose-500', bg: 'bg-rose-900/30', text: 'text-rose-300' },
 };
-type PaletteItemKind = 'and' | 'or' | 'not' | 'toggleGroup' | 'player';
+type PaletteItemKind = AnimationCondition['kind'];
 function getParentAndFinalKey(path: string): { parentPath: string | null; finalKey: string | number } {
     const parts = path.split('.');
     if (parts.length === 1) return { parentPath: null, finalKey: parts[0] };
@@ -77,7 +78,7 @@ function PaletteItem({ kind }: { kind: PaletteItemKind }) {
     );
 }
 function ConditionPalette() {
-    const paletteItems: PaletteItemKind[] = ['and', 'or', 'not', 'toggleGroup', 'player'];
+    const paletteItems: PaletteItemKind[] = ['and', 'or', 'not', 'toggleGroup', 'render'];
     return (
         <div className="w-64 flex-shrink-0 p-3 bg-slate-900/50 rounded-lg space-y-2 self-start">
             <h3 className="font-bold text-slate-300 mb-2">Conditions</h3>
@@ -228,20 +229,19 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                     </div>
                 );
             }
-            case 'player':
+            case 'render':
                  return (
                     <div className="flex items-center gap-2 text-slate-300 p-3 text-sm flex-wrap">
-                        <span>When player is</span>
                         <Select
-                        value={condition.player ?? ''}
+                        value={condition.render ?? ''}
                         onChange={(e) => handleUpdate(draft => {
-                            if (draft.kind === 'player') draft.player = e.target.value ? e.target.value as any : undefined;
+                            if (draft.kind === 'render') draft.render = e.target.value ? e.target.value as any : undefined;
                         })}
                         className="w-auto flex-grow bg-slate-800/80"
                         >
                         <option value="">-- Select state --</option>
-                        {["crouching", "sprinting", "blocking", "fishing", "sleeping", "swimming", "flying", "walking"].map(p =>
-                            <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                        {Array.from(renderValues.values()).map(v =>
+                            <option key={v.id} value={v.id}>{v.name}</option>
                         )}
                         </Select>
                     </div>
@@ -281,7 +281,7 @@ export function AnimationConditionEditor({
             const kind = activeId.replace('palette-', '') as PaletteItemKind;
             return { kind, label: kindStyles[kind].label };
         }
-        const activeCondition = getIn({root: condition}, activeId);
+        const activeCondition = getIn({root: condition}, activeId) as AnimationCondition | undefined;
         return activeCondition ? { kind: activeCondition.kind, label: kindStyles[activeCondition.kind]?.label } : null;
     }, [activeId, condition]);
 
@@ -296,8 +296,8 @@ export function AnimationConditionEditor({
                 return { id, kind: 'not' };
             case 'toggleGroup':
                 return { id, kind: 'toggleGroup' };
-            case 'player':
-                return { id, kind: 'player' };
+            case 'render':
+                return { id, kind: 'render' };
         }
     };
     

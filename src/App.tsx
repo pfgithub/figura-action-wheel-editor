@@ -294,7 +294,6 @@ export function App() {
 
       <main className="flex-grow min-h-0">
         {/* --- DESKTOP VIEW --- */}
-        {/* The original 2-column grid, hidden on small screens */}
         <div className="hidden lg:grid lg:grid-cols-2 h-full">
             {/* Left Column: Action Wheels Editor */}
             <div className="bg-slate-800/40 p-6 flex flex-col gap-4 overflow-y-auto border-r border-slate-800">
@@ -310,7 +309,7 @@ export function App() {
                 />
             </div>
 
-            {/* Right Column: Animation Settings */}
+            {/* Right Column: Conditional Settings */}
             <div className="bg-slate-800/40 p-6 flex flex-col gap-4 overflow-y-auto">
                <div className="border-b border-slate-700 pb-3">
                  <h2 className="text-2xl font-bold text-slate-100">Conditional Settings</h2>
@@ -322,7 +321,6 @@ export function App() {
         </div>
 
         {/* --- MOBILE VIEW --- */}
-        {/* Tab-based layout, hidden on large screens */}
         <div className="lg:hidden flex flex-col h-full">
             {/* Tab Navigation */}
             <div className="flex-shrink-0 flex border-b border-slate-700">
@@ -344,7 +342,7 @@ export function App() {
                         : 'bg-transparent text-slate-400 hover:bg-slate-800/60'
                     }`}
                 >
-                    Conditional Settings
+                    Render Settings
                 </button>
             </div>
 

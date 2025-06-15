@@ -17,6 +17,10 @@ function getSettingName(setting: ConditionalSetting): string {
         case 'play_animation': return `the "Play Animation: ${setting.animation}" setting`;
         case 'hide_element': return `the "Hide Element: ${setting.element}" setting`;
         case 'hide_player': return `the "Hide Player" setting`;
+        case 'force_paperdoll': return `the "Force Paperdoll" setting`;
+        case 'hide_crosshair': return `the "Hide Crosshair" setting`;
+        case 'hide_vehicle': return `the "Hide Vehicle" setting`;
+        case 'upside_down': return `the "Flip Upside Down" setting`;
     }
 }
 

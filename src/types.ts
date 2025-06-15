@@ -1,5 +1,7 @@
 export type UUID = string & {__is_uuid: true};
 export type AnimationID = string & {__is_animation_id: true};
+export type RenderSettingID = string & {__is_render_setting_id: true};
+export type RenderValueID = string & {__is_render_value_id: true};
 
 export type Avatar = {
     mainActionWheel?: UUID,
@@ -53,13 +55,14 @@ export type HideElementSetting = {
     activationCondition?: AnimationCondition;
 };
 
-export type HidePlayerSetting = {
+export type RenderSetting = {
     uuid: UUID;
-    kind: "hide_player";
+    kind: "render";
+    render: RenderSettingID,
     activationCondition?: AnimationCondition;
 };
 
-export type ConditionalSetting = PlayAnimationSetting | HideElementSetting | HidePlayerSetting;
+export type ConditionalSetting = PlayAnimationSetting | HideElementSetting | RenderSetting;
 
 export type ConditionOr = {
     id: UUID,
@@ -82,9 +85,19 @@ export type AnimationConditionToggleGroup = {
     toggleGroup?: UUID,
     value?: UUID,
 };
-export type AnimationConditionPlayer = {
+export type AnimationConditionRender = {
     id: UUID,
-    kind: "player",
-    player?: "crouching" | "sprinting" | "blocking" | "fishing" | "sleeping" | "swimming" | "flying" | "walking",
+    kind: "render",
+    render?: RenderValueID,
 };
-export type AnimationCondition = ConditionOr | AnimationConditionAnd | AnimationConditionNot | AnimationConditionToggleGroup | AnimationConditionPlayer;
+
+export type AnimationCondition = ConditionOr | AnimationConditionAnd | AnimationConditionNot | AnimationConditionToggleGroup | AnimationConditionRender;
+
+export type RenderSettingData = {
+    id: RenderSettingID,
+    name: string,
+};
+export type RenderValueData = {
+    id: RenderValueID,
+    name: string,
+};

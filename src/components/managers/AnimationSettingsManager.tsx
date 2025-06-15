@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import type { UUID, ToggleGroup, ConditionalSetting, PlayAnimationSetting, HideElementSetting, HidePlayerSetting } from '../../types';
+import type { UUID, ToggleGroup, ConditionalSetting, PlayAnimationSetting, HideElementSetting, RenderSetting, RenderSettingID, AnimationID } from '../../types';
 import { useAvatarStore } from '../../store/avatarStore';
 import { AnimationSettingEditor } from '../editors/AnimationSettingEditor';
 import { PlusIcon, TrashIcon, WarningIcon } from '../ui/icons';
@@ -8,8 +8,9 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { generateUUID } from '@/utils/uuid';
 import { SegmentedControl } from '../ui/SegmentedControl';
+import { renderSettings } from '../data/renderSettings';
 
-type SettingView = 'play_animation' | 'hide_element' | 'hide_player';
+type SettingView = 'play_animation' | 'hide_element' | 'render';
 
 // Helper to summarize the condition for display in the UI
 const summarizeCondition = (setting?: ConditionalSetting): string => {
@@ -26,6 +27,8 @@ const summarizeCondition = (setting?: ConditionalSetting): string => {
                 return c.condition ? countLeafConditions(c.condition) : 0;
             case 'toggleGroup':
             case 'player':
+            case 'renderContext':
+            case 'renderer':
                 return 1;
             default:
                 return 0;
@@ -53,12 +56,12 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     
     if (!avatar) return null;
 
-    const { conditionalSettings: animationSettings } = avatar;
+    const { conditionalSettings } = avatar;
     
     const lowerFilter = filter.toLowerCase();
 
     const filteredItems = useMemo(() => {
-        const allSettings = Object.values(animationSettings);
+        const allSettings = Object.values(conditionalSettings);
         
         if (view === 'play_animation') {
             const configured = allSettings.filter((s): s is PlayAnimationSetting => s.kind === 'play_animation');
@@ -80,13 +83,21 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                 unconfigured: unconfigured.filter(id => id.toLowerCase().includes(lowerFilter)),
             };
         }
-        if (view === 'hide_player') {
-            const configured = allSettings.filter((s): s is HidePlayerSetting => s.kind === 'hide_player');
-            return { configured, unconfigured: configured.length === 0 ? ['player'] : [] };
+        if (view === 'render') {
+            const configured = allSettings.filter((s): s is RenderSetting => s.kind === 'render');
+            const configuredKinds = new Set(configured.map(s => s.render));
+            const unconfigured = Array.from(renderSettings.keys()).filter(kind => !configuredKinds.has(kind));
+
+            const nameMatches = (kind: RenderSettingID) => renderSettings.get(kind)?.name.toLowerCase().includes(lowerFilter);
+
+            return { 
+                configured: configured.filter(s => nameMatches(s.render as RenderSettingID)), 
+                unconfigured: unconfigured.filter(nameMatches)
+            };
         }
         return { configured: [], unconfigured: [] };
 
-    }, [view, animationSettings, animations, modelElements, lowerFilter]);
+    }, [view, conditionalSettings, animations, modelElements, lowerFilter]);
 
     const toggleExpand = (uuid: UUID) => {
         setExpandedId(prev => (prev === uuid ? null : uuid));
@@ -97,11 +108,11 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
         let newSetting: ConditionalSetting;
 
         if (view === 'play_animation') {
-            newSetting = { uuid: newUuid, kind: 'play_animation', animation: id as any };
+            newSetting = { uuid: newUuid, kind: 'play_animation', animation: id as AnimationID };
         } else if (view === 'hide_element') {
             newSetting = { uuid: newUuid, kind: 'hide_element', element: id };
-        } else { // hide_player
-            newSetting = { uuid: newUuid, kind: 'hide_player' };
+        } else { // render
+            newSetting = { uuid: newUuid, kind: 'render', render: id as RenderSettingID };
         }
 
         updateAvatar(draft => {
@@ -146,8 +157,10 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                 title = setting.element;
                 if (!modelElements.includes(setting.element)) warning = "Element not found in loaded .bbmodel files.";
                 break;
-            case 'hide_player':
-                title = "Hide Player";
+            case 'render':
+                const renderSetting = renderSettings.get(setting.render);
+                if(!renderSetting) warning = "Invalid render setting";
+                title = renderSetting?.name ?? setting.render;
                 break;
         }
 
@@ -183,8 +196,8 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     const renderUnconfiguredItem = (id: string, description: string) => (
         <div key={id} className="rounded-lg border-2 border-dashed border-slate-700 p-4 flex justify-between items-center text-slate-400 hover:border-violet-500 hover:bg-violet-900/10 transition-colors duration-200">
             <div className="flex-grow min-w-0 pr-4">
-                <h4 className="font-semibold text-lg text-slate-300 truncate">{id}</h4>
-                <p className="text-sm text-slate-500">{description}</p>
+                <h4 className="font-semibold text-lg text-slate-300 truncate">{description}</h4>
+                <p className="text-sm text-slate-500">{id}</p>
             </div>
             <Button onClick={() => handleAddSetting(id)} className="bg-violet-600 hover:bg-violet-500 flex-shrink-0"><PlusIcon className="w-5 h-5 mr-2" />Configure</Button>
         </div>
@@ -195,7 +208,7 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     const viewConfig = {
         play_animation: { placeholder: `Search ${animations.length} animations...`, emptyText: "No animations found in models." },
         hide_element: { placeholder: `Search ${modelElements.length} elements...`, emptyText: "No elements found in models." },
-        hide_player: { placeholder: "", emptyText: "Player setting already configured." },
+        render: { placeholder: "Search render settings...", emptyText: "All render settings configured." },
     }
 
     return (
@@ -207,19 +220,17 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                     options={[
                         { label: 'Play Animation', value: 'play_animation' },
                         { label: 'Hide Element', value: 'hide_element' },
-                        { label: 'Hide Player', value: 'hide_player' },
+                        { label: 'Render', value: 'render' },
                     ]}
                 />
             </div>
 
-            {view !== 'hide_player' && (
-                 <Input
-                    className="w-full"
-                    placeholder={viewConfig[view].placeholder}
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
-                />
-            )}
+            <Input
+                className="w-full"
+                placeholder={viewConfig[view].placeholder}
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+            />
             
             <div className="space-y-2">
                 {filteredItems.configured.map(renderItem)}
@@ -228,9 +239,9 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                      <hr className="border-slate-700 my-4"/>
                 )}
 
-                {view === 'play_animation' && filteredItems.unconfigured.map(id => renderUnconfiguredItem(id, "Unconfigured animation from model"))}
-                {view === 'hide_element' && filteredItems.unconfigured.map(id => renderUnconfiguredItem(id, "Unconfigured element from model"))}
-                {view === 'hide_player' && filteredItems.unconfigured.map(id => renderUnconfiguredItem("Hide Player", "Hide the entire player model"))}
+                {view === 'play_animation' && filteredItems.unconfigured.map(id => renderUnconfiguredItem(id, id))}
+                {view === 'hide_element' && filteredItems.unconfigured.map(id => renderUnconfiguredItem(id, id))}
+                {view === 'render' && filteredItems.unconfigured.map(id => renderUnconfiguredItem(id, renderSettings.get(id)?.name ?? id))}
                 
                 {!hasAnyContent && (
                     <div className="flex flex-col items-center justify-center h-24 bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700">
