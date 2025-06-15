@@ -23,7 +23,7 @@ const kindStyles: { [key in PaletteItemKind]: { label: string; border: string; b
   and: { label: 'AND (All Of)', border: 'border-sky-500', bg: 'bg-sky-900/30', text: 'text-sky-300' },
   or: { label: 'OR (Any Of)', border: 'border-emerald-500', bg: 'bg-emerald-900/30', text: 'text-emerald-300' },
   not: { label: 'NOT', border: 'border-amber-500', bg: 'bg-amber-900/30', text: 'text-amber-300' },
-  toggleGroup: { label: 'Toggle Group State', border: 'border-violet-500', bg: 'bg-violet-900/30', text: 'text-violet-300' },
+  toggleGroup: { label: 'Group State', border: 'border-violet-500', bg: 'bg-violet-900/30', text: 'text-violet-300' },
   render: { label: 'Other State', border: 'border-rose-500', bg: 'bg-rose-900/30', text: 'text-rose-300' },
 };
 type PaletteItemKind = AnimationCondition['kind'];
