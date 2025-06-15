@@ -1,10 +1,12 @@
-import React, { useState, Fragment } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { AnimationID, ToggleGroup, AnimationSetting, AnimationCondition } from '../../types';
 import { useAvatarStore } from '../../store/avatarStore';
 import { AnimationSettingEditor } from '../editors/AnimationSettingEditor';
 import { PlusIcon, TrashIcon, WarningIcon } from '../ui/icons';
 import { ConfirmationDialog } from '../ui/ConfirmationDialog';
-import { Combobox, Transition } from '@headlessui/react';
+import { Dialog, DialogHeader, DialogContent, DialogFooter } from '../ui/Dialog';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
 
 // Helper to summarize the condition for display in the UI
 const summarizeCondition = (condition?: AnimationCondition): string => {
@@ -33,16 +35,127 @@ const summarizeCondition = (condition?: AnimationCondition): string => {
     return `${count} Conditions`;
 };
 
+// --- AddAnimationSettingDialog Component ---
+// Note: This would normally be in its own file (e.g., src/components/dialogs/AddAnimationSettingDialog.tsx)
+interface AddAnimationSettingDialogProps {
+    open: boolean;
+    onClose: () => void;
+    unconfiguredAnimations: AnimationID[];
+    existingSettings: AnimationID[];
+    onAdd: (animIds: AnimationID[]) => void;
+}
+
+function AddAnimationSettingDialog({ open, onClose, unconfiguredAnimations, existingSettings, onAdd }: AddAnimationSettingDialogProps) {
+    const [filter, setFilter] = useState('');
+    const [customName, setCustomName] = useState('');
+
+    useEffect(() => {
+        if (open) {
+            setFilter('');
+            setCustomName('');
+        }
+    }, [open]);
+
+    const filteredAnimations = useMemo(() => {
+        if (!filter) return unconfiguredAnimations;
+        return unconfiguredAnimations.filter(name => name.toLowerCase().includes(filter.toLowerCase()));
+    }, [unconfiguredAnimations, filter]);
+
+    const handleAddCustom = () => {
+        const trimmed = customName.trim() as AnimationID;
+        if (trimmed && !existingSettings.includes(trimmed)) {
+            onAdd([trimmed]);
+            onClose();
+        }
+    };
+    
+    const handleAddAll = () => {
+        if (unconfiguredAnimations.length > 0) {
+            onAdd(unconfiguredAnimations);
+            onClose();
+        }
+    };
+
+    const handleAddSingle = (animId: AnimationID) => {
+        onAdd([animId]);
+    };
+
+    const isCustomAddDisabled = !customName.trim() || existingSettings.includes(customName.trim() as AnimationID);
+
+    return (
+        <Dialog open={open} onClose={onClose} className="max-w-2xl">
+            <DialogHeader>Add Animation Setting</DialogHeader>
+            <DialogContent>
+                <div className="space-y-4">
+                     <div>
+                        <h3 className="text-base font-semibold text-slate-300 mb-2">Add Custom Setting</h3>
+                        <div className="flex gap-2 p-3 bg-slate-900/50 rounded-lg">
+                            <Input 
+                                placeholder="Enter custom animation ID..."
+                                value={customName}
+                                onChange={e => setCustomName(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter' && !isCustomAddDisabled) handleAddCustom(); }}
+                            />
+                            <Button onClick={handleAddCustom} disabled={isCustomAddDisabled} className="flex-shrink-0">
+                                Add
+                            </Button>
+                        </div>
+                        {existingSettings.includes(customName.trim() as AnimationID) && (
+                            <p className="text-amber-400 text-xs mt-1 pl-1">This setting already exists.</p>
+                        )}
+                    </div>
+                    
+                    {unconfiguredAnimations.length > 0 && (
+                        <div className="border-t border-slate-700/70 pt-4 mt-4 space-y-3">
+                            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                                <h3 className="text-base font-semibold text-slate-300">Available from Models</h3>
+                                <Button onClick={handleAddAll} className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 text-sm py-1 px-3">
+                                    Add all ({unconfiguredAnimations.length}) unconfigured
+                                </Button>
+                            </div>
+                            <Input 
+                                placeholder={`Search ${unconfiguredAnimations.length} available animations...`}
+                                value={filter}
+                                onChange={e => setFilter(e.target.value)}
+                            />
+                            <div className="max-h-64 overflow-y-auto -mr-3 pr-3 space-y-1">
+                                {filteredAnimations.length > 0 ? filteredAnimations.map(animId => (
+                                    <div key={animId} className="flex justify-between items-center p-2 rounded-md hover:bg-slate-700/50 transition-colors">
+                                        <span className="font-mono text-sm text-slate-300 break-all">{animId}</span>
+                                        <Button onClick={() => handleAddSingle(animId)} className="bg-violet-600/30 text-violet-300 hover:bg-violet-600/50 text-xs py-1 px-2 font-medium flex-shrink-0 ml-2">
+                                            <PlusIcon className="w-4 h-4 mr-1"/>
+                                            Add
+                                        </Button>
+                                    </div>
+                                )) : (
+                                    <p className="text-center text-slate-400 p-4">No available animations match your search.</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </DialogContent>
+            <DialogFooter>
+                <Button onClick={onClose} className="bg-slate-600 hover:bg-slate-500">Done</Button>
+            </DialogFooter>
+        </Dialog>
+    );
+}
+
+
+// --- AnimationSettingsManager Component ---
+
 interface AnimationSettingsManagerProps {
     allToggleGroups: ToggleGroup[];
 }
-
 
 export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsManagerProps) {
     const avatar = useAvatarStore((state) => state.avatar);
     const updateAvatar = useAvatarStore((state) => state.updateAvatar);
     const animations = useAvatarStore((state) => state.animations);
+    
     const [filter, setFilter] = useState('');
+    const [isAddDialogOpen, setAddDialogOpen] = useState(false);
     const [expandedAnimId, setExpandedAnimId] = useState<AnimationID | null>(null);
     const [deletingAnimId, setDeletingAnimId] = useState<AnimationID | null>(null);
     
@@ -56,36 +169,28 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     const filteredAnimationIds = allAnimationSettingIds.filter(animId => {
         if (!filter) return true;
         return animId.toLowerCase().includes(lowerFilter);
-    }).sort((a,b) => a.localeCompare(b)); // Sort for consistent order
+    }).sort((a,b) => a.localeCompare(b));
 
     const toggleExpand = (animId: AnimationID) => {
         setExpandedAnimId(prev => (prev === animId ? null : animId));
     };
 
-    const handleAddSetting = (newAnimId?: string) => {
-        const trimmedId = (newAnimId ?? "").trim() as AnimationID;
-        
-        // Action taken, clear the filter/input value to reset the view.
-        setFilter(''); 
-
-        if (!trimmedId) {
-            return;
-        }
-
-        // If setting already exists, just expand it. The list is already unfiltered.
-        if (allAnimationSettingIds.includes(trimmedId)) {
-            setExpandedAnimId(trimmedId);
-            return;
-        }
-
+    const handleAddSettings = (animIdsToAdd: AnimationID[]) => {
         updateAvatar(draft => {
-            draft.animationSettings[trimmedId] = {
-                animation: trimmedId,
-            };
+            for (const animId of animIdsToAdd) {
+                if (!draft.animationSettings[animId]) {
+                    draft.animationSettings[animId] = {
+                        animation: animId,
+                    };
+                }
+            }
         });
         
-        // The list is unfiltered, expand the new item.
-        setExpandedAnimId(trimmedId);
+        // If a single new item was added, expand it for immediate editing.
+        if (animIdsToAdd.length === 1) {
+            setFilter(''); // Clear search to ensure the new item is visible
+            setExpandedAnimId(animIdsToAdd[0]);
+        }
     };
 
     const handleDeleteRequest = (animId: AnimationID) => {
@@ -115,71 +220,28 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
         .filter(animId => !allAnimationSettingIds.includes(animId))
         .sort((a, b) => a.localeCompare(b));
 
-    const filteredAnimationsForAdder =
-        filter === ''
-            ? unconfiguredAnimations
-            : unconfiguredAnimations.filter((name) =>
-                name.toLowerCase().includes(filter.toLowerCase())
-            );
-
     return (
         <div className="space-y-4">
-            <div className="relative">
-                <Combobox value={filter} onChange={handleAddSetting}>
-                    <div className="relative w-full cursor-default overflow-hidden rounded-md bg-slate-900/50 text-left shadow-md focus-within:ring-2 focus-within:ring-violet-500 transition-all">
-                        <Combobox.Input
-                            className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-slate-100 placeholder-slate-400 bg-transparent focus:ring-0"
-                            onChange={(event) => setFilter(event.target.value)}
-                            placeholder="Search or add animation setting..."
-                            aria-label="Search or add animation setting"
-                        />
-                        <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
-                            <PlusIcon className="h-5 w-5 text-slate-400 hover:text-slate-200" aria-hidden="true" />
-                        </Combobox.Button>
-                    </div>
-                    <Transition
-                        as={Fragment}
-                        leave="transition ease-in duration-100"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                        afterLeave={() => setFilter('')}
-                    >
-                        <Combobox.Options className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md bg-slate-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                            {filteredAnimationsForAdder.length === 0 && filter !== '' && (
-                                !allAnimationSettingIds.includes(filter.trim() as AnimationID) ? (
-                                    <Combobox.Option
-                                        value={filter}
-                                        className={({active}) => `relative cursor-pointer select-none py-2 px-4 ${active ? 'bg-violet-600 text-white' : 'text-slate-300'}`}
-                                    >
-                                        Create "{filter}"
-                                    </Combobox.Option>
-                                ) : (
-                                    filter.trim() && <div className="relative cursor-default select-none py-2 px-4 text-slate-400">
-                                        Setting already exists.
-                                    </div>
-                                )
-                            )}
-                            {filteredAnimationsForAdder.map((animId) => (
-                                <Combobox.Option
-                                    key={animId}
-                                    className={({ active }) =>
-                                        `relative cursor-pointer select-none py-2 pl-4 pr-4 ${
-                                        active ? 'bg-violet-600 text-white' : 'text-slate-100'
-                                        }`
-                                    }
-                                    value={animId}
-                                >
-                                {animId}
-                                </Combobox.Option>
-                            ))}
-                                {filteredAnimationsForAdder.length === 0 && filter === '' && (
-                                <div className="relative cursor-default select-none py-2 px-4 text-slate-400">
-                                    No unconfigured animations found.
-                                </div>
-                            )}
-                        </Combobox.Options>
-                    </Transition>
-                </Combobox>
+            <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-grow">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                         <svg className="w-5 h-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </span>
+                    <Input
+                        className="w-full pl-10"
+                        placeholder="Search configured settings..."
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                        aria-label="Search configured animation settings"
+                    />
+                </div>
+                <Button 
+                    onClick={() => setAddDialogOpen(true)} 
+                    className="bg-violet-600 hover:bg-violet-500 whitespace-nowrap justify-center"
+                >
+                    <PlusIcon className="h-5 w-5 mr-2" aria-hidden="true" />
+                    Add Animation Setting
+                </Button>
             </div>
 
             <div className="space-y-2">
@@ -237,10 +299,18 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                      <div className="flex flex-col items-center justify-center h-24 bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 mb-2 text-slate-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                         <p className="text-center font-medium">{hasSettings ? "No animations match your search." : "There are no animation settings to configure."}</p>
-                        {!hasSettings && <p className="text-sm text-center mt-1">Click the '+' button or type to add a new setting.</p>}
+                        {!hasSettings && <p className="text-sm text-center mt-1">Click the 'Add Animation Setting' button to get started.</p>}
                     </div>
                 )}
             </div>
+
+            <AddAnimationSettingDialog
+                open={isAddDialogOpen}
+                onClose={() => setAddDialogOpen(false)}
+                unconfiguredAnimations={unconfiguredAnimations}
+                existingSettings={allAnimationSettingIds}
+                onAdd={handleAddSettings}
+            />
 
             <ConfirmationDialog 
                 open={!!deletingAnimId}
