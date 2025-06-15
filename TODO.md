@@ -19,6 +19,8 @@
 - [x] Currently, the project is loaded from the server and saved to the server. Change this. Instead, when you open the app it should be empty and have a drop area to choose files. You drop project.json and then the it opens the app. The save button now downloads the new project.json.
 - [x] (context: types.ts, bbmodel.ts, App.tsx, avatarStore.tsx) Currently, the 'Avatar' type contains 'animations: AnimationID[]'. Instead of having animations here, the animations need to be loaded from '.bbmodel' files. When you open the page, it should ask you to drop all your avatar's bbmodel files and your project json. To get all the animation IDs, loop over each bbmodel file's animations and concatenate the name of the file + "." + the animation name.
 - [ ] In AnimationSettingsManager, instead of 'Error: Missing setting for animation ID', have it still show the editor. If there is an animation setting for an animation id that isn't found, still show the setting but put a warning on it. Also, remove the 'name' option from AnimationSetting.
+- [ ] Migrate to headlessui
+- [ ] The whole app has undo and redo, so there is no need for "This action cannot be undone" dialogs.
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 

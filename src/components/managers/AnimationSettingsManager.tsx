@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, Fragment } from 'react';
 import type { AnimationID, ToggleGroup, AnimationSetting, AnimationCondition } from '../../types';
 import { useAvatarStore } from '../../store/avatarStore';
 import { Input } from '../ui/Input';
-import { Button } from '../ui/Button';
 import { AnimationSettingEditor } from '../editors/AnimationSettingEditor';
 import { PlusIcon, TrashIcon, WarningIcon } from '../ui/icons';
 import { ConfirmationDialog } from '../ui/ConfirmationDialog';
-import { Dialog, DialogHeader, DialogContent, DialogFooter } from '../ui/Dialog';
+import { Combobox, Transition } from '@headlessui/react';
 
 // Helper to summarize the condition for display in the UI
 const summarizeCondition = (condition?: AnimationCondition): string => {
@@ -35,64 +34,6 @@ const summarizeCondition = (condition?: AnimationCondition): string => {
     return `${count} Conditions`;
 };
 
-// A new dialog component for adding animation settings.
-interface AddAnimationSettingDialogProps {
-    open: boolean;
-    onClose: () => void;
-    onAdd: (animId: AnimationID) => void;
-    existingIds: AnimationID[];
-}
-
-function AddAnimationSettingDialog({ open, onClose, onAdd, existingIds }: AddAnimationSettingDialogProps) {
-    const [animId, setAnimId] = useState('');
-    const [error, setError] = useState('');
-
-    const handleSubmit = () => {
-        const trimmedId = animId.trim() as AnimationID;
-        if (!trimmedId) {
-            setError('Animation ID cannot be empty.');
-            return;
-        }
-        if (existingIds.includes(trimmedId)) {
-            setError('This Animation ID already exists.');
-            return;
-        }
-        
-        onAdd(trimmedId);
-        onClose();
-    };
-    
-    React.useEffect(() => {
-        if(open) {
-            setAnimId('');
-            setError('');
-        }
-    }, [open]);
-
-    return (
-        <Dialog open={open} onClose={onClose}>
-            <DialogHeader>Add Animation Setting</DialogHeader>
-            <DialogContent>
-                <p className="text-sm text-slate-400 mb-2">
-                    Enter the ID for the new animation setting. The format is typically <code>model_name.bbmodel.animation_name</code>.
-                </p>
-                <Input 
-                    value={animId}
-                    onChange={e => setAnimId(e.target.value)}
-                    placeholder="e.g., player.bbmodel.idle"
-                    autoFocus
-                />
-                {error && <p className="text-rose-500 text-xs mt-1">{error}</p>}
-            </DialogContent>
-            <DialogFooter>
-                <Button onClick={onClose} className="bg-slate-600 hover:bg-slate-500">Cancel</Button>
-                <Button onClick={handleSubmit} className="bg-violet-600 hover:bg-violet-500">Add Setting</Button>
-            </DialogFooter>
-        </Dialog>
-    );
-}
-
-
 interface AnimationSettingsManagerProps {
     allToggleGroups: ToggleGroup[];
 }
@@ -104,7 +45,7 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     const animations = useAvatarStore((state) => state.animations);
     const [filter, setFilter] = useState('');
     const [expandedAnimId, setExpandedAnimId] = useState<AnimationID | null>(null);
-    const [isAddDialogOpen, setAddDialogOpen] = useState(false);
+    const [addAnimQuery, setAddAnimQuery] = useState('');
     const [deletingAnimId, setDeletingAnimId] = useState<AnimationID | null>(null);
     
     if (!avatar) return null;
@@ -123,15 +64,30 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
         setExpandedAnimId(prev => (prev === animId ? null : animId));
     };
 
-    const handleAddSetting = (newAnimId: AnimationID) => {
+    const handleAddSetting = (newAnimId: string) => {
+        const trimmedId = newAnimId.trim() as AnimationID;
+        if (!trimmedId) {
+            setAddAnimQuery('');
+            return;
+        }
+        
+        // Reset input immediately
+        setAddAnimQuery('');
+
+        // If setting already exists, just clear filter and expand it.
+        if (allAnimationSettingIds.includes(trimmedId)) {
+            setFilter('');
+            setExpandedAnimId(trimmedId);
+            return;
+        }
+
         updateAvatar(draft => {
-            draft.animationSettings[newAnimId] = {
-                animation: newAnimId,
+            draft.animationSettings[trimmedId] = {
+                animation: trimmedId,
             };
         });
-        setAddDialogOpen(false);
         setFilter(''); // Clear filter to show the new item
-        setExpandedAnimId(newAnimId);
+        setExpandedAnimId(trimmedId);
     };
 
     const handleDeleteRequest = (animId: AnimationID) => {
@@ -156,6 +112,17 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     };
     
     const hasSettings = allAnimationSettingIds.length > 0;
+    
+    const unconfiguredAnimations = animations
+        .filter(animId => !allAnimationSettingIds.includes(animId))
+        .sort((a, b) => a.localeCompare(b));
+
+    const filteredAnimationsForAdder =
+        addAnimQuery === ''
+            ? unconfiguredAnimations
+            : unconfiguredAnimations.filter((name) =>
+                name.toLowerCase().includes(addAnimQuery.toLowerCase())
+            );
 
     return (
         <div className="space-y-4">
@@ -168,10 +135,62 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                     className="w-full bg-slate-900/50"
                     aria-label="Filter animations"
                 />
-                 <Button onClick={() => setAddDialogOpen(true)} className="bg-violet-600 hover:bg-violet-500 flex-shrink-0">
-                    <PlusIcon className="w-5 h-5 sm:mr-2"/>
-                    <span className="hidden sm:inline">Add Setting</span>
-                </Button>
+                 <div className="relative flex-shrink-0" style={{ width: '260px' }}>
+                    <Combobox value={addAnimQuery} onChange={handleAddSetting}>
+                        <div className="relative w-full cursor-default overflow-hidden rounded-md bg-slate-800 text-left shadow-md focus-within:ring-2 focus-within:ring-violet-500 transition-all">
+                            <Combobox.Input
+                                className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-slate-100 placeholder-slate-400 bg-transparent focus:ring-0"
+                                onChange={(event) => setAddAnimQuery(event.target.value)}
+                                placeholder="Add or select animation..."
+                            />
+                            <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                <PlusIcon className="h-5 w-5 text-slate-400 hover:text-slate-200" aria-hidden="true" />
+                            </Combobox.Button>
+                        </div>
+                        <Transition
+                            as={Fragment}
+                            leave="transition ease-in duration-100"
+                            leaveFrom="opacity-100"
+                            leaveTo="opacity-0"
+                            afterLeave={() => setAddAnimQuery('')}
+                        >
+                            <Combobox.Options className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md bg-slate-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                {filteredAnimationsForAdder.length === 0 && addAnimQuery !== '' && (
+                                    !allAnimationSettingIds.includes(addAnimQuery.trim() as AnimationID) ? (
+                                        <Combobox.Option
+                                            value={addAnimQuery}
+                                            className={({active}) => `relative cursor-pointer select-none py-2 px-4 ${active ? 'bg-violet-600 text-white' : 'text-slate-300'}`}
+                                        >
+                                            Create "{addAnimQuery}"
+                                        </Combobox.Option>
+                                    ) : (
+                                        addAnimQuery.trim() && <div className="relative cursor-default select-none py-2 px-4 text-slate-400">
+                                            Setting already exists.
+                                        </div>
+                                    )
+                                )}
+                                {filteredAnimationsForAdder.map((animId) => (
+                                    <Combobox.Option
+                                        key={animId}
+                                        className={({ active }) =>
+                                            `relative cursor-pointer select-none py-2 pl-4 pr-4 ${
+                                            active ? 'bg-violet-600 text-white' : 'text-slate-100'
+                                            }`
+                                        }
+                                        value={animId}
+                                    >
+                                    {animId}
+                                    </Combobox.Option>
+                                ))}
+                                 {filteredAnimationsForAdder.length === 0 && addAnimQuery === '' && (
+                                    <div className="relative cursor-default select-none py-2 px-4 text-slate-400">
+                                        No unconfigured animations found.
+                                    </div>
+                                )}
+                            </Combobox.Options>
+                        </Transition>
+                    </Combobox>
+                </div>
             </div>
 
             <div className="space-y-2">
@@ -233,13 +252,6 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                     </div>
                 )}
             </div>
-
-            <AddAnimationSettingDialog 
-                open={isAddDialogOpen}
-                onClose={() => setAddDialogOpen(false)}
-                onAdd={handleAddSetting}
-                existingIds={allAnimationSettingIds}
-            />
 
             <ConfirmationDialog 
                 open={!!deletingAnimId}
