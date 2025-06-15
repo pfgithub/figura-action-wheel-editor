@@ -1,16 +1,16 @@
 // src/components/editors/ActionEditor.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import type { Action, ActionEffect, ActionWheel, ToggleGroup, IconTexture } from '../../types';
-import { useAvatarStore } from '../../store/avatarStore';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
-import { FormRow } from '../ui/FormRow';
-import { MinecraftItemPicker } from '../ui/MinecraftItemPicker';
-import { ColorPicker } from '../ui/ColorPicker';
+import type { Action, ActionEffect, ActionWheel, ToggleGroup, IconTexture } from '@/types';
+import { useAvatarStore } from '@/store/avatarStore';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { FormRow } from '@/components/ui/FormRow';
+import { MinecraftItemPicker } from '@/components/ui/MinecraftItemPicker';
+import { ColorPicker } from '@/components/ui/ColorPicker';
 import { ActionEffectEditor } from './ActionEffectEditor';
-import { SegmentedControl } from '../ui/SegmentedControl';
-import { Select } from '../ui/Select';
-import { TrashIcon } from '../ui/icons';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { Select } from '@/components/ui/Select';
+import { TrashIcon } from '@/components/ui/icons';
 
 // A simple divider component for visual separation
 const SectionDivider = () => <hr className="border-slate-700/60 my-6" />;

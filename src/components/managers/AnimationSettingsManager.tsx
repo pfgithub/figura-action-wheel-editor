@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import type { UUID, ToggleGroup, ConditionalSetting, PlayAnimationSetting, HideElementSetting, RenderSetting, RenderSettingID, AnimationID } from '../../types';
-import { useAvatarStore } from '../../store/avatarStore';
-import { AnimationSettingEditor } from '../editors/AnimationSettingEditor';
-import { PlusIcon, TrashIcon, WarningIcon } from '../ui/icons';
-import { ConfirmationDialog } from '../ui/ConfirmationDialog';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
+import type { UUID, ToggleGroup, ConditionalSetting, PlayAnimationSetting, HideElementSetting, RenderSetting, RenderSettingID, AnimationID } from '@/types';
+import { useAvatarStore } from '@/store/avatarStore';
+import { AnimationSettingEditor } from '@/components/editors/AnimationSettingEditor';
+import { PlusIcon, TrashIcon, WarningIcon } from '@/components/ui/icons';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { generateUUID } from '@/utils/uuid';
-import { SegmentedControl } from '../ui/SegmentedControl';
-import { renderSettings } from '../../data/renderSettings';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { renderSettings } from '@/data/renderSettings';
 
 type SettingView = 'play_animation' | 'hide_element' | 'render';
 

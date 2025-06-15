@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useMinecraftItems } from '../../hooks/useMinecraftItems';
-import { Dialog, DialogHeader, DialogContent, DialogFooter } from '../ui/Dialog';
-import { Input } from '../ui/Input';
-import { Button } from '../ui/Button';
+import { useMinecraftItems } from '@/hooks/useMinecraftItems';
+import { Dialog, DialogHeader, DialogContent, DialogFooter } from '@/components/ui/Dialog';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 
 interface MinecraftItemPickerDialogProps {
     open: boolean;

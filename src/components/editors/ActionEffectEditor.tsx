@@ -1,10 +1,10 @@
 // src/components/editors/ActionEffectEditor.tsx
 import React from 'react';
-import type { ActionEffect, ActionWheel, ToggleGroup, UUID } from '../../types';
-import { FormRow } from '../ui/FormRow';
-import { Select } from '../ui/Select';
-import { SegmentedControl } from '../ui/SegmentedControl';
-import { ToggleGroupControls } from '../shared/ToggleGroupControls';
+import type { ActionEffect, ActionWheel, ToggleGroup, UUID } from '@/types';
+import { FormRow } from '@/components/ui/FormRow';
+import { Select } from '@/components/ui/Select';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { ToggleGroupControls } from '@/components/shared/ToggleGroupControls';
 
 interface ActionEffectEditorProps {
     effect?: ActionEffect;

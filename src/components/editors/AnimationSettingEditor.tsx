@@ -1,5 +1,5 @@
 import React from "react";
-import type { ConditionalSetting, ToggleGroup, AnimationID } from "../../types";
+import type { ConditionalSetting, ToggleGroup, AnimationID } from "@/types";
 import { AnimationConditionEditor } from "./AnimationConditionEditor";
 
 interface AnimationSettingEditorProps {

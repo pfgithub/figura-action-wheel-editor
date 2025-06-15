@@ -1,27 +1,19 @@
 // src/components/dialogs/ToggleGroupDialog.tsx
 import React, { useState, useEffect } from 'react';
-import type { Avatar, ToggleGroup, ToggleGroupOption, UUID, Condition, ConditionalSetting } from '../../types';
-import { useAvatarStore } from '../../store/avatarStore';
-import { generateUUID } from '../../utils/uuid';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
-import { Dialog, DialogHeader, DialogContent, DialogFooter } from '../ui/Dialog';
-import { FormRow } from '../ui/FormRow';
-import { ConfirmationDialog, UsageWarningDialog } from '../ui/ConfirmationDialog';
-import { TrashIcon, PlusIcon } from '../ui/icons';
+import type { Avatar, ToggleGroup, ToggleGroupOption, UUID, Condition, ConditionalSetting } from '@/types';
+import { useAvatarStore } from '@/store/avatarStore';
+import { generateUUID } from '@/utils/uuid';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Dialog, DialogHeader, DialogContent, DialogFooter } from '@/components/ui/Dialog';
+import { FormRow } from '@/components/ui/FormRow';
+import { ConfirmationDialog, UsageWarningDialog } from '@/components/ui/ConfirmationDialog';
+import { TrashIcon, PlusIcon } from '@/components/ui/icons';
 
 // --- Helper functions for robust usage checking ---
 
 function getSettingName(setting: ConditionalSetting): string {
-    switch (setting.kind) {
-        case 'play_animation': return `the "Play Animation: ${setting.animation}" setting`;
-        case 'hide_element': return `the "Hide Element: ${setting.element}" setting`;
-        case 'hide_player': return `the "Hide Player" setting`;
-        case 'force_paperdoll': return `the "Force Paperdoll" setting`;
-        case 'hide_crosshair': return `the "Hide Crosshair" setting`;
-        case 'hide_vehicle': return `the "Hide Vehicle" setting`;
-        case 'upside_down': return `the "Flip Upside Down" setting`;
-    }
+    return setting.kind;
 }
 
 function checkAnimationCondition(condition: Condition | undefined, toggleGroupUUID: UUID, settingName: string): string[] {

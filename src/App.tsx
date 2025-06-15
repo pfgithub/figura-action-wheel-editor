@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
-import type { UUID, ActionWheel, Avatar, AnimationID, ConditionalSetting, TextureAsset } from "./types";
-import type { BBModel, BBModelElement, BBModelOutliner } from "./bbmodel";
-import { useAvatarStore } from "./store/avatarStore";
-import { generateUUID } from "./utils/uuid";
+import type { UUID, ActionWheel, Avatar, AnimationID, ConditionalSetting, TextureAsset } from "@/types";
+import type { BBModel, BBModelElement, BBModelOutliner } from "@/bbmodel";
+import { useAvatarStore } from "@/store/avatarStore";
+import { generateUUID } from "@/utils/uuid";
 import "./index.css";
 
 // UI Components
-import { Button } from "./components/ui/Button";
+import { Button } from "@/components/ui/Button";
 
 // Manager Components
-import { ActionWheelsManager } from "./components/managers/ActionWheelsManager";
-import { AnimationSettingsManager } from "./components/managers/AnimationSettingsManager";
+import { ActionWheelsManager } from "@/components/managers/ActionWheelsManager";
+import { AnimationSettingsManager } from "@/components/managers/AnimationSettingsManager";
 import { parseLua } from "@/data/generateLua";
 
 // A component for the file drop area

@@ -2,7 +2,7 @@
 import React from 'react';
 import { HexColorPicker, HexColorInput } from 'react-colorful';
 import { Popover, Transition } from '@headlessui/react';
-import { rgbToHex, hexToRgb } from '../../utils/color';
+import { rgbToHex, hexToRgb } from '@/utils/color';
 
 interface ColorPickerProps {
     color: [number, number, number];

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import type { UUID, Action, ActionWheel, ToggleGroup } from '../../types';
-import { useAvatarStore } from '../../store/avatarStore';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
-import { ActionEditor } from '../editors/ActionEditor';
-import { ActionWheelVisualizer } from '../ui/ActionWheelVisualizer';
+import type { UUID, Action, ActionWheel, ToggleGroup } from '@/types';
+import { useAvatarStore } from '@/store/avatarStore';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { ActionEditor } from '@/components/editors/ActionEditor';
+import { ActionWheelVisualizer } from '@/components/ui/ActionWheelVisualizer';
 import { generateUUID } from '@/utils/uuid';
 
 interface ActionWheelsManagerProps {

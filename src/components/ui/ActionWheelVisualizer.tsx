@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import type { Action, IconItem, IconTexture } from '../../types';
-import { useMinecraftItems } from '../../hooks/useMinecraftItems';
-import { useAvatarStore } from '../../store/avatarStore';
+import type { Action, IconItem, IconTexture } from '@/types';
+import { useMinecraftItems } from '@/hooks/useMinecraftItems';
+import { useAvatarStore } from '@/store/avatarStore';
 
 interface ActionWheelVisualizerProps {
   actions: Action[];

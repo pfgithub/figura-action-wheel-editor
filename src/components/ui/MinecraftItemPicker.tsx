@@ -1,8 +1,8 @@
-import { useMinecraftItems } from "../../hooks/useMinecraftItems";
+import { useMinecraftItems } from "@/hooks/useMinecraftItems";
 import { useState } from "react";
 import { Button } from "./Button";
 import { Input } from "./Input";
-import { MinecraftItemPickerDialog } from "../dialogs/MinecraftItemPickerDialog";
+import { MinecraftItemPickerDialog } from "@/components/dialogs/MinecraftItemPickerDialog";
 
 interface MinecraftItemPickerProps {
     value: string;

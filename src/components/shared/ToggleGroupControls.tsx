@@ -1,10 +1,10 @@
 // src/components/shared/ToggleGroupControls.tsx
 import React, { useState } from 'react';
-import type { ToggleGroup, UUID } from '../../types';
-import { Select } from '../ui/Select';
-import { Button } from '../ui/Button';
-import { ToggleGroupDialog } from '../dialogs/ToggleGroupDialog';
-import { EditIcon, PlusIcon } from '../ui/icons';
+import type { ToggleGroup, UUID } from '@/types';
+import { Select } from '@/components/ui/Select';
+import { Button } from '@/components/ui/Button';
+import { ToggleGroupDialog } from '@/components/dialogs/ToggleGroupDialog';
+import { EditIcon, PlusIcon } from '@/components/ui/icons';
 
 interface ToggleGroupControlsProps {
     allToggleGroups: ToggleGroup[];
