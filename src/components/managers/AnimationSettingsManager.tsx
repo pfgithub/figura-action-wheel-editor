@@ -1,7 +1,6 @@
 import React, { useState, Fragment } from 'react';
 import type { AnimationID, ToggleGroup, AnimationSetting, AnimationCondition } from '../../types';
 import { useAvatarStore } from '../../store/avatarStore';
-import { Input } from '../ui/Input';
 import { AnimationSettingEditor } from '../editors/AnimationSettingEditor';
 import { PlusIcon, TrashIcon, WarningIcon } from '../ui/icons';
 import { ConfirmationDialog } from '../ui/ConfirmationDialog';
@@ -45,7 +44,6 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     const animations = useAvatarStore((state) => state.animations);
     const [filter, setFilter] = useState('');
     const [expandedAnimId, setExpandedAnimId] = useState<AnimationID | null>(null);
-    const [addAnimQuery, setAddAnimQuery] = useState('');
     const [deletingAnimId, setDeletingAnimId] = useState<AnimationID | null>(null);
     
     if (!avatar) return null;
@@ -64,19 +62,18 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
         setExpandedAnimId(prev => (prev === animId ? null : animId));
     };
 
-    const handleAddSetting = (newAnimId: string) => {
-        const trimmedId = newAnimId.trim() as AnimationID;
+    const handleAddSetting = (newAnimId?: string) => {
+        const trimmedId = (newAnimId ?? "").trim() as AnimationID;
+        
+        // Action taken, clear the filter/input value to reset the view.
+        setFilter(''); 
+
         if (!trimmedId) {
-            setAddAnimQuery('');
             return;
         }
-        
-        // Reset input immediately
-        setAddAnimQuery('');
 
-        // If setting already exists, just clear filter and expand it.
+        // If setting already exists, just expand it. The list is already unfiltered.
         if (allAnimationSettingIds.includes(trimmedId)) {
-            setFilter('');
             setExpandedAnimId(trimmedId);
             return;
         }
@@ -86,7 +83,8 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                 animation: trimmedId,
             };
         });
-        setFilter(''); // Clear filter to show the new item
+        
+        // The list is unfiltered, expand the new item.
         setExpandedAnimId(trimmedId);
     };
 
@@ -118,79 +116,70 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
         .sort((a, b) => a.localeCompare(b));
 
     const filteredAnimationsForAdder =
-        addAnimQuery === ''
+        filter === ''
             ? unconfiguredAnimations
             : unconfiguredAnimations.filter((name) =>
-                name.toLowerCase().includes(addAnimQuery.toLowerCase())
+                name.toLowerCase().includes(filter.toLowerCase())
             );
 
     return (
         <div className="space-y-4">
-            <div className="flex gap-2 items-center">
-                <Input 
-                    type="text"
-                    placeholder="Search animations by ID..."
-                    value={filter}
-                    onChange={e => setFilter(e.target.value)}
-                    className="w-full bg-slate-900/50"
-                    aria-label="Filter animations"
-                />
-                 <div className="relative flex-shrink-0" style={{ width: '260px' }}>
-                    <Combobox value={addAnimQuery} onChange={handleAddSetting}>
-                        <div className="relative w-full cursor-default overflow-hidden rounded-md bg-slate-800 text-left shadow-md focus-within:ring-2 focus-within:ring-violet-500 transition-all">
-                            <Combobox.Input
-                                className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-slate-100 placeholder-slate-400 bg-transparent focus:ring-0"
-                                onChange={(event) => setAddAnimQuery(event.target.value)}
-                                placeholder="Add or select animation..."
-                            />
-                            <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
-                                <PlusIcon className="h-5 w-5 text-slate-400 hover:text-slate-200" aria-hidden="true" />
-                            </Combobox.Button>
-                        </div>
-                        <Transition
-                            as={Fragment}
-                            leave="transition ease-in duration-100"
-                            leaveFrom="opacity-100"
-                            leaveTo="opacity-0"
-                            afterLeave={() => setAddAnimQuery('')}
-                        >
-                            <Combobox.Options className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md bg-slate-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                {filteredAnimationsForAdder.length === 0 && addAnimQuery !== '' && (
-                                    !allAnimationSettingIds.includes(addAnimQuery.trim() as AnimationID) ? (
-                                        <Combobox.Option
-                                            value={addAnimQuery}
-                                            className={({active}) => `relative cursor-pointer select-none py-2 px-4 ${active ? 'bg-violet-600 text-white' : 'text-slate-300'}`}
-                                        >
-                                            Create "{addAnimQuery}"
-                                        </Combobox.Option>
-                                    ) : (
-                                        addAnimQuery.trim() && <div className="relative cursor-default select-none py-2 px-4 text-slate-400">
-                                            Setting already exists.
-                                        </div>
-                                    )
-                                )}
-                                {filteredAnimationsForAdder.map((animId) => (
+            <div className="relative">
+                <Combobox value={filter} onChange={handleAddSetting}>
+                    <div className="relative w-full cursor-default overflow-hidden rounded-md bg-slate-900/50 text-left shadow-md focus-within:ring-2 focus-within:ring-violet-500 transition-all">
+                        <Combobox.Input
+                            className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-slate-100 placeholder-slate-400 bg-transparent focus:ring-0"
+                            onChange={(event) => setFilter(event.target.value)}
+                            placeholder="Search or add animation setting..."
+                            aria-label="Search or add animation setting"
+                        />
+                        <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+                            <PlusIcon className="h-5 w-5 text-slate-400 hover:text-slate-200" aria-hidden="true" />
+                        </Combobox.Button>
+                    </div>
+                    <Transition
+                        as={Fragment}
+                        leave="transition ease-in duration-100"
+                        leaveFrom="opacity-100"
+                        leaveTo="opacity-0"
+                        afterLeave={() => setFilter('')}
+                    >
+                        <Combobox.Options className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md bg-slate-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                            {filteredAnimationsForAdder.length === 0 && filter !== '' && (
+                                !allAnimationSettingIds.includes(filter.trim() as AnimationID) ? (
                                     <Combobox.Option
-                                        key={animId}
-                                        className={({ active }) =>
-                                            `relative cursor-pointer select-none py-2 pl-4 pr-4 ${
-                                            active ? 'bg-violet-600 text-white' : 'text-slate-100'
-                                            }`
-                                        }
-                                        value={animId}
+                                        value={filter}
+                                        className={({active}) => `relative cursor-pointer select-none py-2 px-4 ${active ? 'bg-violet-600 text-white' : 'text-slate-300'}`}
                                     >
-                                    {animId}
+                                        Create "{filter}"
                                     </Combobox.Option>
-                                ))}
-                                 {filteredAnimationsForAdder.length === 0 && addAnimQuery === '' && (
-                                    <div className="relative cursor-default select-none py-2 px-4 text-slate-400">
-                                        No unconfigured animations found.
+                                ) : (
+                                    filter.trim() && <div className="relative cursor-default select-none py-2 px-4 text-slate-400">
+                                        Setting already exists.
                                     </div>
-                                )}
-                            </Combobox.Options>
-                        </Transition>
-                    </Combobox>
-                </div>
+                                )
+                            )}
+                            {filteredAnimationsForAdder.map((animId) => (
+                                <Combobox.Option
+                                    key={animId}
+                                    className={({ active }) =>
+                                        `relative cursor-pointer select-none py-2 pl-4 pr-4 ${
+                                        active ? 'bg-violet-600 text-white' : 'text-slate-100'
+                                        }`
+                                    }
+                                    value={animId}
+                                >
+                                {animId}
+                                </Combobox.Option>
+                            ))}
+                                {filteredAnimationsForAdder.length === 0 && filter === '' && (
+                                <div className="relative cursor-default select-none py-2 px-4 text-slate-400">
+                                    No unconfigured animations found.
+                                </div>
+                            )}
+                        </Combobox.Options>
+                    </Transition>
+                </Combobox>
             </div>
 
             <div className="space-y-2">
@@ -248,7 +237,7 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                      <div className="flex flex-col items-center justify-center h-24 bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 mb-2 text-slate-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                         <p className="text-center font-medium">{hasSettings ? "No animations match your search." : "There are no animation settings to configure."}</p>
-                        {!hasSettings && <p className="text-sm text-center mt-1">Click 'Add Setting' to create one.</p>}
+                        {!hasSettings && <p className="text-sm text-center mt-1">Click the '+' button or type to add a new setting.</p>}
                     </div>
                 )}
             </div>
