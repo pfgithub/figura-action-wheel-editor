@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import type { UUID, ToggleGroup, AnimationSetting, PlayAnimationSetting, HideElementSetting, HidePlayerSetting } from '../../types';
+import type { UUID, ToggleGroup, ConditionalSetting, PlayAnimationSetting, HideElementSetting, HidePlayerSetting } from '../../types';
 import { useAvatarStore } from '../../store/avatarStore';
 import { AnimationSettingEditor } from '../editors/AnimationSettingEditor';
 import { PlusIcon, TrashIcon, WarningIcon } from '../ui/icons';
@@ -12,7 +12,7 @@ import { SegmentedControl } from '../ui/SegmentedControl';
 type SettingView = 'play_animation' | 'hide_element' | 'hide_player';
 
 // Helper to summarize the condition for display in the UI
-const summarizeCondition = (setting?: AnimationSetting): string => {
+const summarizeCondition = (setting?: ConditionalSetting): string => {
     if (!setting?.activationCondition) {
         return "Always active";
     }
@@ -53,7 +53,7 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     
     if (!avatar) return null;
 
-    const { animationSettings } = avatar;
+    const { conditionalSettings: animationSettings } = avatar;
     
     const lowerFilter = filter.toLowerCase();
 
@@ -94,7 +94,7 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
 
     const handleAddSetting = (id: string) => {
         const newUuid = generateUUID();
-        let newSetting: AnimationSetting;
+        let newSetting: ConditionalSetting;
 
         if (view === 'play_animation') {
             newSetting = { uuid: newUuid, kind: 'play_animation', animation: id as any };
@@ -105,7 +105,7 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
         }
 
         updateAvatar(draft => {
-            draft.animationSettings[newUuid] = newSetting;
+            draft.conditionalSettings[newUuid] = newSetting;
         });
         setFilter('');
         setExpandedId(newUuid);
@@ -118,7 +118,7 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     const handleDeleteConfirm = () => {
         if (!deletingId) return;
         updateAvatar(draft => {
-            delete draft.animationSettings[deletingId];
+            delete draft.conditionalSettings[deletingId];
         });
         if (expandedId === deletingId) {
             setExpandedId(null);
@@ -126,13 +126,13 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
         setDeletingId(null);
     };
 
-    const updateSetting = (updatedSetting: AnimationSetting) => {
+    const updateSetting = (updatedSetting: ConditionalSetting) => {
         updateAvatar(draft => {
-            draft.animationSettings[updatedSetting.uuid] = updatedSetting;
+            draft.conditionalSettings[updatedSetting.uuid] = updatedSetting;
         });
     };
     
-    const renderItem = (setting: AnimationSetting) => {
+    const renderItem = (setting: ConditionalSetting) => {
         const isExpanded = expandedId === setting.uuid;
         const id = setting.uuid;
         let title: string, warning: string | null = null;

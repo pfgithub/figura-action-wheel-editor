@@ -1,10 +1,10 @@
 import React from "react";
-import type { AnimationSetting, ToggleGroup } from "../../types";
+import type { ConditionalSetting, ToggleGroup } from "../../types";
 import { AnimationConditionEditor } from "./AnimationConditionEditor";
 
 interface AnimationSettingEditorProps {
-  setting: AnimationSetting;
-  updateSetting: (s: AnimationSetting) => void;
+  setting: ConditionalSetting;
+  updateSetting: (s: ConditionalSetting) => void;
   allToggleGroups: ToggleGroup[];
 }
 

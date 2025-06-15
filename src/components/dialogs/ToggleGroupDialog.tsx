@@ -1,6 +1,6 @@
 // src/components/dialogs/ToggleGroupDialog.tsx
 import React, { useState, useEffect } from 'react';
-import type { Avatar, ToggleGroup, ToggleGroupOption, UUID, AnimationCondition, AnimationSetting } from '../../types';
+import type { Avatar, ToggleGroup, ToggleGroupOption, UUID, AnimationCondition, ConditionalSetting } from '../../types';
 import { useAvatarStore } from '../../store/avatarStore';
 import { generateUUID } from '../../utils/uuid';
 import { Button } from '../ui/Button';
@@ -12,7 +12,7 @@ import { TrashIcon, PlusIcon } from '../ui/icons';
 
 // --- Helper functions for robust usage checking ---
 
-function getSettingName(setting: AnimationSetting): string {
+function getSettingName(setting: ConditionalSetting): string {
     switch (setting.kind) {
         case 'play_animation': return `the "Play Animation: ${setting.animation}" setting`;
         case 'hide_element': return `the "Hide Element: ${setting.element}" setting`;
@@ -61,7 +61,7 @@ function findToggleGroupUsage(avatar: Avatar, toggleGroupUUID: UUID): string[] {
     }
 
     // Check Animation Settings
-    for (const setting of Object.values(avatar.animationSettings ?? {})) {
+    for (const setting of Object.values(avatar.conditionalSettings ?? {})) {
         usages.push(...checkAnimationCondition(setting.activationCondition, toggleGroupUUID, getSettingName(setting)));
     }
     

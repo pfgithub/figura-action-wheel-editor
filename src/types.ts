@@ -5,7 +5,7 @@ export type Avatar = {
     mainActionWheel?: UUID,
     actionWheels: Record<UUID, ActionWheel>,
     toggleGroups: Record<UUID, ToggleGroup>,
-    animationSettings: Record<UUID, AnimationSetting>,
+    conditionalSettings: Record<UUID, ConditionalSetting>,
 };
 
 export type ActionWheel = {
@@ -49,7 +49,7 @@ export type PlayAnimationSetting = {
 export type HideElementSetting = {
     uuid: UUID;
     kind: "hide_element";
-    element: string; // e.g., models.theModelName.Character.Head.Hat
+    element: string;
     activationCondition?: AnimationCondition;
 };
 
@@ -59,7 +59,7 @@ export type HidePlayerSetting = {
     activationCondition?: AnimationCondition;
 };
 
-export type AnimationSetting = PlayAnimationSetting | HideElementSetting | HidePlayerSetting;
+export type ConditionalSetting = PlayAnimationSetting | HideElementSetting | HidePlayerSetting;
 
 export type AnimationConditionOr = {
     id: UUID,

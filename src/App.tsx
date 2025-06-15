@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import type { UUID, ActionWheel, Avatar, AnimationID, AnimationSetting } from "./types";
+import type { UUID, ActionWheel, Avatar, AnimationID, ConditionalSetting } from "./types";
 import type { BBModel, BBModelElement, BBModelOutliner } from "./bbmodel";
 import { useAvatarStore } from "./store/avatarStore";
 import { generateUUID } from "./utils/uuid";
@@ -57,10 +57,10 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
       const projectData: Avatar = projectFileContent ? parseLua(projectFileContent) : {
         actionWheels: {},
         toggleGroups: {},
-        animationSettings: {},
+        conditionalSettings: {},
       } satisfies Avatar;
       // Basic validation
-      if (!projectData.actionWheels || !projectData.toggleGroups || !projectData.animationSettings) {
+      if (!projectData.actionWheels || !projectData.toggleGroups || !projectData.conditionalSettings) {
           throw new Error('Invalid or corrupted project.figura-editor.lua format.');
       }
       // For backwards compatibility, remove the old 'animations' property if it exists
@@ -68,10 +68,10 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
           delete (projectData as any).animations;
       }
       // For backwards compatibility, upgrade old animationSettings format
-      const settingsValues = Object.values(projectData.animationSettings);
+      const settingsValues = Object.values(projectData.conditionalSettings);
       if (settingsValues.length > 0 && typeof settingsValues[0] === 'object' && settingsValues[0] !== null && !('kind' in settingsValues[0])) {
-          const oldSettings = projectData.animationSettings as any as Record<AnimationID, { activationCondition?: any }>;
-          const newSettings: Record<UUID, AnimationSetting> = {};
+          const oldSettings = projectData.conditionalSettings as any as Record<AnimationID, { activationCondition?: any }>;
+          const newSettings: Record<UUID, ConditionalSetting> = {};
           for (const animId in oldSettings) {
               const oldSetting = oldSettings[animId];
               const newUuid = generateUUID();
@@ -82,7 +82,7 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
                   activationCondition: oldSetting.activationCondition,
               };
           }
-          projectData.animationSettings = newSettings;
+          projectData.conditionalSettings = newSettings;
       }
 
 
