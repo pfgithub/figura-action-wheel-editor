@@ -15,7 +15,7 @@ import { Select } from '../ui/Select';
 import { Input } from '../ui/Input';
 import { ToggleGroupControls } from '../shared/ToggleGroupControls';
 import { generateUUID } from '@/utils/uuid';
-import { renderValues } from '../data/renderSettings';
+import { renderValues } from '../../data/renderSettings';
 
 // ... (Icons and other helpers remain the same) ...
 const GripVerticalIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>;

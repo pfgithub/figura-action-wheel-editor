@@ -8,7 +8,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { generateUUID } from '@/utils/uuid';
 import { SegmentedControl } from '../ui/SegmentedControl';
-import { renderSettings } from '../data/renderSettings';
+import { renderSettings } from '../../data/renderSettings';
 
 type SettingView = 'play_animation' | 'hide_element' | 'render';
 

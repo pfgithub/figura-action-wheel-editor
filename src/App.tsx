@@ -11,7 +11,7 @@ import { Button } from "./components/ui/Button";
 // Manager Components
 import { ActionWheelsManager } from "./components/managers/ActionWheelsManager";
 import { AnimationSettingsManager } from "./components/managers/AnimationSettingsManager";
-import { parseLua } from "../generateLua";
+import { parseLua } from "@/data/generateLua";
 
 // A component for the file drop area
 function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: Avatar, animations: AnimationID[], modelElements: string[], textures: TextureAsset[]) => void; setLoadError: (error: string | null) => void; }) {
