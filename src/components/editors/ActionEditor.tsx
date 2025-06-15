@@ -18,7 +18,7 @@ const SectionDivider = () => <hr className="border-slate-700/60 my-6" />;
 const TextureSelector = ({ icon, updateIcon }: { icon: IconTexture, updateIcon: (newIcon: IconTexture) => void }) => {
     const { textures } = useAvatarStore();
     const [selection, setSelection] = useState({ u: icon.u, v: icon.v, width: icon.width, height: icon.height });
-    const [isSelecting, setIsSelecting] = useState(false);
+    const [isSelecting, setIsSelecting] = useState<null | {x: number, y: number}>(null);
     const imgRef = useRef<HTMLImageElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -28,29 +28,36 @@ const TextureSelector = ({ icon, updateIcon }: { icon: IconTexture, updateIcon: 
         if (!imgRef.current) return { x: 0, y: 0 };
         const rect = imgRef.current.getBoundingClientRect();
         return {
-            x: Math.round(e.clientX - rect.left),
-            y: Math.round(e.clientY - rect.top),
+            x: Math.round((e.clientX - rect.left) / rect.width * (selectedTexture?.width ?? 16)),
+            y: Math.round((e.clientY - rect.top) / rect.height * (selectedTexture?.height ?? 16)),
         };
     };
 
     const handleMouseDown = (e: React.MouseEvent) => {
-        setIsSelecting(true);
         const pos = getMousePos(e);
+        setIsSelecting(pos);
         setSelection({ u: pos.x, v: pos.y, width: 0, height: 0 });
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
         if (!isSelecting) return;
-        const pos = getMousePos(e);
+        const pos0 = isSelecting;
+        const pos1 = getMousePos(e);
+        const xMin = Math.min(pos0.x, pos1.x);
+        const xMax = Math.max(pos0.x, pos1.x);
+        const yMin = Math.min(pos0.y, pos1.y);
+        const yMax = Math.max(pos0.y, pos1.y);
         setSelection(prev => ({
             ...prev,
-            width: Math.max(0, pos.x - prev.u),
-            height: Math.max(0, pos.y - prev.v)
+            u: xMin,
+            v: yMin,
+            width: Math.max(0, xMax - xMin),
+            height: Math.max(0, yMax - yMin),
         }));
     };
 
     const handleMouseUp = () => {
-        setIsSelecting(false);
+        setIsSelecting(null);
         updateIcon({
             ...icon,
             u: selection.u,
@@ -75,32 +82,34 @@ const TextureSelector = ({ icon, updateIcon }: { icon: IconTexture, updateIcon: 
 
     return (
         <div className="space-y-4">
-            <div
-                ref={containerRef}
-                className="relative bg-slate-900/50 p-2 rounded-md overflow-hidden cursor-crosshair"
-                style={{ width: displayWidth, height: displayHeight }}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-            >
-                <img
-                    ref={imgRef}
-                    src={selectedTexture.url}
-                    alt={selectedTexture.name}
-                    className="w-full h-full object-contain select-none"
-                    style={{ imageRendering: 'pixelated' }}
-                    draggable="false"
-                />
+            <div className="bg-slate-900/50 p-2 rounded-md ">
                 <div
-                    className="absolute border-2 border-dashed border-violet-400 bg-violet-500/20 pointer-events-none"
-                    style={{
-                        left: selection.u * scaleFactor,
-                        top: selection.v * scaleFactor,
-                        width: selection.width * scaleFactor,
-                        height: selection.height * scaleFactor,
-                    }}
-                />
+                    ref={containerRef}
+                    className="relative overflow-hidden cursor-crosshair"
+                    style={{ width: displayWidth, height: displayHeight }}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                >
+                    <img
+                        ref={imgRef}
+                        src={selectedTexture.url}
+                        alt={selectedTexture.name}
+                        className="w-full h-full object-contain select-none"
+                        style={{ imageRendering: 'pixelated' }}
+                        draggable="false"
+                    />
+                    <div
+                        className="absolute border-2 border-dashed border-violet-400 bg-violet-500/20 pointer-events-none"
+                        style={{
+                            left: selection.u * scaleFactor,
+                            top: selection.v * scaleFactor,
+                            width: selection.width * scaleFactor,
+                            height: selection.height * scaleFactor,
+                        }}
+                    />
+                </div>
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <FormRow label="U"><Input type="number" value={icon.u} onChange={e => updateIcon({ ...icon, u: +e.target.value })} /></FormRow>

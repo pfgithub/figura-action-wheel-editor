@@ -1,5 +1,5 @@
-import React from 'react';
-import type { Action } from '../../types';
+import React, { useEffect, useRef } from 'react';
+import type { Action, IconItem, IconTexture } from '../../types';
 import { useMinecraftItems } from '../../hooks/useMinecraftItems';
 import { useAvatarStore } from '../../store/avatarStore';
 
@@ -47,6 +47,93 @@ const getActionAngles = (numActions: number): number[] => {
   return angles;
 };
 
+function RenderIcon({icon}: {icon: IconItem | IconTexture}) {
+    const { items } = useMinecraftItems();
+    if (icon.type === 'item') {
+      const item = items?.[icon.id];
+      if (item?.imageUrl) {
+          return <img src={item.imageUrl} alt={""} className="w-8 h-8 image-pixelated" />
+      }
+      return <span className="text-xs max-w-full break-words" style={{ lineHeight: 1 }}>{icon.id}</span>;
+    }
+
+    if (icon.type === 'texture') {
+      return <RenderTextureIcon icon={icon} />
+    }
+    // Fallback for unknown icon type
+    return <span className="text-xs max-w-full break-words" style={{ lineHeight: 1 }}>...</span>;
+}
+
+function RenderTextureIcon({icon}: {icon: IconTexture}) {
+    const { textures } = useAvatarStore();
+    const textureAsset = textures.find(t => t.name === icon.file);
+    if (!textureAsset) {
+        return <span className="text-xl text-rose-400">?</span>;
+    }
+    const { u, v, width, height, scale } = icon;
+    const canvas = useRef<HTMLCanvasElement | null>(null);
+
+    useEffect(() => {
+        // Ensure the canvas element and texture asset are available
+        if (!canvas.current || !textureAsset?.url) {
+            return;
+        }
+
+        const context = canvas.current.getContext('2d');
+        if (!context) {
+            return;
+        }
+
+        // To prevent errors if the component unmounts while the image is loading
+        let isCancelled = false;
+
+        const image = new Image();
+        // This is important for images served from other domains to avoid canvas tainting
+        image.crossOrigin = "anonymous";
+        image.src = textureAsset.url;
+        
+        image.onload = () => {
+            if (isCancelled) {
+                return;
+            }
+
+            // For pixel-perfect rendering, disable image smoothing
+            context.imageSmoothingEnabled = false;
+
+            // Clear the canvas before drawing
+            context.clearRect(0, 0, canvas.current!.width, canvas.current!.height);
+
+            // Draw the specific part of the texture onto the canvas, scaled up
+            context.drawImage(
+                image,        // The source image
+                u,            // Source X (sx)
+                v,            // Source Y (sy)
+                width,        // Source Width (sWidth)
+                height,       // Source Height (sHeight)
+                0,            // Destination X (dx)
+                0,            // Destination Y (dy)
+                width * scale, // Destination Width (dWidth)
+                height * scale // Destination Height (dHeight)
+            );
+        };
+
+        // Cleanup function to run if the component unmounts or dependencies change
+        return () => {
+            isCancelled = true;
+        };
+
+    }, [textureAsset, u, v, width, height, scale]); // Re-run effect if these change
+    
+    return (
+        <canvas
+            width={width * scale}
+            height={height * scale}
+            ref={canvas}
+            role="img"
+            aria-label={`Texture from ${icon.file}`}
+        />
+    );
+}
 
 export function ActionWheelVisualizer({
   actions,
@@ -55,47 +142,9 @@ export function ActionWheelVisualizer({
   selectedActionIndex,
   wheelTitle,
 }: ActionWheelVisualizerProps) {
-  const { items } = useMinecraftItems();
-  const { textures } = useAvatarStore();
   const numActions = actions.length;
   
   const actionAngles = getActionAngles(numActions);
-
-  const renderIcon = (action: Action) => {
-    if (action.icon.type === 'item') {
-      const item = items?.[action.icon.id];
-      if (item?.imageUrl) {
-          return <img src={item.imageUrl} alt={action.label} className="w-8 h-8 image-pixelated" />
-      }
-      return <span className="text-xs max-w-full break-words" style={{ lineHeight: 1 }}>{action.icon.id}</span>;
-    }
-
-    if (action.icon.type === 'texture') {
-        const textureAsset = textures.find(t => t.name === action.icon.file);
-        if (!textureAsset) {
-            return <span className="text-xl text-rose-400">?</span>;
-        }
-        const { u, v, width, height, scale } = action.icon;
-        
-        return (
-            <div className="w-8 h-8 overflow-hidden relative" style={{ imageRendering: 'pixelated' }}>
-                <img
-                    src={textureAsset.url}
-                    alt={action.label}
-                    className="absolute max-w-none"
-                    style={{
-                        width: textureAsset.width * scale,
-                        height: textureAsset.height * scale,
-                        top: `-${v * scale}px`,
-                        left: `-${u * scale}px`,
-                    }}
-                />
-            </div>
-        );
-    }
-    // Fallback for unknown icon type
-    return <span className="text-xs max-w-full break-words" style={{ lineHeight: 1 }}>...</span>;
-  };
 
   return (
     <div
@@ -136,7 +185,7 @@ export function ActionWheelVisualizer({
               }}
               title={action.label}
             >
-              {renderIcon(action)}
+              <RenderIcon icon={action.icon} />
             </button>
             {/* Position label absolutely below the button's container */}
             <span

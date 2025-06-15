@@ -46,7 +46,7 @@
 - [ ] Mix the 'configured' and 'unconfigured' render settings
 - [x] Add ConditionAnimation with animation: AnimationID and mode: "STOPPED" | "PAUSED" | "PLAYING" that lets you check what state an animation is in
 - [x] Add a ConditionCustom that lets you input a lua expression, for example `player:getEyeY() > 60` 
-- [ ] Update Action so you can choose between an item or texture icon. An item icon is the current behaviour. A texture icon lets you pick one of the image files that you uploaded in the file dropzone and configure (u = 0, v = 0, width = image.width, height = image.height, scale = 1) by selecting the part of the image you want.
+- [x] Update Action so you can choose between an item or texture icon. An item icon is the current behaviour. A texture icon lets you pick one of the image files that you uploaded in the file dropzone and configure (u = 0, v = 0, width = image.width, height = image.height, scale = 1) by selecting the part of the image you want.
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
