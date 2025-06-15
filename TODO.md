@@ -60,6 +60,9 @@
   - stupid layer system or whatever
   - we can make camera pivot work properly though
   - have to think it through
+- [ ] add lua library config support:
+  - a library can define settings with a comment and you can configure it
+  - we can have some default libraries you can add and configure
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
