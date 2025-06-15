@@ -225,7 +225,6 @@ export function generateLuaInner(avatar: Avatar) {
     if(mainName) {
         src += `action_wheel:setPage(${mainName})\n`;
     }
-    src += "\nprintTable('loaded')";
 
     
     src += `\n-- Render event\n`;
@@ -233,15 +232,43 @@ export function generateLuaInner(avatar: Avatar) {
     let renderVars = "";
     let renderContents = "";
 
+    let renderIdToVarMap = new Map<string, string>();
     const addCondition = (cond: Condition): string | null => {
-        console.log(cond);
         if(cond.kind === "toggleGroup") {
             if(!cond.toggleGroup) return "false";
             if(!cond.value) return "false";
             const toggleGroup = getToggleGroup(cond.toggleGroup);
             return `${toggleGroup.activeState} == ${ctx.uuidToNumber(cond.value)}`
+        }else if(cond.kind === "render" && cond.render != null) {
+            if(renderIdToVarMap.has(cond.render)) return renderIdToVarMap.get(cond.render)!;
+            if(cond.render === "playerIsFlying") {
+                // fly detection
+                mainVars += `playerIsFlying = false
+do
+  local wasFlying = false
+  function pings.setPlayerIsFlying(value)
+    playerIsFlying = value
+  end
+  if host:isHost() then
+    function events.tick()
+      playerIsFlying = host:isFlying()
+      if wasFlying ~= playerIsFlying then
+        pings.setPlayerIsFlying(playerIsFlying)
+      end
+      wasFlying = playerIsFlying
+    end
+  end
+end
+`;
+                renderIdToVarMap.set(cond.render, "playerIsFlying");
+                return "playerIsFlying";
+            }
+            const varId = ctx.addNextIdent(cond.render);
+            renderVars += `    local ${varId} = ${cond.render}\n`;
+            renderIdToVarMap.set(cond.render, varId);
+            return varId;
         }else{
-            alwaysWarnings += `print("TODO implement condition ${cond.kind}")\n`;
+            alwaysWarnings += `    print("TODO implement condition ${cond.kind}")\n`;
             return "false";
         }
     };
@@ -254,7 +281,9 @@ export function generateLuaInner(avatar: Avatar) {
             const anim = getAnimation(setting.animation);
             renderContents += `    if ${anim} then ${anim}:setPlaying(${cond}) end\n`;
             // TODO remove this
-            renderContents += `    if ${cond} then renderer:setOffsetCameraPivot(0, -0.5, 0) else renderer:setOffsetCameraPivot(0, 0, 0) end\n`;
+            if(setting.animation === "animations.model.sit") {
+                renderContents += `    if ${cond} then renderer:setOffsetCameraPivot(0, -0.5, 0) else renderer:setOffsetCameraPivot(0, 0, 0) end\n`;
+            }
         }else{
             alwaysWarnings += `print("TODO implement setting ${setting.kind}")\n`;
         }

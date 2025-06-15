@@ -86,7 +86,7 @@ const playerDoing = [
     ["swimming", `player:getPose() == "SWIMMING"`],
     ["visually swimming", `player:isVisuallySwimming()`],
     ["riptide spinning", `player:riptideSpinning()`],
-    ["flying", `player:getPose() == "FALL_FLYING"`],
+    ["creative flight", `playerIsFlying`],
     ["walking", `player:getVelocity().xz:length() > .01`],
     ["alive", `player:isAlive()`],
     ["glowing", `player:isGlowing()`],
