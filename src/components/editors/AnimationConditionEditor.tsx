@@ -9,7 +9,7 @@ import {
     type DragStartEvent,
 } from '@dnd-kit/core';
 import { produce, type WritableDraft } from 'immer';
-import type { AnimationCondition, ToggleGroup, UUID, AnimationConditionNot, AnimationConditionAnd, AnimationConditionOr } from '../../types';
+import type { AnimationCondition, ToggleGroup, UUID, AnimationConditionNot, AnimationConditionAnd, ConditionOr } from '../../types';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { ToggleGroupControls } from '../shared/ToggleGroupControls';
@@ -340,7 +340,7 @@ export function AnimationConditionEditor({
                 const containerPath = over.data.current?.path as string;
                 const container = getIn(draft, containerPath);
                 if (container && 'conditions' in container && Array.isArray(container.conditions)) {
-                    (container as WritableDraft<AnimationConditionAnd | AnimationConditionOr>).conditions.push(nodeToInsert);
+                    (container as WritableDraft<AnimationConditionAnd | ConditionOr>).conditions.push(nodeToInsert);
                 }
             } else { 
                 const { parentPath: destParentPath, finalKey: destKey } = getParentAndFinalKey(overId);

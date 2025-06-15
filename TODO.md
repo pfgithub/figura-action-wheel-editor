@@ -32,7 +32,65 @@
   - Hide Player (hides when the condition is true)
     - There is only one player
   Implement the change.
+- [ ] Add new conditions:
+  - Render Context: FIRST_PERSON or PAPERDOLL, or OTHER
+  - Renderer: isFirstPerson, isCameraBackwards
+  For HidePlayerSetting, add an option "Part" which is one of [
+    "ALL",
+    "PLAYER",
+    "OUTER_LAYER",
+    "INNER_LAYER"
+  ]
+  - Add a new settings ForcePaperdoll (force paperdoll when condition is true), HideCrosshair (hide crosshair when condition is true), HideVehicle (hide vehicle when condition is true), and UpsideDown (flip upside down when condition is true)
+  - The 'Hide Player' tab should be renamed to the 'Render' tab and all the new settings should go in there
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
 If changes need to me made to files not included in the context, describe how to refactor them.
+
+
+true list is [
+    "ALL",
+    "PLAYER",
+    "OUTER_LAYER",
+    "INNER_LAYER",
+    "CAPE",
+    "ARMOR",
+    "HELMET",
+    "CHESTPLATE",
+    "LEGGINGS",
+    "BOOTS",
+    "ELYTRA",
+    "HELD_ITEMS",
+    "PARROTS",
+    "HEAD",
+    "BODY",
+    "LEFT_ARM",
+    "RIGHT_ARM",
+    "LEFT_LEG",
+    "RIGHT_LEG",
+    "HAT",
+    "JACKET",
+    "LEFT_SLEEVE",
+    "RIGHT_SLEEVE",
+    "LEFT_PANTS",
+    "RIGHT_PANTS",
+    "CAPE_MODEL",
+    "FAKE_CAPE",
+    "HELMET_ITEM",
+    "HELMET_HEAD",
+    "HELMET_HAT",
+    "CHESTPLATE_BODY",
+    "CHESTPLATE_LEFT_ARM",
+    "CHESTPLATE_RIGHT_ARM",
+    "LEGGINGS_BODY",
+    "LEGGINGS_LEFT_LEG",
+    "LEGGINGS_RIGHT_LEG",
+    "BOOTS_LEFT_LEG",
+    "BOOTS_RIGHT_LEG",
+    "LEFT_ELYTRA",
+    "RIGHT_ELYTRA",
+    "LEFT_ITEM",
+    "RIGHT_ITEM",
+    "LEFT_PARROT",
+    "RIGHT_PARROT"]

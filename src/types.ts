@@ -61,7 +61,7 @@ export type HidePlayerSetting = {
 
 export type ConditionalSetting = PlayAnimationSetting | HideElementSetting | HidePlayerSetting;
 
-export type AnimationConditionOr = {
+export type ConditionOr = {
     id: UUID,
     kind: "or",
     conditions: AnimationCondition[],
@@ -87,4 +87,4 @@ export type AnimationConditionPlayer = {
     kind: "player",
     player?: "crouching" | "sprinting" | "blocking" | "fishing" | "sleeping" | "swimming" | "flying" | "walking",
 };
-export type AnimationCondition = AnimationConditionOr | AnimationConditionAnd | AnimationConditionNot | AnimationConditionToggleGroup | AnimationConditionPlayer;
+export type AnimationCondition = ConditionOr | AnimationConditionAnd | AnimationConditionNot | AnimationConditionToggleGroup | AnimationConditionPlayer;
