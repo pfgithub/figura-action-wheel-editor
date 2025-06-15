@@ -78,11 +78,27 @@ const playerDoing = [
     ["crouching", `player:getPose() == "CROUCHING"`],
     ["sprinting", `player:isSprinting()`],
     ["blocking", `player:isBlocking()`],
+    ["climbing", `player:isClimbing()`],
+    ["gliding", `player:isGliding()`],
+    ["sneaking", `player:isSneaking()`], // if holding shift
     ["fishing", `player:isFishing()`],
     ["sleeping", `player:getPose() == "SLEEPING"`],
     ["swimming", `player:getPose() == "SWIMMING"`],
+    ["visually swimming", `player:isVisuallySwimming()`],
+    ["riptide spinning", `player:riptideSpinning()`],
     ["flying", `player:getPose() == "FALL_FLYING"`],
     ["walking", `player:getVelocity().xz:length() > .01`],
+    ["alive", `player:isAlive()`],
+    ["glowing", `player:isGlowing()`],
+    ["in lava", `player:isInLava()`],
+    ["in rain", `player:isInRain()`],
+    ["in water", `player:isInWater()`],
+    ["invisible", `player:isInvisible()`],
+    ["on fire", `player:isOnFire()`],
+    ["on ground", `player:isOnGround()`],
+    ["block below is solid", `world.getBlockState(player:getPos():add(0, -0.1, 0)):isSolidBlock()`],
+    ["underwater", `player:isUnderwater()`],
+    ["wet", `player:isWet()`],
 ];
 for(const [name, value] of playerDoing) {
     addRenderValue(value, "Player is " + name);

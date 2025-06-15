@@ -32,7 +32,7 @@
   - Hide Player (hides when the condition is true)
     - There is only one player
   Implement the change.
-- [ ] Add new conditions:
+- [x] Add new conditions:
   - Render Context: FIRST_PERSON or PAPERDOLL, or OTHER
   - Renderer: isFirstPerson, isCameraBackwards
   For HidePlayerSetting, add an option "Part" which is one of [
@@ -43,7 +43,9 @@
   ]
   - Add a new settings ForcePaperdoll (force paperdoll when condition is true), HideCrosshair (hide crosshair when condition is true), HideVehicle (hide vehicle when condition is true), and UpsideDown (flip upside down when condition is true)
   - The 'Hide Player' tab should be renamed to the 'Render' tab and all the new settings should go in there
-- Mix the 'configured' and 'unconfigured' render settings
+- [ ] Mix the 'configured' and 'unconfigured' render settings
+- [ ] Add ConditionAnimation with animation: AnimationID and mode: "STOPPED" | "PAUSED" | "PLAYING" that lets you check what state an animation is in
+- [ ] Add a ConditionCustom that lets you input a lua expression, for example `player:getEyeY() > 60` 
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
