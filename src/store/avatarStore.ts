@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { temporal } from 'zundo';
 import { produce, WritableDraft } from 'immer';
 import type { Avatar, AnimationID } from '../types';
+import { generateLua } from '../../generateLua';
 
 export type AvatarUpdater = (draft: WritableDraft<Avatar>) => void;
 
@@ -36,12 +37,12 @@ export const useAvatarStore = create<AvatarState>()(
 
         set({ isSaving: true });
         try {
-          const avatarJson = JSON.stringify(avatar, null, 2);
-          const blob = new Blob([avatarJson], { type: 'application/json' });
+          const avatarLua = generateLua(avatar);
+          const blob = new Blob([avatarLua], { type: 'application/json' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = 'project.json';
+          a.download = 'project.figura-editor.lua';
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);

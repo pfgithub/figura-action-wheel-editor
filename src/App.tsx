@@ -11,6 +11,7 @@ import { Button } from "./components/ui/Button";
 // Manager Components
 import { ActionWheelsManager } from "./components/managers/ActionWheelsManager";
 import { AnimationSettingsManager } from "./components/managers/AnimationSettingsManager";
+import { parseLua } from "../generateLua";
 
 // A component for the file drop area
 function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: Avatar, animations: AnimationID[]) => void; setLoadError: (error: string | null) => void; }) {
@@ -26,24 +27,15 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
     const bbmodelFiles: File[] = [];
 
     for (const file of Array.from(files)) {
-      if (file.name.toLowerCase().endsWith('.json')) {
+      if (file.name.toLowerCase().endsWith('.figura-editor.lua')) {
         if (projectFile) {
-          setLoadError('Error: Multiple ".json" files found. Please provide only one project.json.');
+          setLoadError('Error: Multiple "figura-editor" files found. Please provide only one figura-editor file.');
           return;
         }
         projectFile = file;
       } else if (file.name.toLowerCase().endsWith('.bbmodel')) {
         bbmodelFiles.push(file);
       }
-    }
-
-    if (!projectFile) {
-      setLoadError('Error: "project.json" file not found. Please include it in your selection.');
-      return;
-    }
-    if (bbmodelFiles.length === 0) {
-      setLoadError('Error: No ".bbmodel" files found. Please provide at least one model file.');
-      return;
     }
 
     try {
@@ -58,14 +50,18 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
       };
 
       // Read all files in parallel
-      const projectFileContent = await readFileAsText(projectFile);
+      const projectFileContent = projectFile ? await readFileAsText(projectFile) : null;
       const bbmodelFileContents = await Promise.all(bbmodelFiles.map(readFileAsText));
 
-      // --- Parse project.json ---
-      const projectData: Avatar = JSON.parse(projectFileContent);
+      // --- Parse project.figura-editor.lua ---
+      const projectData: Avatar = projectFileContent ? parseLua(projectFileContent) : {
+        actionWheels: {},
+        toggleGroups: {},
+        animationSettings: {},
+      } satisfies Avatar;
       // Basic validation
-      if (!projectData.mainActionWheel || !projectData.actionWheels || !projectData.toggleGroups) {
-          throw new Error('Invalid or corrupted project.json format.');
+      if (!projectData.actionWheels || !projectData.toggleGroups || !projectData.animationSettings) {
+          throw new Error('Invalid or corrupted project.figura-editor.lua format.');
       }
       // For backwards compatibility, remove the old 'animations' property if it exists
       if ('animations' in projectData) {

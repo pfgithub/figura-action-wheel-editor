@@ -2,7 +2,7 @@ export type UUID = string & {__is_uuid: true};
 export type AnimationID = string & {__is_animation_id: true};
 
 export type Avatar = {
-    mainActionWheel: UUID,
+    mainActionWheel?: UUID,
     actionWheels: Record<UUID, ActionWheel>,
     toggleGroups: Record<UUID, ToggleGroup>,
     animationSettings: Record<AnimationID, AnimationSetting>,

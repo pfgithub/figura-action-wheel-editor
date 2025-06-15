@@ -4,42 +4,6 @@ import { genViewerPrompt } from "prompt";
 import type { AnimationID, Avatar, UUID } from "@/types";
 import {mkdirSync} from "fs";
 
-const defaultProject: Avatar = {
-  "mainActionWheel": "0" as UUID,
-  "actionWheels": {
-    ["0" as UUID]: {
-      "uuid": "0" as UUID,
-      "title": "Main",
-      "actions": [],
-    },
-  },
-  toggleGroups: {},
-  animationSettings: {
-    ["model.sit" as AnimationID]: {
-      animation: "model.sit" as AnimationID,
-      name: "Sit",
-    },
-    ["model.lay" as AnimationID]: {
-      animation: "model.lay" as AnimationID,
-      name: "Lay",
-    },
-    ["model.jump" as AnimationID]: {
-      animation: "model.jump" as AnimationID,
-      name: "Jump",
-    },
-    ["model.idle" as AnimationID]: {
-      animation: "model.idle" as AnimationID,
-      name: "Idle",
-    },
-  },
-  animations: [
-    "model.sit" as AnimationID,
-    "model.lay" as AnimationID,
-    "model.jump" as AnimationID,
-    "model.idle" as AnimationID,
-  ],
-};
-
 const server = serve({
   routes: {
     "/*": index,
