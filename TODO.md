@@ -23,6 +23,15 @@
 - [ ] The whole app has undo and redo, so there is no need for "This action cannot be undone" dialogs.
 - [ ] In the animation settings panel, show each animation that doesn't have a setting for it in the list so you can easily add one. Also, add a button to prompt for manually entering an animation id if you need to.
 - [ ] Add an info button next to toggle groups that describes what toggle groups are
+- [ ] The animationSettings are changing. Instead of only animations, now there are three types of settings:
+  - Play Animation (plays when the condition is true).
+    - Same as before
+  - Hide Element (hides when the condition is true)
+    - To get the list of elements, use the outliner tree in the BBModel
+    - For the IDs, an example is `models.theModelName.Character.Head.Hat`
+  - Hide Player (hides when the condition is true)
+    - There is only one player
+  Implement the change.
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
