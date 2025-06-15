@@ -47,6 +47,19 @@
 - [x] Add ConditionAnimation with animation: AnimationID and mode: "STOPPED" | "PAUSED" | "PLAYING" that lets you check what state an animation is in
 - [x] Add a ConditionCustom that lets you input a lua expression, for example `player:getEyeY() > 60` 
 - [x] Update Action so you can choose between an item or texture icon. An item icon is the current behaviour. A texture icon lets you pick one of the image files that you uploaded in the file dropzone and configure (u = 0, v = 0, width = image.width, height = image.height, scale = 1) by selecting the part of the image you want.
+- [ ] new way of doing animations:
+  - add 'play animation' as an action for a radial menu item
+  - add animation groups
+  - if three animations are in a group and you play one it stops the other two
+  - the button is toggled on while the animation is playing. if you start an animation in a group,
+    it stops all other animations in that group.
+  - if you have an animation used in an action, you can't set conditions for it
+  - wonder how to integrate this
+- [ ] need to let you have unsit animation. so like sit -> unsit
+  - it's the graph in unity. so annoying.
+  - stupid layer system or whatever
+  - we can make camera pivot work properly though
+  - have to think it through
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 

@@ -67,9 +67,6 @@ function RenderIcon({icon}: {icon: IconItem | IconTexture}) {
 function RenderTextureIcon({icon}: {icon: IconTexture}) {
     const { textures } = useAvatarStore();
     const textureAsset = textures.find(t => t.name === icon.file);
-    if (!textureAsset) {
-        return <span className="text-xl text-rose-400">?</span>;
-    }
     const { u, v, width, height, scale } = icon;
     const canvas = useRef<HTMLCanvasElement | null>(null);
 
@@ -123,6 +120,10 @@ function RenderTextureIcon({icon}: {icon: IconTexture}) {
         };
 
     }, [textureAsset, u, v, width, height, scale]); // Re-run effect if these change
+
+    if (!textureAsset) {
+        return <span className="text-xl text-rose-400">?</span>;
+    }
     
     return (
         <canvas

@@ -7,6 +7,11 @@ export type BBModel = {
     elements: BBModelElement[],
     outliner: BBModelOutliner[],
     animations: BBModelAnimation[],
+    textures: BBModelTexture[],
+};
+export type BBModelTexture = {
+    name: string,
+    source: string,
 };
 export type BBModelElement = {
     name: string,
