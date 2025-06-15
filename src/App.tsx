@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import type { UUID, ActionWheel, Avatar, AnimationID, ConditionalSetting } from "./types";
+import type { UUID, ActionWheel, Avatar, AnimationID, ConditionalSetting, TextureAsset } from "./types";
 import type { BBModel, BBModelElement, BBModelOutliner } from "./bbmodel";
 import { useAvatarStore } from "./store/avatarStore";
 import { generateUUID } from "./utils/uuid";
@@ -14,7 +14,7 @@ import { AnimationSettingsManager } from "./components/managers/AnimationSetting
 import { parseLua } from "../generateLua";
 
 // A component for the file drop area
-function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: Avatar, animations: AnimationID[], modelElements: string[]) => void; setLoadError: (error: string | null) => void; }) {
+function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: Avatar, animations: AnimationID[], modelElements: string[], textures: TextureAsset[]) => void; setLoadError: (error: string | null) => void; }) {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -25,6 +25,8 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
 
     let projectFile: File | null = null;
     const bbmodelFiles: File[] = [];
+    const imageFiles: File[] = [];
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
 
     for (const file of Array.from(files)) {
       if (file.name.toLowerCase().endsWith('.figura-editor.lua')) {
@@ -35,6 +37,8 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
         projectFile = file;
       } else if (file.name.toLowerCase().endsWith('.bbmodel')) {
         bbmodelFiles.push(file);
+      } else if (imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
+        imageFiles.push(file);
       }
     }
 
@@ -48,10 +52,36 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
           reader.readAsText(file);
         });
       };
+      
+      const readImageFile = (file: File): Promise<TextureAsset> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    resolve({
+                        name: file.name,
+                        url: img.src,
+                        width: img.width,
+                        height: img.height,
+                    });
+                };
+                img.onerror = () => reject(new Error(`Failed to load image: ${file.name}`));
+                if (e.target?.result) {
+                  img.src = e.target.result as string;
+                } else {
+                  reject(new Error(`FileReader result is null for ${file.name}`));
+                }
+            };
+            reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`));
+            reader.readAsDataURL(file);
+        });
+      };
 
       // Read all files in parallel
       const projectFileContent = projectFile ? await readFileAsText(projectFile) : null;
       const bbmodelFileContents = await Promise.all(bbmodelFiles.map(readFileAsText));
+      const textureAssets = await Promise.all(imageFiles.map(readImageFile));
 
       // --- Parse project.figura-editor.lua ---
       const projectData: Avatar = projectFileContent ? parseLua(projectFileContent) : {
@@ -62,6 +92,20 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
       // Basic validation
       if (!projectData.actionWheels || !projectData.toggleGroups || !projectData.conditionalSettings) {
           throw new Error('Invalid or corrupted project.figura-editor.lua format.');
+      }
+
+      // --- Backwards compatibility ---
+      // For backwards compatibility, upgrade old icon format
+      if (projectData.actionWheels) {
+        for (const wheel of Object.values(projectData.actionWheels)) {
+            if (wheel.actions) {
+                for (const action of wheel.actions) {
+                    if (typeof (action as any).icon === 'string') {
+                        action.icon = { type: 'item', id: (action as any).icon };
+                    }
+                }
+            }
+        }
       }
       // For backwards compatibility, remove the old 'animations' property if it exists
       if ('animations' in projectData) {
@@ -143,7 +187,7 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
         }
       }
       
-      onFileLoaded(projectData, allAnimations, allModelElements);
+      onFileLoaded(projectData, allAnimations, allModelElements, textureAssets);
 
     } catch (err: any) {
       setLoadError(err.message || 'An unknown error occurred during file processing.');
@@ -251,8 +295,8 @@ export function App() {
     setViewedWheelUuid(newWheelUuid);
   };
 
-  const handleProjectLoad = (project: Avatar, animations: AnimationID[], modelElements: string[]) => {
-      loadAvatar(project, animations, modelElements);
+  const handleProjectLoad = (project: Avatar, animations: AnimationID[], modelElements: string[], textures: TextureAsset[]) => {
+      loadAvatar(project, animations, modelElements, textures);
   };
 
   // If no project is loaded, show the dropzone.

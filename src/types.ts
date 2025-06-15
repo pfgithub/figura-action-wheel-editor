@@ -3,6 +3,13 @@ export type AnimationID = string & {__is_animation_id: true};
 export type RenderSettingID = string & {__is_render_setting_id: true};
 export type RenderValueID = string & {__is_render_value_id: true};
 
+export type TextureAsset = {
+    name: string;
+    url: string; // Data URL
+    width: number;
+    height: number;
+};
+
 export type Avatar = {
     mainActionWheel?: UUID,
     actionWheels: Record<UUID, ActionWheel>,
@@ -16,9 +23,23 @@ export type ActionWheel = {
     actions: Action[],
 };
 
+export type IconItem = {
+    type: 'item';
+    id: string;
+};
+export type IconTexture = {
+    type: 'texture';
+    file: string;
+    u: number;
+    v: number;
+    width: number;
+    height: number;
+    scale: number;
+};
+
 export type Action = {
     uuid: UUID,
-    icon: string,
+    icon: IconItem | IconTexture,
     label: string,
     color: [number, number, number],
     effect?: ActionEffect,

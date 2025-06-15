@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { temporal } from 'zundo';
 import { produce, WritableDraft } from 'immer';
-import type { Avatar, AnimationID } from '../types';
+import type { Avatar, AnimationID, TextureAsset } from '../types';
 import { generateLua } from '../../generateLua';
 
 export type AvatarUpdater = (draft: WritableDraft<Avatar>) => void;
@@ -10,8 +10,9 @@ interface AvatarState {
   avatar: Avatar | null;
   animations: AnimationID[];
   modelElements: string[];
+  textures: TextureAsset[];
   isSaving: boolean;
-  loadAvatar: (data: Avatar, animations: AnimationID[], modelElements: string[]) => void;
+  loadAvatar: (data: Avatar, animations: AnimationID[], modelElements: string[], textures: TextureAsset[]) => void;
   saveAvatar: () => void;
   updateAvatar: (updater: AvatarUpdater) => void;
   clearAvatar: () => void;
@@ -24,11 +25,12 @@ export const useAvatarStore = create<AvatarState>()(
       avatar: null,
       animations: [],
       modelElements: [],
+      textures: [],
       isSaving: false,
 
       // --- Actions ---
-      loadAvatar: (data, animations, modelElements) => {
-        set({ avatar: data, animations, modelElements });
+      loadAvatar: (data, animations, modelElements, textures) => {
+        set({ avatar: data, animations, modelElements, textures });
         // After loading a new project, clear the undo/redo history.
         useAvatarStore.temporal.getState().clear();
       },
@@ -58,7 +60,7 @@ export const useAvatarStore = create<AvatarState>()(
       },
 
       clearAvatar: () => {
-        set({ avatar: null, animations: [], modelElements: [] });
+        set({ avatar: null, animations: [], modelElements: [], textures: [] });
         useAvatarStore.temporal.getState().clear();
       },
 

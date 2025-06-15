@@ -84,7 +84,7 @@ export function ActionWheelsManager({
             if (wheel && wheel.actions.length < MAX_ACTIONS_PER_WHEEL) {
                 const newAction: Action = {
                     uuid: generateUUID(),
-                    icon: 'minecraft:air',
+                    icon: { type: 'item', id: 'minecraft:air' },
                     label: `Action ${wheel.actions.length + 1}`,
                     color: [80, 80, 80],
                 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Action } from '../../types';
 import { useMinecraftItems } from '../../hooks/useMinecraftItems';
+import { useAvatarStore } from '../../store/avatarStore';
 
 interface ActionWheelVisualizerProps {
   actions: Action[];
@@ -55,17 +56,45 @@ export function ActionWheelVisualizer({
   wheelTitle,
 }: ActionWheelVisualizerProps) {
   const { items } = useMinecraftItems();
+  const { textures } = useAvatarStore();
   const numActions = actions.length;
   
   const actionAngles = getActionAngles(numActions);
 
   const renderIcon = (action: Action) => {
-    const item = items?.[action.icon];
-    if (item?.imageUrl) {
-        return <img src={item.imageUrl} alt={action.label} className="w-8 h-8 image-pixelated" />
+    if (action.icon.type === 'item') {
+      const item = items?.[action.icon.id];
+      if (item?.imageUrl) {
+          return <img src={item.imageUrl} alt={action.label} className="w-8 h-8 image-pixelated" />
+      }
+      return <span className="text-xs max-w-full break-words" style={{ lineHeight: 1 }}>{action.icon.id}</span>;
     }
-    // Fallback for if item not found
-    return <span className="text-xs max-w-full break-words" style={{ lineHeight: 1 }}>{action.icon}</span>;
+
+    if (action.icon.type === 'texture') {
+        const textureAsset = textures.find(t => t.name === action.icon.file);
+        if (!textureAsset) {
+            return <span className="text-xl text-rose-400">?</span>;
+        }
+        const { u, v, width, height, scale } = action.icon;
+        
+        return (
+            <div className="w-8 h-8 overflow-hidden relative" style={{ imageRendering: 'pixelated' }}>
+                <img
+                    src={textureAsset.url}
+                    alt={action.label}
+                    className="absolute max-w-none"
+                    style={{
+                        width: textureAsset.width * scale,
+                        height: textureAsset.height * scale,
+                        top: `-${v * scale}px`,
+                        left: `-${u * scale}px`,
+                    }}
+                />
+            </div>
+        );
+    }
+    // Fallback for unknown icon type
+    return <span className="text-xs max-w-full break-words" style={{ lineHeight: 1 }}>...</span>;
   };
 
   return (
