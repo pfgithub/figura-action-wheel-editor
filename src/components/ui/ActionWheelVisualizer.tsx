@@ -38,7 +38,7 @@ const getActionAngles = (numActions: number): number[] => {
   // 3 or more actions: distribute evenly, starting from top.
   const angles: number[] = [];
   const angleStep = (2 * Math.PI) / numActions;
-  const startAngle = -Math.PI / 2; // Start from the top (12 o'clock)
+  const startAngle = -Math.PI / 2 + (angleStep / 2); // Start from the top plus angleStep
 
   for (let i = 0; i < numActions; i++) {
     angles.push(startAngle + i * angleStep);
@@ -57,7 +57,7 @@ export function ActionWheelVisualizer({
   const { items } = useMinecraftItems();
   const numActions = actions.length;
   
-  const actionAngles = getActionAngles(numActions === 8 ? 8 : numActions + 1);
+  const actionAngles = getActionAngles(numActions);
 
   const renderIcon = (action: Action) => {
     const item = items?.[action.icon];
@@ -89,8 +89,8 @@ export function ActionWheelVisualizer({
         return (
           // Container for the button and its label, positioned on the wheel
           <div
-            key={index}
-            className="absolute"
+            key={action.uuid}
+            className="absolute transition-all duration-200"
             style={{
               width: `${BUTTON_SIZE}px`,
               height: `${BUTTON_SIZE}px`,
@@ -101,7 +101,7 @@ export function ActionWheelVisualizer({
           >
             <button
               onClick={() => onSelectAction(index)}
-              className={`w-full h-full flex items-center justify-center rounded-full text-white p-1 text-center leading-tight transition-all duration-200 ease-in-out transform hover:scale-110 focus:outline-none shadow-md hover:shadow-lg ${isSelected ? 'ring-4 ring-violet-500 shadow-xl z-10' : 'ring-2 ring-slate-600'}`}
+              className={`w-full h-full flex items-center justify-center rounded-full text-white p-1 text-center leading-tight transition-all duration-200 ease-in-out transform focus:outline-none shadow-md hover:shadow-lg ${isSelected ? 'ring-4 ring-violet-500 shadow-xl z-10' : 'ring-2 ring-slate-600'}`}
               style={{
                 backgroundColor: `rgb(${action.color.join(',')})`,
               }}
@@ -122,15 +122,15 @@ export function ActionWheelVisualizer({
 
       {/* Add Action Button in the next empty slot */}
       {numActions < MAX_ACTIONS && (() => {
-        const addSlotAngles = getActionAngles(numActions + 1);
-        const angle = addSlotAngles[numActions];
+        const addActionAngles = getActionAngles(numActions + 1);
+        const angle = addActionAngles[numActions];
         const x = WHEEL_RADIUS * Math.cos(angle);
         const y = WHEEL_RADIUS * Math.sin(angle);
 
         return (
             <button
                 onClick={onAddAction}
-                className="absolute flex items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-4xl transition-all duration-200 ease-in-out transform hover:scale-110 focus:outline-none ring-2 ring-emerald-700/50 shadow-md"
+                className="absolute flex items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-4xl transition-all duration-200 ease-in-out transform focus:outline-none ring-2 ring-emerald-700/50 shadow-md"
                 style={{
                   width: `${BUTTON_SIZE}px`,
                   height: `${BUTTON_SIZE}px`,

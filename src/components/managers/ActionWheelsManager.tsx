@@ -5,6 +5,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { ActionEditor } from '../editors/ActionEditor';
 import { ActionWheelVisualizer } from '../ui/ActionWheelVisualizer';
+import { generateUUID } from '@/utils/uuid';
 
 interface ActionWheelsManagerProps {
     allToggleGroups: ToggleGroup[];
@@ -82,6 +83,7 @@ export function ActionWheelsManager({
             const wheel = draft.actionWheels[wheelUuid];
             if (wheel && wheel.actions.length < MAX_ACTIONS_PER_WHEEL) {
                 const newAction: Action = {
+                    uuid: generateUUID(),
                     icon: 'minecraft:air',
                     label: `Action ${wheel.actions.length + 1}`,
                     color: [80, 80, 80],

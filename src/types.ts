@@ -17,6 +17,7 @@ export type ActionWheel = {
 };
 
 export type Action = {
+    uuid: UUID,
     icon: string,
     label: string,
     color: [number, number, number],

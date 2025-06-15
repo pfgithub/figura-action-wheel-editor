@@ -200,14 +200,13 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
       <input
         ref={inputRef}
         type="file"
-        accept=".lua,.bbmodel,application/json"
         className="hidden"
         onChange={handleFileChange}
         multiple
       />
        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-20 h-20 mb-6 text-slate-600 transition-colors duration-300 ${isDragging ? 'text-violet-500' : ''}`}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      <h2 className="text-2xl font-bold text-slate-200">Drop your .figura-editor.lua & .bbmodel files</h2>
-      <p className="text-slate-400 mt-2">or click to browse your files</p>
+      <h2 className="text-2xl font-bold text-slate-200">Drag the entire contents of your figura avatar</h2>
+      <p className="text-slate-400 mt-2">or click and select the full contents of your avatar folder.</p>
     </div>
   );
 }
