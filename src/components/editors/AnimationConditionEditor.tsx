@@ -9,7 +9,7 @@ import {
     type DragStartEvent,
 } from '@dnd-kit/core';
 import { produce, type WritableDraft } from 'immer';
-import type { Condition, ToggleGroup, UUID, ConditionNot, ConditionAnd, ConditionOr } from '../../types';
+import type { Condition, ToggleGroup, UUID, ConditionNot, ConditionAnd, ConditionOr, AnimationID } from '../../types';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { ToggleGroupControls } from '../shared/ToggleGroupControls';
@@ -25,6 +25,7 @@ const kindStyles: { [key in PaletteItemKind]: { label: string; border: string; b
   not: { label: 'NOT', border: 'border-amber-500', bg: 'bg-amber-900/30', text: 'text-amber-300' },
   toggleGroup: { label: 'Group State', border: 'border-violet-500', bg: 'bg-violet-900/30', text: 'text-violet-300' },
   render: { label: 'Other State', border: 'border-rose-500', bg: 'bg-rose-900/30', text: 'text-rose-300' },
+  animation: { label: 'Animation State', border: 'border-fuchsia-500', bg: 'bg-fuchsia-900/30', text: 'text-fuchsia-300' },
 };
 type PaletteItemKind = Condition['kind'];
 function getParentAndFinalKey(path: string): { parentPath: string | null; finalKey: string | number } {
@@ -78,7 +79,7 @@ function PaletteItem({ kind }: { kind: PaletteItemKind }) {
     );
 }
 function ConditionPalette() {
-    const paletteItems: PaletteItemKind[] = ['and', 'or', 'not', 'toggleGroup', 'render'];
+    const paletteItems: PaletteItemKind[] = ['and', 'or', 'not', 'toggleGroup', 'render', 'animation'];
     return (
         <div className="w-64 flex-shrink-0 p-3 bg-slate-900/50 rounded-lg space-y-2 self-start">
             <h3 className="font-bold text-slate-300 mb-2">Conditions</h3>
@@ -107,11 +108,12 @@ interface ConditionNodeProps {
     path: string;
     condition?: Condition;
     allToggleGroups: ToggleGroup[];
+    allAnimations: AnimationID[];
     updateCondition: (newCondition?: Condition) => void;
     deleteNode: () => void;
 }
 
-function ConditionNode({ path, condition, updateCondition, deleteNode, allToggleGroups }: ConditionNodeProps) {
+function ConditionNode({ path, condition, updateCondition, deleteNode, allToggleGroups, allAnimations }: ConditionNodeProps) {
     if (!condition) {
         return <DropZone id={path} path={path} label={"Drag a condition from the panel to start"} />;
     }
@@ -170,6 +172,7 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                                     if (draft.kind === 'and' || draft.kind === 'or') draft.conditions.splice(i, 1);
                                 })}
                                 allToggleGroups={allToggleGroups}
+                                allAnimations={allAnimations}
                             />
                         ))}
                         <DropZone id={`${path}.add`} path={path} label="Add sub-condition" />
@@ -188,6 +191,7 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                                 if (draft.kind === 'not') draft.condition = undefined;
                             })}
                             allToggleGroups={allToggleGroups}
+                            allAnimations={allAnimations}
                         />
                     </div>
                 );
@@ -224,6 +228,44 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                             >
                                 <option value=""><em>None</em></option>
                                 {selectedGroup && Object.entries(selectedGroup.options).map(([uuid, option]) => <option key={uuid} value={uuid}>{option.name}</option>)}
+                            </Select>
+                        </div>
+                    </div>
+                );
+            }
+            case 'animation': {
+                const animationModes = ["PLAYING", "PAUSED", "STOPPED"];
+                return (
+                    <div className="space-y-2 text-slate-300 p-3 text-sm">
+                         <div className="flex items-center gap-2">
+                            <span className="flex-shrink-0 pr-2">When animation</span>
+                            <div className="flex-grow">
+                                <Select
+                                    value={condition.animation ?? ''}
+                                    onChange={(e) => handleUpdate(draft => {
+                                        if (draft.kind === 'animation') draft.animation = e.target.value ? e.target.value as AnimationID : undefined;
+                                    })}
+                                    className="w-auto flex-grow bg-slate-800/80"
+                                >
+                                    <option value="">-- Select an animation --</option>
+                                    {allAnimations.map(animId => (
+                                        <option key={animId} value={animId}>{animId}</option>
+                                    ))}
+                                </Select>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="font-semibold flex-shrink-0 pr-6">is</span>
+                            <Select
+                                value={condition.mode ?? 'PLAYING'}
+                                onChange={(e) => handleUpdate(draft => {
+                                    if (draft.kind === 'animation') draft.mode = e.target.value as any;
+                                })}
+                                className="w-auto flex-grow bg-slate-800/80"
+                            >
+                                {animationModes.map(mode => (
+                                    <option key={mode} value={mode}>{mode}</option>
+                                ))}
                             </Select>
                         </div>
                     </div>
@@ -267,12 +309,14 @@ interface AnimationConditionEditorProps {
   condition?: Condition;
   updateCondition: (c: Condition | undefined) => void;
   allToggleGroups: ToggleGroup[];
+  allAnimations: AnimationID[];
 }
 
 export function AnimationConditionEditor({
   condition,
   updateCondition,
   allToggleGroups,
+  allAnimations,
 }: AnimationConditionEditorProps) {
     const [activeId, setActiveId] = useState<string | null>(null);
     const activeConditionData = useMemo(() => {
@@ -298,6 +342,8 @@ export function AnimationConditionEditor({
                 return { id, kind: 'toggleGroup' };
             case 'render':
                 return { id, kind: 'render' };
+            case 'animation':
+                return { id, kind: 'animation', mode: 'PLAYING' };
         }
     };
     
@@ -392,6 +438,7 @@ export function AnimationConditionEditor({
                         updateCondition={updateCondition}
                         deleteNode={() => updateCondition(undefined)}
                         allToggleGroups={allToggleGroups}
+                        allAnimations={allAnimations}
                     />
                 </div>
             </div>

@@ -26,9 +26,8 @@ const summarizeCondition = (setting?: ConditionalSetting): string => {
             case 'not':
                 return c.condition ? countLeafConditions(c.condition) : 0;
             case 'toggleGroup':
-            case 'player':
-            case 'renderContext':
-            case 'renderer':
+            case 'render':
+            case 'animation':
                 return 1;
             default:
                 return 0;
@@ -186,7 +185,12 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                 </div>
                 {isExpanded && (
                     <div className="p-4 border-t border-slate-700 bg-slate-800/50">
-                        <AnimationSettingEditor setting={setting} updateSetting={updateSetting} allToggleGroups={allToggleGroups} />
+                        <AnimationSettingEditor 
+                            setting={setting} 
+                            updateSetting={updateSetting} 
+                            allToggleGroups={allToggleGroups}
+                            allAnimations={animations}
+                        />
                     </div>
                 )}
             </div>

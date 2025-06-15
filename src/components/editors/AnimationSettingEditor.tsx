@@ -1,16 +1,15 @@
 import React from "react";
-import type { ConditionalSetting, HidePlayerSetting, ToggleGroup } from "../../types";
+import type { ConditionalSetting, ToggleGroup, AnimationID } from "../../types";
 import { AnimationConditionEditor } from "./AnimationConditionEditor";
-import { FormRow } from "../ui/FormRow";
-import { Select } from "../ui/Select";
 
 interface AnimationSettingEditorProps {
   setting: ConditionalSetting;
   updateSetting: (s: ConditionalSetting) => void;
   allToggleGroups: ToggleGroup[];
+  allAnimations: AnimationID[];
 }
 
-export function AnimationSettingEditor({ setting, updateSetting, allToggleGroups }: AnimationSettingEditorProps) {
+export function AnimationSettingEditor({ setting, updateSetting, allToggleGroups, allAnimations }: AnimationSettingEditorProps) {
   return (
     <div className="space-y-4">
       <div>
@@ -21,6 +20,7 @@ export function AnimationSettingEditor({ setting, updateSetting, allToggleGroups
             condition={setting.activationCondition}
             updateCondition={(newCond) => updateSetting({ ...setting, activationCondition: newCond })}
             allToggleGroups={allToggleGroups}
+            allAnimations={allAnimations}
           />
         </div>
       </div>

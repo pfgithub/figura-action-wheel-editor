@@ -90,8 +90,14 @@ export type ConditionRender = {
     kind: "render",
     render?: RenderValueID,
 };
+export type ConditionAnimation = {
+    id: UUID,
+    kind: "animation",
+    animation?: AnimationID,
+    mode?: "STOPPED" | "PAUSED" | "PLAYING",
+};
 
-export type Condition = ConditionOr | ConditionAnd | ConditionNot | ConditionToggleGroup | ConditionRender;
+export type Condition = ConditionOr | ConditionAnd | ConditionNot | ConditionToggleGroup | ConditionRender | ConditionAnimation;
 
 export type RenderSettingData = {
     id: RenderSettingID,
