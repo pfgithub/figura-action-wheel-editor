@@ -40,10 +40,11 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     const { avatar, updateAvatar } = useAvatarStore();
     const [filter, setFilter] = useState('');
     const [expandedAnimId, setExpandedAnimId] = useState<AnimationID | null>(null);
+    const animations = useAvatarStore((state) => state.animations);
     
     if (!avatar) return null;
 
-    const { animations, animationSettings } = avatar;
+    const { animationSettings } = avatar;
     const lowerFilter = filter.toLowerCase();
 
     const filteredAnimationIds = animations.filter(animId => {

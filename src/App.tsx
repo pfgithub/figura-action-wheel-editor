@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import type { UUID, ActionWheel, Avatar } from "./types";
+import type { UUID, ActionWheel, Avatar, AnimationID } from "./types";
+import type { BBModel } from "./bbmodel";
 import { useAvatarStore } from "./store/avatarStore";
 import { generateUUID } from "./utils/uuid";
 import "./index.css";
@@ -12,38 +13,91 @@ import { ActionWheelsManager } from "./components/managers/ActionWheelsManager";
 import { AnimationSettingsManager } from "./components/managers/AnimationSettingsManager";
 
 // A component for the file drop area
-function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (data: Avatar) => void; setLoadError: (error: string | null) => void; }) {
+function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: Avatar, animations: AnimationID[]) => void; setLoadError: (error: string | null) => void; }) {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (file: File) => {
-    if (!file) return;
+  const handleFiles = async (files: FileList) => {
+    if (!files || files.length === 0) return;
 
-    if (!file.name.endsWith('.json')) {
-      setLoadError('Invalid file type. Please select a ".json" file.');
+    setLoadError(null); // Reset error on new attempt
+
+    let projectFile: File | null = null;
+    const bbmodelFiles: File[] = [];
+
+    for (const file of Array.from(files)) {
+      if (file.name.toLowerCase().endsWith('.json')) {
+        if (projectFile) {
+          setLoadError('Error: Multiple ".json" files found. Please provide only one project.json.');
+          return;
+        }
+        projectFile = file;
+      } else if (file.name.toLowerCase().endsWith('.bbmodel')) {
+        bbmodelFiles.push(file);
+      }
+    }
+
+    if (!projectFile) {
+      setLoadError('Error: "project.json" file not found. Please include it in your selection.');
+      return;
+    }
+    if (bbmodelFiles.length === 0) {
+      setLoadError('Error: No ".bbmodel" files found. Please provide at least one model file.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result as string;
-        const data = JSON.parse(text);
-        // A simple validation check to see if it looks like a project file
-        if (data.mainActionWheel && data.actionWheels && data.animations) {
-          setLoadError(null);
-          onFileLoaded(data);
-        } else {
-          setLoadError('Invalid or corrupted project.json format.');
-        }
-      } catch (err) {
-        setLoadError('Failed to read or parse the JSON file.');
+    try {
+      // Helper to read a file as text
+      const readFileAsText = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`));
+          reader.readAsText(file);
+        });
+      };
+
+      // Read all files in parallel
+      const projectFileContent = await readFileAsText(projectFile);
+      const bbmodelFileContents = await Promise.all(bbmodelFiles.map(readFileAsText));
+
+      // --- Parse project.json ---
+      const projectData: Avatar = JSON.parse(projectFileContent);
+      // Basic validation
+      if (!projectData.mainActionWheel || !projectData.actionWheels || !projectData.toggleGroups) {
+          throw new Error('Invalid or corrupted project.json format.');
       }
-    };
-    reader.onerror = () => {
-      setLoadError('Failed to read the file.');
-    };
-    reader.readAsText(file);
+      // For backwards compatibility, remove the old 'animations' property if it exists
+      if ('animations' in projectData) {
+          delete (projectData as any).animations;
+      }
+
+      // --- Parse bbmodels and extract animations ---
+      const allAnimations: AnimationID[] = [];
+      for (let i = 0; i < bbmodelFiles.length; i++) {
+        const file = bbmodelFiles[i];
+        const content = bbmodelFileContents[i];
+        const model: BBModel = JSON.parse(content);
+
+        if (!model.meta || !Array.isArray(model.animations)) {
+          console.warn(`Skipping invalid or malformed bbmodel file: ${file.name}`);
+          continue;
+        }
+
+        for (const anim of model.animations) {
+          if (anim.name) {
+            // ID is "filename.bbmodel.animation_name"
+            const animationId = `${file.name}.${anim.name}` as AnimationID;
+            allAnimations.push(animationId);
+          }
+        }
+      }
+      
+      onFileLoaded(projectData, allAnimations);
+
+    } catch (err: any) {
+      setLoadError(err.message || 'An unknown error occurred during file processing.');
+    }
   };
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
@@ -67,8 +121,8 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (data: Ava
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
     }
   };
 
@@ -77,8 +131,10 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (data: Ava
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
+    if (e.target.files && e.target.files.length > 0) {
+      handleFiles(e.target.files);
+      // Reset the input value to allow re-uploading the same file(s)
+      e.target.value = '';
     }
   };
 
@@ -94,12 +150,13 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (data: Ava
       <input
         ref={inputRef}
         type="file"
-        accept=".json,application/json"
+        accept=".json,.bbmodel,application/json"
         className="hidden"
         onChange={handleFileChange}
+        multiple
       />
        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-20 h-20 mb-6 text-slate-600 transition-colors duration-300 ${isDragging ? 'text-violet-500' : ''}`}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      <h2 className="text-2xl font-bold text-slate-200">Drop your project.json here</h2>
+      <h2 className="text-2xl font-bold text-slate-200">Drop your project.json & .bbmodel files</h2>
       <p className="text-slate-400 mt-2">or click to browse your files</p>
     </div>
   );
@@ -145,6 +202,10 @@ export function App() {
     setViewedWheelUuid(newWheelUuid);
   };
 
+  const handleProjectLoad = (project: Avatar, animations: AnimationID[]) => {
+      loadAvatar(project, animations);
+  };
+
   // If no project is loaded, show the dropzone.
   if (!avatar) {
     return (
@@ -152,9 +213,9 @@ export function App() {
           <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-500 mb-8">
             Avatar Editor
           </h1>
-          <FileDropzone onFileLoaded={loadAvatar} setLoadError={setFileLoadError} />
+          <FileDropzone onFileLoaded={handleProjectLoad} setLoadError={setFileLoadError} />
           {fileLoadError && (
-              <div className="mt-6 p-4 bg-rose-900/50 border border-rose-700 text-rose-300 rounded-lg">
+              <div className="mt-6 p-4 bg-rose-900/50 border border-rose-700 text-rose-300 rounded-lg max-w-2xl w-full">
                   <p><strong>Error:</strong> {fileLoadError}</p>
               </div>
           )}

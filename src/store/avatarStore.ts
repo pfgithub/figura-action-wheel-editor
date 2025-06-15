@@ -1,14 +1,15 @@
 import { create } from 'zustand';
 import { temporal } from 'zundo';
 import { produce, WritableDraft } from 'immer';
-import type { Avatar } from '../types';
+import type { Avatar, AnimationID } from '../types';
 
 export type AvatarUpdater = (draft: WritableDraft<Avatar>) => void;
 
 interface AvatarState {
   avatar: Avatar | null;
+  animations: AnimationID[];
   isSaving: boolean;
-  loadAvatar: (data: Avatar) => void;
+  loadAvatar: (data: Avatar, animations: AnimationID[]) => void;
   saveAvatar: () => void;
   updateAvatar: (updater: AvatarUpdater) => void;
   clearAvatar: () => void;
@@ -19,11 +20,12 @@ export const useAvatarStore = create<AvatarState>()(
     (set, get) => ({
       // --- State ---
       avatar: null,
+      animations: [],
       isSaving: false,
 
       // --- Actions ---
-      loadAvatar: (data) => {
-        set({ avatar: data });
+      loadAvatar: (data, animations) => {
+        set({ avatar: data, animations });
         // After loading a new project, clear the undo/redo history.
         useAvatarStore.temporal.getState().clear();
       },
@@ -53,7 +55,7 @@ export const useAvatarStore = create<AvatarState>()(
       },
 
       clearAvatar: () => {
-        set({ avatar: null });
+        set({ avatar: null, animations: [] });
         useAvatarStore.temporal.getState().clear();
       },
 

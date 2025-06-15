@@ -6,7 +6,6 @@ export type Avatar = {
     actionWheels: Record<UUID, ActionWheel>,
     toggleGroups: Record<UUID, ToggleGroup>,
     animationSettings: Record<AnimationID, AnimationSetting>,
-    animations: AnimationID[],
 };
 
 export type ActionWheel = {
@@ -36,7 +35,7 @@ export type ToggleGroupOption = {
 
 export type ToggleGroup = {
     uuid: UUID,
-    name: string,
+    name:string,
     options: Record<UUID, ToggleGroupOption>,
 };
 
