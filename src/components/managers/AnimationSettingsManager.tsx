@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { AnimationID, ToggleGroup, AnimationSetting, AnimationCondition } from '../../types';
 import { useAvatarStore } from '../../store/avatarStore';
 import { AnimationSettingEditor } from '../editors/AnimationSettingEditor';
@@ -36,112 +36,62 @@ const summarizeCondition = (condition?: AnimationCondition): string => {
 };
 
 // --- AddAnimationSettingDialog Component ---
-// Note: This would normally be in its own file (e.g., src/components/dialogs/AddAnimationSettingDialog.tsx)
+// For manually adding an animation setting by its ID.
 interface AddAnimationSettingDialogProps {
     open: boolean;
     onClose: () => void;
-    unconfiguredAnimations: AnimationID[];
     existingSettings: AnimationID[];
-    onAdd: (animIds: AnimationID[]) => void;
+    onAdd: (animId: AnimationID) => void;
 }
 
-function AddAnimationSettingDialog({ open, onClose, unconfiguredAnimations, existingSettings, onAdd }: AddAnimationSettingDialogProps) {
-    const [filter, setFilter] = useState('');
+function AddAnimationSettingDialog({ open, onClose, existingSettings, onAdd }: AddAnimationSettingDialogProps) {
     const [customName, setCustomName] = useState('');
 
     useEffect(() => {
         if (open) {
-            setFilter('');
             setCustomName('');
         }
     }, [open]);
 
-    const filteredAnimations = useMemo(() => {
-        if (!filter) return unconfiguredAnimations;
-        return unconfiguredAnimations.filter(name => name.toLowerCase().includes(filter.toLowerCase()));
-    }, [unconfiguredAnimations, filter]);
-
     const handleAddCustom = () => {
         const trimmed = customName.trim() as AnimationID;
         if (trimmed && !existingSettings.includes(trimmed)) {
-            onAdd([trimmed]);
+            onAdd(trimmed);
             onClose();
         }
-    };
-    
-    const handleAddAll = () => {
-        if (unconfiguredAnimations.length > 0) {
-            onAdd(unconfiguredAnimations);
-            onClose();
-        }
-    };
-
-    const handleAddSingle = (animId: AnimationID) => {
-        onAdd([animId]);
     };
 
     const isCustomAddDisabled = !customName.trim() || existingSettings.includes(customName.trim() as AnimationID);
 
     return (
-        <Dialog open={open} onClose={onClose} className="max-w-2xl">
-            <DialogHeader>Add Animation Setting</DialogHeader>
+        <Dialog open={open} onClose={onClose} className="max-w-lg">
+            <DialogHeader>Add Custom Animation Setting</DialogHeader>
             <DialogContent>
-                <div className="space-y-4">
-                     <div>
-                        <h3 className="text-base font-semibold text-slate-300 mb-2">Add Custom Setting</h3>
-                        <div className="flex gap-2 p-3 bg-slate-900/50 rounded-lg">
-                            <Input 
-                                placeholder="Enter custom animation ID..."
-                                value={customName}
-                                onChange={e => setCustomName(e.target.value)}
-                                onKeyDown={e => { if (e.key === 'Enter' && !isCustomAddDisabled) handleAddCustom(); }}
-                            />
-                            <Button onClick={handleAddCustom} disabled={isCustomAddDisabled} className="flex-shrink-0">
-                                Add
-                            </Button>
-                        </div>
-                        {existingSettings.includes(customName.trim() as AnimationID) && (
-                            <p className="text-amber-400 text-xs mt-1 pl-1">This setting already exists.</p>
-                        )}
-                    </div>
-                    
-                    {unconfiguredAnimations.length > 0 && (
-                        <div className="border-t border-slate-700/70 pt-4 mt-4 space-y-3">
-                            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                                <h3 className="text-base font-semibold text-slate-300">Available from Models</h3>
-                                <Button onClick={handleAddAll} className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 text-sm py-1 px-3">
-                                    Add all ({unconfiguredAnimations.length}) unconfigured
-                                </Button>
-                            </div>
-                            <Input 
-                                placeholder={`Search ${unconfiguredAnimations.length} available animations...`}
-                                value={filter}
-                                onChange={e => setFilter(e.target.value)}
-                            />
-                            <div className="max-h-64 overflow-y-auto -mr-3 pr-3 space-y-1">
-                                {filteredAnimations.length > 0 ? filteredAnimations.map(animId => (
-                                    <div key={animId} className="flex justify-between items-center p-2 rounded-md hover:bg-slate-700/50 transition-colors">
-                                        <span className="font-mono text-sm text-slate-300 break-all">{animId}</span>
-                                        <Button onClick={() => handleAddSingle(animId)} className="bg-violet-600/30 text-violet-300 hover:bg-violet-600/50 text-xs py-1 px-2 font-medium flex-shrink-0 ml-2">
-                                            <PlusIcon className="w-4 h-4 mr-1"/>
-                                            Add
-                                        </Button>
-                                    </div>
-                                )) : (
-                                    <p className="text-center text-slate-400 p-4">No available animations match your search.</p>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                <p className="text-slate-400 text-sm mb-4">
+                    Manually add a setting for an animation ID. This is useful for animations that are not present in your loaded <code>.bbmodel</code> files but might be added later.
+                </p>
+                <div className="flex gap-2">
+                    <Input
+                        placeholder="e.g. animation.player.swim"
+                        value={customName}
+                        onChange={e => setCustomName(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter' && !isCustomAddDisabled) handleAddCustom(); }}
+                        autoFocus
+                    />
+                    <Button onClick={handleAddCustom} disabled={isCustomAddDisabled} className="flex-shrink-0">
+                        Add Setting
+                    </Button>
                 </div>
+                {existingSettings.includes(customName.trim() as AnimationID) && (
+                    <p className="text-amber-400 text-xs mt-1 pl-1">A setting for this animation already exists.</p>
+                )}
             </DialogContent>
             <DialogFooter>
-                <Button onClick={onClose} className="bg-slate-600 hover:bg-slate-500">Done</Button>
+                <Button onClick={onClose} className="bg-slate-600 hover:bg-slate-500">Cancel</Button>
             </DialogFooter>
         </Dialog>
     );
 }
-
 
 // --- AnimationSettingsManager Component ---
 
@@ -164,33 +114,32 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     const { animationSettings } = avatar;
     const allAnimationSettingIds = Object.keys(animationSettings) as AnimationID[];
 
-    const lowerFilter = filter.toLowerCase();
+    // Combine configured and unconfigured ("ghost") animations for a unified list
+    const unconfiguredAnimations = animations.filter(animId => !allAnimationSettingIds.includes(animId));
+    const unifiedAnimations = [
+        ...allAnimationSettingIds.map(animId => ({ animId, isConfigured: true })),
+        ...unconfiguredAnimations.map(animId => ({ animId, isConfigured: false }))
+    ].sort((a, b) => a.animId.localeCompare(b.animId));
 
-    const filteredAnimationIds = allAnimationSettingIds.filter(animId => {
-        if (!filter) return true;
-        return animId.toLowerCase().includes(lowerFilter);
-    }).sort((a,b) => a.localeCompare(b));
+    const lowerFilter = filter.toLowerCase();
+    const filteredAnimations = unifiedAnimations.filter(({ animId }) => 
+        animId.toLowerCase().includes(lowerFilter)
+    );
 
     const toggleExpand = (animId: AnimationID) => {
         setExpandedAnimId(prev => (prev === animId ? null : animId));
     };
 
-    const handleAddSettings = (animIdsToAdd: AnimationID[]) => {
+    const handleAddOrConfigure = (animIdToAdd: AnimationID) => {
         updateAvatar(draft => {
-            for (const animId of animIdsToAdd) {
-                if (!draft.animationSettings[animId]) {
-                    draft.animationSettings[animId] = {
-                        animation: animId,
-                    };
-                }
+            if (!draft.animationSettings[animIdToAdd]) {
+                draft.animationSettings[animIdToAdd] = {
+                    animation: animIdToAdd,
+                };
             }
         });
-        
-        // If a single new item was added, expand it for immediate editing.
-        if (animIdsToAdd.length === 1) {
-            setFilter(''); // Clear search to ensure the new item is visible
-            setExpandedAnimId(animIdsToAdd[0]);
-        }
+        setFilter(''); // Clear filter to ensure the new item is visible
+        setExpandedAnimId(animIdToAdd);
     };
 
     const handleDeleteRequest = (animId: AnimationID) => {
@@ -214,11 +163,7 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
         });
     };
     
-    const hasSettings = allAnimationSettingIds.length > 0;
-    
-    const unconfiguredAnimations = animations
-        .filter(animId => !allAnimationSettingIds.includes(animId))
-        .sort((a, b) => a.localeCompare(b));
+    const hasAnyAnimations = unifiedAnimations.length > 0;
 
     return (
         <div className="space-y-4">
@@ -229,10 +174,10 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                     </span>
                     <Input
                         className="w-full pl-10"
-                        placeholder="Search configured settings..."
+                        placeholder={`Search ${unifiedAnimations.length} total animations...`}
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
-                        aria-label="Search configured animation settings"
+                        aria-label="Search animation settings"
                     />
                 </div>
                 <Button 
@@ -240,66 +185,81 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                     className="bg-violet-600 hover:bg-violet-500 whitespace-nowrap justify-center"
                 >
                     <PlusIcon className="h-5 w-5 mr-2" aria-hidden="true" />
-                    Add Animation Setting
+                    Add Manually
                 </Button>
             </div>
 
             <div className="space-y-2">
-                {filteredAnimationIds.length > 0 ? filteredAnimationIds.map(animId => {
-                    const setting = animationSettings[animId];
-                    const isExpanded = expandedAnimId === animId;
-                    const isAnimationFound = animations.includes(animId);
+                {filteredAnimations.length > 0 ? filteredAnimations.map(({ animId, isConfigured }) => {
+                    if (isConfigured) {
+                        const setting = animationSettings[animId];
+                        const isExpanded = expandedAnimId === animId;
+                        const isAnimationFound = animations.includes(animId);
 
-                    return (
-                        <div key={animId} className="bg-slate-800 rounded-lg ring-1 ring-slate-700 overflow-hidden transition-all duration-300">
-                             <div 
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') toggleExpand(animId) }}
-                                onClick={() => toggleExpand(animId)}
-                                className="w-full text-left p-4 flex justify-between items-center hover:bg-slate-700/40 transition-colors cursor-pointer"
-                                aria-expanded={isExpanded}
-                                aria-controls={`anim-details-${animId}`}
-                            >
-                                <div className="flex-grow min-w-0 pr-4 flex items-center gap-3">
-                                    {!isAnimationFound && (
-                                        <span title="Animation not found in loaded .bbmodel files.">
-                                            <WarningIcon className="w-5 h-5 text-amber-400 flex-shrink-0" />
-                                        </span>
-                                    )}
-                                    <div className="min-w-0">
-                                        <h4 className="font-semibold text-lg text-slate-100 truncate">{animId}</h4>
+                        return (
+                            <div key={animId} className="bg-slate-800 rounded-lg ring-1 ring-slate-700 overflow-hidden transition-all duration-300">
+                                 <div 
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') toggleExpand(animId) }}
+                                    onClick={() => toggleExpand(animId)}
+                                    className="w-full text-left p-4 flex justify-between items-center hover:bg-slate-700/40 transition-colors cursor-pointer"
+                                    aria-expanded={isExpanded}
+                                    aria-controls={`anim-details-${animId}`}
+                                >
+                                    <div className="flex-grow min-w-0 pr-4 flex items-center gap-3">
+                                        {!isAnimationFound && (
+                                            <span title="Animation not found in loaded .bbmodel files.">
+                                                <WarningIcon className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                                            </span>
+                                        )}
+                                        <div className="min-w-0">
+                                            <h4 className="font-semibold text-lg text-slate-100 truncate">{animId}</h4>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                        <span className="hidden sm:inline-block text-sm text-slate-300 bg-slate-700 px-3 py-1 rounded-full">{summarizeCondition(setting.activationCondition)}</span>
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); handleDeleteRequest(animId); }} 
+                                            className="p-2 rounded-md hover:bg-rose-600/40 text-rose-300 z-10 relative"
+                                            title="Delete Setting"
+                                        >
+                                            <TrashIcon className="w-5 h-5"/>
+                                        </button>
+                                        <svg className={`flex-shrink-0 w-6 h-6 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : 'rotate-0'}`} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                    <span className="hidden sm:inline-block text-sm text-slate-300 bg-slate-700 px-3 py-1 rounded-full">{summarizeCondition(setting.activationCondition)}</span>
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); handleDeleteRequest(animId); }} 
-                                        className="p-2 rounded-md hover:bg-rose-600/40 text-rose-300 z-10 relative"
-                                        title="Delete Setting"
-                                    >
-                                        <TrashIcon className="w-5 h-5"/>
-                                    </button>
-                                    <svg className={`flex-shrink-0 w-6 h-6 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : 'rotate-0'}`} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                                </div>
+                                
+                                {isExpanded && (
+                                    <div id={`anim-details-${animId}`} className="p-4 border-t border-slate-700 bg-slate-800/50">
+                                        <AnimationSettingEditor
+                                            setting={setting}
+                                            updateSetting={(s) => updateSetting(animId, s)}
+                                            allToggleGroups={allToggleGroups}
+                                        />
+                                    </div>
+                                )}
                             </div>
-                            
-                            {isExpanded && (
-                                <div id={`anim-details-${animId}`} className="p-4 border-t border-slate-700 bg-slate-800/50">
-                                    <AnimationSettingEditor
-                                        setting={setting}
-                                        updateSetting={(s) => updateSetting(animId, s)}
-                                        allToggleGroups={allToggleGroups}
-                                    />
+                        );
+                    } else { // Ghost Item for unconfigured animation
+                        return (
+                            <div key={animId} className="rounded-lg border-2 border-dashed border-slate-700 p-4 flex justify-between items-center text-slate-400 hover:border-violet-500 hover:bg-violet-900/10 transition-colors duration-200">
+                                <div className="flex-grow min-w-0 pr-4">
+                                    <h4 className="font-semibold text-lg text-slate-300 truncate">{animId}</h4>
+                                    <p className="text-sm text-slate-500">Unconfigured animation from model files</p>
                                 </div>
-                            )}
-                        </div>
-                    );
+                                <Button onClick={() => handleAddOrConfigure(animId)} className="bg-violet-600 hover:bg-violet-500 flex-shrink-0">
+                                    <PlusIcon className="w-5 h-5 mr-2" />
+                                    Configure
+                                </Button>
+                            </div>
+                        );
+                    }
                 }) : (
                      <div className="flex flex-col items-center justify-center h-24 bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 mb-2 text-slate-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                        <p className="text-center font-medium">{hasSettings ? "No animations match your search." : "There are no animation settings to configure."}</p>
-                        {!hasSettings && <p className="text-sm text-center mt-1">Click the 'Add Animation Setting' button to get started.</p>}
+                        <p className="text-center font-medium">{hasAnyAnimations ? "No animations match your search." : "No animations found in models or configured."}</p>
+                        {!hasAnyAnimations && <p className="text-sm text-center mt-1">You can still add one manually using the 'Add Manually' button.</p>}
                     </div>
                 )}
             </div>
@@ -307,9 +267,8 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
             <AddAnimationSettingDialog
                 open={isAddDialogOpen}
                 onClose={() => setAddDialogOpen(false)}
-                unconfiguredAnimations={unconfiguredAnimations}
                 existingSettings={allAnimationSettingIds}
-                onAdd={handleAddSettings}
+                onAdd={handleAddOrConfigure}
             />
 
             <ConfirmationDialog 
