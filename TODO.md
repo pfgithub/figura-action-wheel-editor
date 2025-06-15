@@ -44,8 +44,9 @@
   - Add a new settings ForcePaperdoll (force paperdoll when condition is true), HideCrosshair (hide crosshair when condition is true), HideVehicle (hide vehicle when condition is true), and UpsideDown (flip upside down when condition is true)
   - The 'Hide Player' tab should be renamed to the 'Render' tab and all the new settings should go in there
 - [ ] Mix the 'configured' and 'unconfigured' render settings
-- [ ] Add ConditionAnimation with animation: AnimationID and mode: "STOPPED" | "PAUSED" | "PLAYING" that lets you check what state an animation is in
-- [ ] Add a ConditionCustom that lets you input a lua expression, for example `player:getEyeY() > 60` 
+- [x] Add ConditionAnimation with animation: AnimationID and mode: "STOPPED" | "PAUSED" | "PLAYING" that lets you check what state an animation is in
+- [x] Add a ConditionCustom that lets you input a lua expression, for example `player:getEyeY() > 60` 
+- [ ] Update Action so you can choose between an item or texture icon. An item icon is the current behaviour. A texture icon lets you pick one of the image files that you uploaded in the file dropzone and configure (u = 0, v = 0, width = image.width, height = image.height, scale = 1) by selecting the part of the image you want.
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
