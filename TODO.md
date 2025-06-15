@@ -22,6 +22,7 @@
 - [ ] Migrate to headlessui
 - [ ] The whole app has undo and redo, so there is no need for "This action cannot be undone" dialogs.
 - [ ] In the animation settings panel, show each animation that doesn't have a setting for it in the list so you can easily add one. Also, add a button to prompt for manually entering an animation id if you need to.
+- [ ] Add an info button next to toggle groups that describes what toggle groups are
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
