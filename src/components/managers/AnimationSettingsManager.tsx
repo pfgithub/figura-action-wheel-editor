@@ -28,6 +28,7 @@ const summarizeCondition = (setting?: ConditionalSetting): string => {
             case 'toggleGroup':
             case 'render':
             case 'animation':
+            case 'custom':
                 return 1;
             default:
                 return 0;

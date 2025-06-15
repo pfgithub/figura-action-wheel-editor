@@ -9,9 +9,10 @@ import {
     type DragStartEvent,
 } from '@dnd-kit/core';
 import { produce, type WritableDraft } from 'immer';
-import type { Condition, ToggleGroup, UUID, ConditionNot, ConditionAnd, ConditionOr, AnimationID } from '../../types';
+import type { Condition, ToggleGroup, UUID, ConditionNot, ConditionAnd, ConditionOr, AnimationID, ConditionCustom } from '../../types';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
+import { Input } from '../ui/Input';
 import { ToggleGroupControls } from '../shared/ToggleGroupControls';
 import { generateUUID } from '@/utils/uuid';
 import { renderValues } from '../data/renderSettings';
@@ -26,6 +27,7 @@ const kindStyles: { [key in PaletteItemKind]: { label: string; border: string; b
   toggleGroup: { label: 'Group State', border: 'border-violet-500', bg: 'bg-violet-900/30', text: 'text-violet-300' },
   render: { label: 'Other State', border: 'border-rose-500', bg: 'bg-rose-900/30', text: 'text-rose-300' },
   animation: { label: 'Animation State', border: 'border-fuchsia-500', bg: 'bg-fuchsia-900/30', text: 'text-fuchsia-300' },
+  custom: { label: 'Custom Lua', border: 'border-slate-500', bg: 'bg-slate-700/50', text: 'text-slate-300' },
 };
 type PaletteItemKind = Condition['kind'];
 function getParentAndFinalKey(path: string): { parentPath: string | null; finalKey: string | number } {
@@ -79,7 +81,7 @@ function PaletteItem({ kind }: { kind: PaletteItemKind }) {
     );
 }
 function ConditionPalette() {
-    const paletteItems: PaletteItemKind[] = ['and', 'or', 'not', 'toggleGroup', 'render', 'animation'];
+    const paletteItems: PaletteItemKind[] = ['and', 'or', 'not', 'toggleGroup', 'render', 'animation', 'custom'];
     return (
         <div className="w-64 flex-shrink-0 p-3 bg-slate-900/50 rounded-lg space-y-2 self-start">
             <h3 className="font-bold text-slate-300 mb-2">Conditions</h3>
@@ -138,7 +140,7 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
     };
 
     const renderHeader = () => (
-        <div className={`flex items-center justify-between p-2 rounded-t-lg ${styles.bg.replace('30', '50')}`}>
+        <div className={`flex items-center justify-between p-2 rounded-t-lg ${styles.bg.replace('30', '50').replace('50', '60')}`}>
             <div className="flex items-center gap-1">
                 <span
                     {...dragListeners}
@@ -288,6 +290,20 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                         </Select>
                     </div>
                 );
+            case 'custom':
+                 return (
+                    <div className="p-3">
+                        <Input
+                            type="text"
+                            placeholder="e.g., player:getEyeY() > 60"
+                            value={condition.expression ?? ''}
+                            onChange={(e) => handleUpdate(draft => {
+                                if (draft.kind === 'custom') draft.expression = e.target.value;
+                            })}
+                            className="w-full bg-slate-800/80 font-mono text-sm"
+                        />
+                    </div>
+                );
             default:
                 return null;
         }
@@ -344,6 +360,8 @@ export function AnimationConditionEditor({
                 return { id, kind: 'render' };
             case 'animation':
                 return { id, kind: 'animation', mode: 'PLAYING' };
+            case 'custom':
+                return { id, kind: 'custom', expression: '' };
         }
     };
     

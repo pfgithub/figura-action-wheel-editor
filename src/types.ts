@@ -96,8 +96,13 @@ export type ConditionAnimation = {
     animation?: AnimationID,
     mode?: "STOPPED" | "PAUSED" | "PLAYING",
 };
+export type ConditionCustom = {
+    id: UUID,
+    kind: "custom",
+    expression?: string,
+};
 
-export type Condition = ConditionOr | ConditionAnd | ConditionNot | ConditionToggleGroup | ConditionRender | ConditionAnimation;
+export type Condition = ConditionOr | ConditionAnd | ConditionNot | ConditionToggleGroup | ConditionRender | ConditionAnimation | ConditionCustom;
 
 export type RenderSettingData = {
     id: RenderSettingID,
