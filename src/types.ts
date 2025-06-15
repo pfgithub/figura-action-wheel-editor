@@ -45,21 +45,21 @@ export type PlayAnimationSetting = {
     uuid: UUID;
     kind: "play_animation";
     animation: AnimationID;
-    activationCondition?: AnimationCondition;
+    activationCondition?: Condition;
 };
 
 export type HideElementSetting = {
     uuid: UUID;
     kind: "hide_element";
     element: string;
-    activationCondition?: AnimationCondition;
+    activationCondition?: Condition;
 };
 
 export type RenderSetting = {
     uuid: UUID;
     kind: "render";
     render: RenderSettingID,
-    activationCondition?: AnimationCondition;
+    activationCondition?: Condition;
 };
 
 export type ConditionalSetting = PlayAnimationSetting | HideElementSetting | RenderSetting;
@@ -67,31 +67,31 @@ export type ConditionalSetting = PlayAnimationSetting | HideElementSetting | Ren
 export type ConditionOr = {
     id: UUID,
     kind: "or",
-    conditions: AnimationCondition[],
+    conditions: Condition[],
 };
-export type AnimationConditionAnd = {
+export type ConditionAnd = {
     id: UUID,
     kind: "and",
-    conditions: AnimationCondition[],
+    conditions: Condition[],
 };
-export type AnimationConditionNot = {
+export type ConditionNot = {
     id: UUID,
     kind: "not",
-    condition?: AnimationCondition,
+    condition?: Condition,
 };
-export type AnimationConditionToggleGroup = {
+export type ConditionToggleGroup = {
     id: UUID,
     kind: "toggleGroup",
     toggleGroup?: UUID,
     value?: UUID,
 };
-export type AnimationConditionRender = {
+export type ConditionRender = {
     id: UUID,
     kind: "render",
     render?: RenderValueID,
 };
 
-export type AnimationCondition = ConditionOr | AnimationConditionAnd | AnimationConditionNot | AnimationConditionToggleGroup | AnimationConditionRender;
+export type Condition = ConditionOr | ConditionAnd | ConditionNot | ConditionToggleGroup | ConditionRender;
 
 export type RenderSettingData = {
     id: RenderSettingID,

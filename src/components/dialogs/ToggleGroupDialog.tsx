@@ -1,6 +1,6 @@
 // src/components/dialogs/ToggleGroupDialog.tsx
 import React, { useState, useEffect } from 'react';
-import type { Avatar, ToggleGroup, ToggleGroupOption, UUID, AnimationCondition, ConditionalSetting } from '../../types';
+import type { Avatar, ToggleGroup, ToggleGroupOption, UUID, Condition, ConditionalSetting } from '../../types';
 import { useAvatarStore } from '../../store/avatarStore';
 import { generateUUID } from '../../utils/uuid';
 import { Button } from '../ui/Button';
@@ -24,11 +24,11 @@ function getSettingName(setting: ConditionalSetting): string {
     }
 }
 
-function checkAnimationCondition(condition: AnimationCondition | undefined, toggleGroupUUID: UUID, settingName: string): string[] {
+function checkAnimationCondition(condition: Condition | undefined, toggleGroupUUID: UUID, settingName: string): string[] {
     const usages: string[] = [];
     if (!condition) return usages;
     
-    function traverse(cond: AnimationCondition) {
+    function traverse(cond: Condition) {
         if (!cond) return;
         switch (cond.kind) {
             case 'and':

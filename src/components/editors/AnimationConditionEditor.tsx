@@ -9,7 +9,7 @@ import {
     type DragStartEvent,
 } from '@dnd-kit/core';
 import { produce, type WritableDraft } from 'immer';
-import type { AnimationCondition, ToggleGroup, UUID, AnimationConditionNot, AnimationConditionAnd, ConditionOr } from '../../types';
+import type { Condition, ToggleGroup, UUID, ConditionNot, ConditionAnd, ConditionOr } from '../../types';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { ToggleGroupControls } from '../shared/ToggleGroupControls';
@@ -26,7 +26,7 @@ const kindStyles: { [key in PaletteItemKind]: { label: string; border: string; b
   toggleGroup: { label: 'Group State', border: 'border-violet-500', bg: 'bg-violet-900/30', text: 'text-violet-300' },
   render: { label: 'Other State', border: 'border-rose-500', bg: 'bg-rose-900/30', text: 'text-rose-300' },
 };
-type PaletteItemKind = AnimationCondition['kind'];
+type PaletteItemKind = Condition['kind'];
 function getParentAndFinalKey(path: string): { parentPath: string | null; finalKey: string | number } {
     const parts = path.split('.');
     if (parts.length === 1) return { parentPath: null, finalKey: parts[0] };
@@ -105,9 +105,9 @@ function DropZone({ id, path, label = "Drop condition here" }: { id: string, pat
 
 interface ConditionNodeProps {
     path: string;
-    condition?: AnimationCondition;
+    condition?: Condition;
     allToggleGroups: ToggleGroup[];
-    updateCondition: (newCondition?: AnimationCondition) => void;
+    updateCondition: (newCondition?: Condition) => void;
     deleteNode: () => void;
 }
 
@@ -131,7 +131,7 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
         setDraggableNodeRef(node);
     };
 
-    const handleUpdate = (updater: (draft: AnimationCondition) => void) => {
+    const handleUpdate = (updater: (draft: Condition) => void) => {
         updateCondition(produce(condition, updater));
     };
 
@@ -264,8 +264,8 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
 }
 
 interface AnimationConditionEditorProps {
-  condition?: AnimationCondition;
-  updateCondition: (c: AnimationCondition | undefined) => void;
+  condition?: Condition;
+  updateCondition: (c: Condition | undefined) => void;
   allToggleGroups: ToggleGroup[];
 }
 
@@ -281,11 +281,11 @@ export function AnimationConditionEditor({
             const kind = activeId.replace('palette-', '') as PaletteItemKind;
             return { kind, label: kindStyles[kind].label };
         }
-        const activeCondition = getIn({root: condition}, activeId) as AnimationCondition | undefined;
+        const activeCondition = getIn({root: condition}, activeId) as Condition | undefined;
         return activeCondition ? { kind: activeCondition.kind, label: kindStyles[activeCondition.kind]?.label } : null;
     }, [activeId, condition]);
 
-    const createNewConditionNode = (kind: PaletteItemKind): AnimationCondition => {
+    const createNewConditionNode = (kind: PaletteItemKind): Condition => {
         const id = generateUUID();
         switch (kind) {
             case 'and':
@@ -323,7 +323,7 @@ export function AnimationConditionEditor({
         const updatedCondition = produce(rootCondition, (draft) => {
             const isPaletteDrag = activeId.startsWith('palette-');
             
-            let nodeToInsert: AnimationCondition;
+            let nodeToInsert: Condition;
 
             // STEP 1: Determine the node being inserted
             if (isPaletteDrag) {
@@ -340,7 +340,7 @@ export function AnimationConditionEditor({
                 const containerPath = over.data.current?.path as string;
                 const container = getIn(draft, containerPath);
                 if (container && 'conditions' in container && Array.isArray(container.conditions)) {
-                    (container as WritableDraft<AnimationConditionAnd | ConditionOr>).conditions.push(nodeToInsert);
+                    (container as WritableDraft<ConditionAnd | ConditionOr>).conditions.push(nodeToInsert);
                 }
             } else { 
                 const { parentPath: destParentPath, finalKey: destKey } = getParentAndFinalKey(overId);
@@ -365,7 +365,7 @@ export function AnimationConditionEditor({
                         parentContainer.splice(finalKey as number, 1);
                     } 
                     else if (parentContainer && typeof finalKey === 'string' && finalKey === 'condition') {
-                         (parentContainer as WritableDraft<AnimationConditionNot>).condition = undefined;
+                         (parentContainer as WritableDraft<ConditionNot>).condition = undefined;
                     } else if (parentPath === 'root') {
                         // This case handles removing the root node if it's dragged somewhere else.
                          (draft as any)[finalKey] = undefined;
