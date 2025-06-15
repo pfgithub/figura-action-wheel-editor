@@ -10,7 +10,6 @@ import {
 } from '@dnd-kit/core';
 import { produce, type WritableDraft } from 'immer';
 import type { AnimationCondition, ToggleGroup, UUID, AnimationConditionNot, AnimationConditionAnd, AnimationConditionOr } from '../../types';
-import { useAvatarStore } from '../../store/avatarStore';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { ToggleGroupControls } from '../shared/ToggleGroupControls';
@@ -275,7 +274,6 @@ export function AnimationConditionEditor({
   updateCondition,
   allToggleGroups,
 }: AnimationConditionEditorProps) {
-    const { avatar } = useAvatarStore();
     const [activeId, setActiveId] = useState<string | null>(null);
     const activeConditionData = useMemo(() => {
         if (!activeId) return null;
@@ -283,10 +281,9 @@ export function AnimationConditionEditor({
             const kind = activeId.replace('palette-', '') as PaletteItemKind;
             return { kind, label: kindStyles[kind].label };
         }
-        if (!avatar) return null;
         const activeCondition = getIn({root: condition}, activeId);
         return activeCondition ? { kind: activeCondition.kind, label: kindStyles[activeCondition.kind]?.label } : null;
-    }, [activeId, condition, avatar]);
+    }, [activeId, condition]);
 
     const createNewConditionNode = (kind: PaletteItemKind): AnimationCondition => {
         const id = generateUUID();

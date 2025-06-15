@@ -3,10 +3,7 @@ import type { AnimationID, ToggleGroup, AnimationSetting, AnimationCondition } f
 import { useAvatarStore } from '../../store/avatarStore';
 import { Input } from '../ui/Input';
 import { AnimationSettingEditor } from '../editors/AnimationSettingEditor';
-
-interface AnimationSettingsManagerProps {
-    allToggleGroups: ToggleGroup[];
-}
+import { WarningIcon } from '../ui/icons';
 
 // Helper to summarize the condition for display in the UI
 const summarizeCondition = (condition?: AnimationCondition): string => {
@@ -37,21 +34,22 @@ const summarizeCondition = (condition?: AnimationCondition): string => {
 
 
 export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsManagerProps) {
-    const { avatar, updateAvatar } = useAvatarStore();
+    const avatar = useAvatarStore((state) => state.avatar);
+    const updateAvatar = useAvatarStore((state) => state.updateAvatar);
+    const animations = useAvatarStore((state) => state.animations);
     const [filter, setFilter] = useState('');
     const [expandedAnimId, setExpandedAnimId] = useState<AnimationID | null>(null);
-    const animations = useAvatarStore((state) => state.animations);
     
     if (!avatar) return null;
 
     const { animationSettings } = avatar;
+    const allAnimationSettingIds = Object.keys(animationSettings) as AnimationID[];
+
     const lowerFilter = filter.toLowerCase();
 
-    const filteredAnimationIds = animations.filter(animId => {
-        if (!filter) return true; // Show all if no filter
-        const setting = animationSettings[animId];
-        const settingName = setting ? setting.name.toLowerCase() : '';
-        return animId.toLowerCase().includes(lowerFilter) || settingName.includes(lowerFilter);
+    const filteredAnimationIds = allAnimationSettingIds.filter(animId => {
+        if (!filter) return true;
+        return animId.toLowerCase().includes(lowerFilter);
     });
 
     const toggleExpand = (animId: AnimationID) => {
@@ -64,14 +62,14 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
         });
     };
     
-    const hasAnimations = animations.length > 0;
+    const hasSettings = allAnimationSettingIds.length > 0;
 
     return (
         <div className="space-y-4">
-            {hasAnimations && (
+            {hasSettings && (
                 <Input 
                     type="text"
-                    placeholder="Search animations by ID or display name..."
+                    placeholder="Search animations by ID..."
                     value={filter}
                     onChange={e => setFilter(e.target.value)}
                     className="w-full bg-slate-900/50"
@@ -83,10 +81,7 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                 {filteredAnimationIds.length > 0 ? filteredAnimationIds.map(animId => {
                     const setting = animationSettings[animId];
                     const isExpanded = expandedAnimId === animId;
-
-                    if (!setting) {
-                        return <div key={animId} className="text-red-400 p-4 bg-red-900/50 rounded-lg border border-red-700">Error: Missing setting for animation ID: <strong>{animId}</strong></div>;
-                    }
+                    const isAnimationFound = animations.includes(animId);
 
                     return (
                         <div key={animId} className="bg-slate-800 rounded-lg ring-1 ring-slate-700 overflow-hidden transition-all duration-300">
@@ -96,9 +91,15 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                                 aria-expanded={isExpanded}
                                 aria-controls={`anim-details-${animId}`}
                             >
-                                <div className="flex-grow min-w-0 pr-4">
-                                    <h4 className="font-semibold text-lg text-slate-100 truncate">{setting.name}</h4>
-                                    <p className="text-sm text-slate-400 font-mono truncate">{animId}</p>
+                                <div className="flex-grow min-w-0 pr-4 flex items-center gap-3">
+                                    {!isAnimationFound && (
+                                        <span title="Animation not found in loaded .bbmodel files.">
+                                            <WarningIcon className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                                        </span>
+                                    )}
+                                    <div className="min-w-0">
+                                        <h4 className="font-semibold text-lg text-slate-100 truncate">{animId}</h4>
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-4 flex-shrink-0">
                                     <span className="hidden sm:inline-block text-sm text-slate-300 bg-slate-700 px-3 py-1 rounded-full">{summarizeCondition(setting.activationCondition)}</span>
@@ -120,7 +121,7 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                 }) : (
                      <div className="flex flex-col items-center justify-center h-24 bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 mb-2 text-slate-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                        <p className="text-center font-medium">{hasAnimations ? "No animations match your search." : "There are no animations to configure."}</p>
+                        <p className="text-center font-medium">{hasSettings ? "No animations match your search." : "There are no animation settings to configure."}</p>
                     </div>
                 )}
             </div>

@@ -41,7 +41,6 @@ export type ToggleGroup = {
 
 export type AnimationSetting = {
     animation: AnimationID,
-    name: string,
     activationCondition?: AnimationCondition,
 };
 

@@ -53,8 +53,8 @@ function findToggleGroupUsage(avatar: Avatar, toggleGroupUUID: UUID): string[] {
     }
 
     // Check Animation Settings
-    for (const setting of Object.values(avatar.animationSettings ?? {})) {
-        usages.push(...checkAnimationCondition(setting.activationCondition, toggleGroupUUID, setting.name));
+    for (const [animId, setting] of Object.entries(avatar.animationSettings ?? {})) {
+        usages.push(...checkAnimationCondition(setting.activationCondition, toggleGroupUUID, animId));
     }
     
     return [...new Set(usages)];

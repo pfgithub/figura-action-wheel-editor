@@ -25,6 +25,15 @@ export const useAvatarStore = create<AvatarState>()(
 
       // --- Actions ---
       loadAvatar: (data, animations) => {
+        // For every animation from the bbmodels, ensure a setting exists.
+        // This prevents errors in the UI when new animations are added.
+        for (const animId of animations) {
+            if (!data.animationSettings[animId]) {
+                data.animationSettings[animId] = {
+                    animation: animId,
+                };
+            }
+        }
         set({ avatar: data, animations });
         // After loading a new project, clear the undo/redo history.
         useAvatarStore.temporal.getState().clear();
