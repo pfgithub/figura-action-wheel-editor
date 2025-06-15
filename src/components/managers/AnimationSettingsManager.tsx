@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { generateUUID } from '@/utils/uuid';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { renderSettings } from '@/data/renderSettings';
+import { Dialog, DialogHeader, DialogContent, DialogFooter } from '@/components/ui/Dialog';
 
 type SettingView = 'play_animation' | 'hide_element' | 'render';
 
@@ -40,6 +41,83 @@ const summarizeCondition = (setting?: ConditionalSetting): string => {
     return `${count} Conditions`;
 };
 
+// --- Add Setting Dialog Content ---
+interface AddSettingDialogContentProps {
+  onAdd: (id: string, kind: SettingView) => void;
+}
+
+function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
+    const { avatar, animations, modelElements } = useAvatarStore();
+    const [view, setView] = useState<SettingView>('play_animation');
+    const [filter, setFilter] = useState('');
+
+    const lowerFilter = filter.toLowerCase();
+    
+    const unconfiguredItems = useMemo(() => {
+        const allSettings = Object.values(avatar?.conditionalSettings ?? {});
+        
+        if (view === 'play_animation') {
+            const configuredAnims = new Set(allSettings.filter((s): s is PlayAnimationSetting => s.kind === 'play_animation').map(s => s.animation));
+            return animations
+                .filter(animId => !configuredAnims.has(animId) && animId.toLowerCase().includes(lowerFilter))
+                .map(id => ({ id, name: id }));
+        }
+        if (view === 'hide_element') {
+            const configuredElems = new Set(allSettings.filter((s): s is HideElementSetting => s.kind === 'hide_element').map(s => s.element));
+            return modelElements
+                .filter(elemId => !configuredElems.has(elemId) && elemId.toLowerCase().includes(lowerFilter))
+                .map(id => ({ id, name: id }));
+        }
+        if (view === 'render') {
+            const configuredKinds = new Set(allSettings.filter((s): s is RenderSetting => s.kind === 'render').map(s => s.render));
+            return Array.from(renderSettings.values())
+                .filter(rs => !configuredKinds.has(rs.id) && rs.name.toLowerCase().includes(lowerFilter))
+                .map(rs => ({ id: rs.id, name: rs.name }));
+        }
+        return [];
+    }, [view, avatar, animations, modelElements, lowerFilter]);
+    
+    const viewConfig = {
+        play_animation: { placeholder: `Search ${animations.length} animations...`, emptyText: "No unconfigured animations found." },
+        hide_element: { placeholder: `Search ${modelElements.length} elements...`, emptyText: "No unconfigured elements found." },
+        render: { placeholder: "Search render settings...", emptyText: "All render settings are configured." },
+    };
+
+    const renderUnconfiguredItem = (item: { id: string, name: string }) => (
+        <div key={item.id} className="rounded-lg border-2 border-dashed border-slate-700 p-3 flex justify-between items-center text-slate-400 hover:border-violet-500 hover:bg-violet-900/10 transition-colors duration-200">
+            <h4 className="font-semibold text-slate-300 truncate" title={item.name}>{item.name}</h4>
+            <Button onClick={() => onAdd(item.id, view)} className="bg-violet-600 hover:bg-violet-500 flex-shrink-0"><PlusIcon className="w-5 h-5 mr-2" />Add</Button>
+        </div>
+    );
+    
+    return (
+        <div className="space-y-4">
+            <SegmentedControl
+                value={view}
+                onChange={(newView) => { setView(newView as SettingView); setFilter(''); }}
+                options={[
+                    { label: 'Play Animation', value: 'play_animation' },
+                    { label: 'Hide Element', value: 'hide_element' },
+                    { label: 'Render', value: 'render' },
+                ]}
+            />
+            <Input
+                className="w-full"
+                placeholder={viewConfig[view].placeholder}
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                autoFocus
+            />
+            <div className="space-y-2 max-h-96 overflow-y-auto -mr-2 pr-2">
+                {unconfiguredItems.length > 0
+                    ? unconfiguredItems.map(renderUnconfiguredItem)
+                    : <div className="text-center p-8 text-slate-500">{filter ? `No results for "${filter}"` : viewConfig[view].emptyText}</div>
+                }
+            </div>
+        </div>
+    );
+}
+
 // --- AnimationSettingsManager Component ---
 
 interface AnimationSettingsManagerProps {
@@ -52,7 +130,7 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     const [filter, setFilter] = useState('');
     const [expandedId, setExpandedId] = useState<UUID | null>(null);
     const [deletingId, setDeletingId] = useState<UUID | null>(null);
-    const [view, setView] = useState<SettingView>('play_animation');
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     
     if (!avatar) return null;
 
@@ -60,56 +138,44 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     
     const lowerFilter = filter.toLowerCase();
 
-    const filteredItems = useMemo(() => {
-        const allSettings = Object.values(conditionalSettings);
-        
-        if (view === 'play_animation') {
-            const configured = allSettings.filter((s): s is PlayAnimationSetting => s.kind === 'play_animation');
-            const configuredAnims = new Set(configured.map(s => s.animation));
-            const unconfigured = animations.filter(animId => !configuredAnims.has(animId));
-
-            return {
-                configured: configured.filter(s => s.animation.toLowerCase().includes(lowerFilter)),
-                unconfigured: unconfigured.filter(id => id.toLowerCase().includes(lowerFilter)),
+    const allConfiguredSettings = useMemo(() => {
+        return Object.values(conditionalSettings).sort((a, b) => {
+            const getName = (s: ConditionalSetting) => {
+                switch(s.kind) {
+                    case 'play_animation': return s.animation;
+                    case 'hide_element': return s.element;
+                    case 'render': return renderSettings.get(s.render)?.name ?? s.render;
+                }
             };
-        }
-        if (view === 'hide_element') {
-            const configured = allSettings.filter((s): s is HideElementSetting => s.kind === 'hide_element');
-            const configuredElems = new Set(configured.map(s => s.element));
-            const unconfigured = modelElements.filter(elemId => !configuredElems.has(elemId));
+            return getName(a).localeCompare(getName(b));
+        });
+    }, [conditionalSettings]);
 
-            return {
-                configured: configured.filter(s => s.element.toLowerCase().includes(lowerFilter)),
-                unconfigured: unconfigured.filter(id => id.toLowerCase().includes(lowerFilter)),
-            };
-        }
-        if (view === 'render') {
-            const configured = allSettings.filter((s): s is RenderSetting => s.kind === 'render');
-            const configuredKinds = new Set(configured.map(s => s.render));
-            const unconfigured = Array.from(renderSettings.keys()).filter(kind => !configuredKinds.has(kind));
-
-            const nameMatches = (kind: RenderSettingID) => renderSettings.get(kind)?.name.toLowerCase().includes(lowerFilter);
-
-            return { 
-                configured: configured.filter(s => nameMatches(s.render as RenderSettingID)), 
-                unconfigured: unconfigured.filter(nameMatches)
-            };
-        }
-        return { configured: [], unconfigured: [] };
-
-    }, [view, conditionalSettings, animations, modelElements, lowerFilter]);
+    const filteredSettings = useMemo(() => {
+        if (!lowerFilter) return allConfiguredSettings;
+        return allConfiguredSettings.filter(setting => {
+            let name: string;
+            switch(setting.kind) {
+                case 'play_animation': name = setting.animation; break;
+                case 'hide_element': name = setting.element; break;
+                case 'render': name = renderSettings.get(setting.render)?.name ?? setting.render; break;
+                default: name = '';
+            }
+            return name.toLowerCase().includes(lowerFilter);
+        });
+    }, [allConfiguredSettings, lowerFilter]);
 
     const toggleExpand = (uuid: UUID) => {
         setExpandedId(prev => (prev === uuid ? null : uuid));
     };
 
-    const handleAddSetting = (id: string) => {
+    const handleAddSetting = (id: string, kind: SettingView) => {
         const newUuid = generateUUID();
         let newSetting: ConditionalSetting;
 
-        if (view === 'play_animation') {
+        if (kind === 'play_animation') {
             newSetting = { uuid: newUuid, kind: 'play_animation', animation: id as AnimationID };
-        } else if (view === 'hide_element') {
+        } else if (kind === 'hide_element') {
             newSetting = { uuid: newUuid, kind: 'hide_element', element: id };
         } else { // render
             newSetting = { uuid: newUuid, kind: 'render', render: id as RenderSettingID };
@@ -118,7 +184,7 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
         updateAvatar(draft => {
             draft.conditionalSettings[newUuid] = newSetting;
         });
-        setFilter('');
+        setIsAddDialogOpen(false);
         setExpandedId(newUuid);
     };
 
@@ -197,60 +263,28 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
             </div>
         );
     }
-    
-    const renderUnconfiguredItem = (id: string, description: string) => (
-        <div key={id} className="rounded-lg border-2 border-dashed border-slate-700 p-4 flex justify-between items-center text-slate-400 hover:border-violet-500 hover:bg-violet-900/10 transition-colors duration-200">
-            <div className="flex-grow min-w-0 pr-4">
-                <h4 className="font-semibold text-lg text-slate-300 truncate">{description}</h4>
-                <p className="text-sm text-slate-500">{id}</p>
-            </div>
-            <Button onClick={() => handleAddSetting(id)} className="bg-violet-600 hover:bg-violet-500 flex-shrink-0"><PlusIcon className="w-5 h-5 mr-2" />Configure</Button>
-        </div>
-    );
-
-    const hasAnyContent = filteredItems.configured.length > 0 || filteredItems.unconfigured.length > 0;
-    
-    const viewConfig = {
-        play_animation: { placeholder: `Search ${animations.length} animations...`, emptyText: "No animations found in models." },
-        hide_element: { placeholder: `Search ${modelElements.length} elements...`, emptyText: "No elements found in models." },
-        render: { placeholder: "Search render settings...", emptyText: "All render settings configured." },
-    }
 
     return (
         <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-2">
-                <SegmentedControl
-                    value={view}
-                    onChange={(newView) => setView(newView as SettingView)}
-                    options={[
-                        { label: 'Play Animation', value: 'play_animation' },
-                        { label: 'Hide Element', value: 'hide_element' },
-                        { label: 'Render', value: 'render' },
-                    ]}
+             <div className="flex flex-col sm:flex-row gap-4 items-center">
+                <Input
+                    className="w-full"
+                    placeholder={`Search ${allConfiguredSettings.length} configured settings...`}
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
                 />
+                 <Button onClick={() => setIsAddDialogOpen(true)} className="bg-violet-600 hover:bg-violet-500 flex-shrink-0 w-full sm:w-auto">
+                    <PlusIcon className="w-5 h-5 mr-2" />Add Setting
+                </Button>
             </div>
 
-            <Input
-                className="w-full"
-                placeholder={viewConfig[view].placeholder}
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-            />
-            
             <div className="space-y-2">
-                {filteredItems.configured.map(renderItem)}
-                
-                {filteredItems.unconfigured.length > 0 && filteredItems.configured.length > 0 && (
-                     <hr className="border-slate-700 my-4"/>
-                )}
-
-                {view === 'play_animation' && filteredItems.unconfigured.map(id => renderUnconfiguredItem(id, id))}
-                {view === 'hide_element' && filteredItems.unconfigured.map(id => renderUnconfiguredItem(id, id))}
-                {view === 'render' && filteredItems.unconfigured.map(id => renderUnconfiguredItem(id, renderSettings.get(id)?.name ?? id))}
-                
-                {!hasAnyContent && (
+                {filteredSettings.length > 0 ? (
+                    filteredSettings.map(renderItem)
+                ) : (
                     <div className="flex flex-col items-center justify-center h-24 bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700">
-                        <p className="text-center font-medium">{filter ? `No results for "${filter}"` : viewConfig[view].emptyText}</p>
+                        <p className="text-center font-medium">{allConfiguredSettings.length > 0 ? `No results for "${filter}"` : `No conditional settings configured.`}</p>
+                        {allConfiguredSettings.length === 0 && <p className="text-sm">Click "Add Setting" to get started.</p>}
                     </div>
                 )}
             </div>
@@ -264,6 +298,16 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                 variant="danger"
                 confirmText="Delete"
             />
+            
+            <Dialog open={isAddDialogOpen} onClose={() => setIsAddDialogOpen(false)} className="max-w-2xl">
+                <DialogHeader>Add Conditional Setting</DialogHeader>
+                <DialogContent>
+                    <AddSettingDialogContent onAdd={handleAddSetting} />
+                </DialogContent>
+                <DialogFooter>
+                    <Button onClick={() => setIsAddDialogOpen(false)} className="bg-slate-600 hover:bg-slate-500">Close</Button>
+                </DialogFooter>
+            </Dialog>
         </div>
     );
 }
