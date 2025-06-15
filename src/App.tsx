@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import type { UUID, ActionWheel, Avatar, AnimationID } from "./types";
-import type { BBModel } from "./bbmodel";
+import type { UUID, ActionWheel, Avatar, AnimationID, AnimationSetting } from "./types";
+import type { BBModel, BBModelElement, BBModelOutliner } from "./bbmodel";
 import { useAvatarStore } from "./store/avatarStore";
 import { generateUUID } from "./utils/uuid";
 import "./index.css";
@@ -14,7 +14,7 @@ import { AnimationSettingsManager } from "./components/managers/AnimationSetting
 import { parseLua } from "../generateLua";
 
 // A component for the file drop area
-function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: Avatar, animations: AnimationID[]) => void; setLoadError: (error: string | null) => void; }) {
+function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: Avatar, animations: AnimationID[], modelElements: string[]) => void; setLoadError: (error: string | null) => void; }) {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -67,28 +67,83 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
       if ('animations' in projectData) {
           delete (projectData as any).animations;
       }
+      // For backwards compatibility, upgrade old animationSettings format
+      const settingsValues = Object.values(projectData.animationSettings);
+      if (settingsValues.length > 0 && typeof settingsValues[0] === 'object' && settingsValues[0] !== null && !('kind' in settingsValues[0])) {
+          const oldSettings = projectData.animationSettings as any as Record<AnimationID, { activationCondition?: any }>;
+          const newSettings: Record<UUID, AnimationSetting> = {};
+          for (const animId in oldSettings) {
+              const oldSetting = oldSettings[animId];
+              const newUuid = generateUUID();
+              newSettings[newUuid] = {
+                  uuid: newUuid,
+                  kind: 'play_animation',
+                  animation: animId as AnimationID,
+                  activationCondition: oldSetting.activationCondition,
+              };
+          }
+          projectData.animationSettings = newSettings;
+      }
+
 
       // --- Parse bbmodels and extract animations ---
       const allAnimations: AnimationID[] = [];
+      const allModelElements: string[] = [];
       for (let i = 0; i < bbmodelFiles.length; i++) {
         const file = bbmodelFiles[i];
         const content = bbmodelFileContents[i];
+        const modelName = file.name.slice(0, file.name.length - '.bbmodel'.length);
         const model: BBModel = JSON.parse(content);
 
-        if (!model.meta || !Array.isArray(model.animations)) {
+        if (!model.meta) {
           console.warn(`Skipping invalid or malformed bbmodel file: ${file.name}`);
           continue;
         }
 
-        for (const anim of model.animations) {
-          if (anim.name) {
-            const animationId = `animation.${file.name.slice(0, file.name.length - '.bbmodel'.length)}.${anim.name}` as AnimationID;
-            allAnimations.push(animationId);
-          }
+        if (Array.isArray(model.animations)) {
+            for (const anim of model.animations) {
+                if (anim.name) {
+                    const animationId = `animation.${modelName}.${anim.name}` as AnimationID;
+                    allAnimations.push(animationId);
+                }
+            }
+        }
+
+        const elements = new Map<UUID, BBModelElement>();
+        if (Array.isArray(model.elements)) {
+            for (const element of model.elements) {
+                elements.set(element.uuid, element);
+            }
+        }
+        
+        if (Array.isArray(model.outliner)) {
+            const traverseOutliner = (items: (BBModelOutliner | UUID)[], parts: string[]) => {
+                const stringifyPart = (part: string) => {
+                  if (!part.match(/^[A-Za-z_][A-Za-z0-9_]+$/)) {
+                    return `[${JSON.stringify(part)}]`;
+                  }
+                  return `.${part}`;
+                };
+                for (const item of items) {
+                    if (typeof item === "string") {
+                        const element = elements.get(item);
+                        if (element) {
+                            const newParts = [...parts, element.name];
+                            allModelElements.push(`models.${modelName}${newParts.map(stringifyPart).join('')}`);
+                        }
+                    }else{
+                        const newParts = [...parts, item.name];
+                        if (item.children?.length) {
+                          traverseOutliner(item.children, newParts);
+                        }
+                    }
+                }
+            };
+            traverseOutliner(model.outliner, []);
         }
       }
       
-      onFileLoaded(projectData, allAnimations);
+      onFileLoaded(projectData, allAnimations, allModelElements);
 
     } catch (err: any) {
       setLoadError(err.message || 'An unknown error occurred during file processing.');
@@ -145,13 +200,13 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
       <input
         ref={inputRef}
         type="file"
-        accept=".json,.bbmodel,application/json"
+        accept=".lua,.bbmodel,application/json"
         className="hidden"
         onChange={handleFileChange}
         multiple
       />
        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-20 h-20 mb-6 text-slate-600 transition-colors duration-300 ${isDragging ? 'text-violet-500' : ''}`}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      <h2 className="text-2xl font-bold text-slate-200">Drop your project.json & .bbmodel files</h2>
+      <h2 className="text-2xl font-bold text-slate-200">Drop your .figura-editor.lua & .bbmodel files</h2>
       <p className="text-slate-400 mt-2">or click to browse your files</p>
     </div>
   );
@@ -197,8 +252,8 @@ export function App() {
     setViewedWheelUuid(newWheelUuid);
   };
 
-  const handleProjectLoad = (project: Avatar, animations: AnimationID[]) => {
-      loadAvatar(project, animations);
+  const handleProjectLoad = (project: Avatar, animations: AnimationID[], modelElements: string[]) => {
+      loadAvatar(project, animations, modelElements);
   };
 
   // If no project is loaded, show the dropzone.
@@ -258,7 +313,7 @@ export function App() {
             {/* Right Column: Animation Settings */}
             <div className="bg-slate-800/40 p-6 flex flex-col gap-4 overflow-y-auto">
                <div className="border-b border-slate-700 pb-3">
-                 <h2 className="text-2xl font-bold text-slate-100">Animation Settings</h2>
+                 <h2 className="text-2xl font-bold text-slate-100">Conditional Settings</h2>
                </div>
                <AnimationSettingsManager
                     allToggleGroups={allToggleGroups}
@@ -289,7 +344,7 @@ export function App() {
                         : 'bg-transparent text-slate-400 hover:bg-slate-800/60'
                     }`}
                 >
-                    Animation Settings
+                    Conditional Settings
                 </button>
             </div>
 

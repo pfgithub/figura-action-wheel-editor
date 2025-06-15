@@ -1,6 +1,6 @@
 // src/components/dialogs/ToggleGroupDialog.tsx
 import React, { useState, useEffect } from 'react';
-import type { Avatar, ToggleGroup, ToggleGroupOption, UUID, AnimationCondition } from '../../types';
+import type { Avatar, ToggleGroup, ToggleGroupOption, UUID, AnimationCondition, AnimationSetting } from '../../types';
 import { useAvatarStore } from '../../store/avatarStore';
 import { generateUUID } from '../../utils/uuid';
 import { Button } from '../ui/Button';
@@ -11,6 +11,14 @@ import { ConfirmationDialog, UsageWarningDialog } from '../ui/ConfirmationDialog
 import { TrashIcon, PlusIcon } from '../ui/icons';
 
 // --- Helper functions for robust usage checking ---
+
+function getSettingName(setting: AnimationSetting): string {
+    switch (setting.kind) {
+        case 'play_animation': return `the "Play Animation: ${setting.animation}" setting`;
+        case 'hide_element': return `the "Hide Element: ${setting.element}" setting`;
+        case 'hide_player': return `the "Hide Player" setting`;
+    }
+}
 
 function checkAnimationCondition(condition: AnimationCondition | undefined, toggleGroupUUID: UUID, settingName: string): string[] {
     const usages: string[] = [];
@@ -28,7 +36,7 @@ function checkAnimationCondition(condition: AnimationCondition | undefined, togg
                 break;
             case 'toggleGroup':
                 if (cond.toggleGroup === toggleGroupUUID) {
-                    usages.push(`the animation condition for "${settingName}"`);
+                    usages.push(`the activation condition of ${settingName}`);
                 }
                 break;
             default:
@@ -53,8 +61,8 @@ function findToggleGroupUsage(avatar: Avatar, toggleGroupUUID: UUID): string[] {
     }
 
     // Check Animation Settings
-    for (const [animId, setting] of Object.entries(avatar.animationSettings ?? {})) {
-        usages.push(...checkAnimationCondition(setting.activationCondition, toggleGroupUUID, animId));
+    for (const setting of Object.values(avatar.animationSettings ?? {})) {
+        usages.push(...checkAnimationCondition(setting.activationCondition, toggleGroupUUID, getSettingName(setting)));
     }
     
     return [...new Set(usages)];

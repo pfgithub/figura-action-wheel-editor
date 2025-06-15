@@ -9,8 +9,9 @@ export type AvatarUpdater = (draft: WritableDraft<Avatar>) => void;
 interface AvatarState {
   avatar: Avatar | null;
   animations: AnimationID[];
+  modelElements: string[];
   isSaving: boolean;
-  loadAvatar: (data: Avatar, animations: AnimationID[]) => void;
+  loadAvatar: (data: Avatar, animations: AnimationID[], modelElements: string[]) => void;
   saveAvatar: () => void;
   updateAvatar: (updater: AvatarUpdater) => void;
   clearAvatar: () => void;
@@ -22,11 +23,12 @@ export const useAvatarStore = create<AvatarState>()(
       // --- State ---
       avatar: null,
       animations: [],
+      modelElements: [],
       isSaving: false,
 
       // --- Actions ---
-      loadAvatar: (data, animations) => {
-        set({ avatar: data, animations });
+      loadAvatar: (data, animations, modelElements) => {
+        set({ avatar: data, animations, modelElements });
         // After loading a new project, clear the undo/redo history.
         useAvatarStore.temporal.getState().clear();
       },
@@ -56,7 +58,7 @@ export const useAvatarStore = create<AvatarState>()(
       },
 
       clearAvatar: () => {
-        set({ avatar: null, animations: [] });
+        set({ avatar: null, animations: [], modelElements: [] });
         useAvatarStore.temporal.getState().clear();
       },
 
