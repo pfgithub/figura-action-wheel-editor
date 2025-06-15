@@ -48,24 +48,6 @@ const server = serve({
         'Content-Type': "text/plain; charset=utf-8",
       },
     }),
-    "/project.json": {
-      GET: async () => {
-        let data: string = JSON.stringify(defaultProject);
-        try { data = await Bun.file("data/project.json").text(); } catch (e) {
-          console.error("error loading avatar: ", e);
-        }
-        return new Response(data, {
-          headers: {
-            'Content-Type': "application/json; charset=utf-8",
-          },
-        })
-      },
-      POST: async (req) => {
-        mkdirSync(import.meta.dir + "/data", {recursive: true});
-        await Bun.write("data/project.json", await req.text());
-        return new Response("ok");
-      },
-    },
     "/minecraft-items.json": new Response(JSON.stringify({
       "minecraft:air": {id: "minecraft:air", name: "Air", imageUrl: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="},
       "minecraft:stone": {id: "minecraft:stone", name: "Stone", imageUrl: "https://minecraft.wiki/images/Invicon_Stone.png?909de"},
