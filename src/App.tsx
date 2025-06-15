@@ -82,8 +82,7 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
 
         for (const anim of model.animations) {
           if (anim.name) {
-            // ID is "filename.bbmodel.animation_name"
-            const animationId = `${file.name}.${anim.name}` as AnimationID;
+            const animationId = `animation.${file.name.slice(0, file.name.length - '.bbmodel'.length)}.${anim.name}` as AnimationID;
             allAnimations.push(animationId);
           }
         }
