@@ -1,3 +1,14 @@
+for these we can have you download the script yourself (we can link it) and then enter the name
+if they're MIT licensed we can include them and add a license section in the lua & attribute in ui
+
 Katt DynamicCrosshair
+- enable/disable, and configure the list
 EZAnims https://jimmyhelp.notion.site/EZAnims-79adfdca2fe04f9c9ede5e0bfd898b6a
+- haven't used
 https://github.com/GrandpaScout/GSAnimBlend
+- add an animation config component, set values
+https://discord.com/channels/1129805506354085959/1345908550500876299/1383085084244054178
+- make a chain conveyor ragdoll lib. since you can make components in lua it can auto copy your model
+  in the lua & set up the bones before physbone is loaded
+https://github.com/Bitslayn/Gaze/wiki/1.-Eye-Basics
+- add a gaze component, select horizontal look, vertical look, and blink animations
