@@ -149,12 +149,15 @@ export type Image = {
     thumbhash: string,
 };
 
+// --- Scripts ---
+
 export type Script = {
     uuid: UUID;
     data: ScriptData,
     name: string,
     instances: Record<UUID, ScriptInstance[]>,
 };
+
 export type ScriptInstance = {
     uuid: UUID,
     name: string,
@@ -166,12 +169,14 @@ export type ScriptData = {
     name: string,
     instanceTypes: Record<UUID, ScriptDataInstanceType>,
 };
+
 export type ScriptDataInstanceType = {
     uuid: UUID,
     name: string,
     mode: "zero_or_one" | "one" | "many",
     parameters: ScriptDataInstanceParameter[],
 };
+
 export type ScriptDataInstanceParameter = {
     uuid: UUID,
     name: string,

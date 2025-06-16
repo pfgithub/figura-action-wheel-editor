@@ -1,0 +1,149 @@
+import React, { useState } from 'react';
+import type { Script, ScriptDataInstanceType, ScriptInstance, ToggleGroup, UUID, ActionWheel } from '@/types';
+import { useAvatarStore } from '@/store/avatarStore';
+import { generateUUID } from '@/utils/uuid';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
+import { PlusIcon, TrashIcon } from '@/components/ui/icons';
+import { ScriptParameterEditor } from './ScriptParameterEditor';
+
+interface ScriptEditorProps {
+    script: Script;
+    allToggleGroups: ToggleGroup[];
+    allActionWheels: ActionWheel[];
+}
+
+function getDefaultValueForType(type: any): any {
+    switch (type.kind) {
+        case 'string': return type.defaultValue ?? '';
+        case 'boolean': return type.defaultValue ?? false;
+        case 'vec3': return type.defaultValue ?? [0, 0, 0];
+        case 'list': return [];
+        case 'table':
+            const obj: Record<string, any> = {};
+            for (const key in type.entries) {
+                obj[key] = getDefaultValueForType(type.entries[key]);
+            }
+            return obj;
+        default: return type.defaultValue ?? undefined;
+    }
+}
+
+export function ScriptEditor({ script, allToggleGroups, allActionWheels }: ScriptEditorProps) {
+    const { updateAvatar } = useAvatarStore();
+    const [expandedInstance, setExpandedInstance] = useState<UUID | null>(null);
+    const [deletingInstance, setDeletingInstance] = useState<{ typeUuid: UUID, instanceUuid: UUID } | null>(null);
+
+    const handleAddInstance = (instanceType: ScriptDataInstanceType) => {
+        updateAvatar(draft => {
+            const scriptToUpdate = draft.scripts[script.uuid];
+            if (!scriptToUpdate) return;
+
+            const newInstance: ScriptInstance = {
+                uuid: generateUUID(),
+                name: `New ${instanceType.name}`,
+                parameterValue: {},
+            };
+            
+            const paramValues: Record<string, any> = {};
+            instanceType.parameters.forEach(param => {
+                paramValues[param.name] = getDefaultValueForType(param.type);
+            });
+            newInstance.parameterValue = paramValues;
+
+            const instancesForType = scriptToUpdate.instances[instanceType.uuid] ?? [];
+            instancesForType.push(newInstance);
+            scriptToUpdate.instances[instanceType.uuid] = instancesForType;
+            setExpandedInstance(newInstance.uuid);
+        });
+    };
+    
+    const handleDeleteInstance = () => {
+        if (!deletingInstance) return;
+        const { typeUuid, instanceUuid } = deletingInstance;
+        updateAvatar(draft => {
+            const scriptToUpdate = draft.scripts[script.uuid];
+            const instancesForType = scriptToUpdate?.instances[typeUuid] ?? [];
+            scriptToUpdate.instances[typeUuid] = instancesForType.filter(inst => inst.uuid !== instanceUuid);
+        });
+        setExpandedInstance(null);
+        setDeletingInstance(null);
+    };
+
+    const updateInstance = (typeUuid: UUID, updatedInstance: ScriptInstance) => {
+        updateAvatar(draft => {
+            const scriptToUpdate = draft.scripts[script.uuid];
+            const instancesForType = scriptToUpdate?.instances[typeUuid] ?? [];
+            const index = instancesForType.findIndex(i => i.uuid === updatedInstance.uuid);
+            if (index !== -1) {
+                instancesForType[index] = updatedInstance;
+            }
+        });
+    };
+    
+    return (
+        <div className="space-y-6">
+            {Object.values(script.data.instanceTypes).map(instanceType => {
+                const instances = script.instances[instanceType.uuid] ?? [];
+                const canAddMore = instanceType.mode === 'many' || (instanceType.mode !== 'zero_or_one' && instances.length === 0);
+                
+                return (
+                    <div key={instanceType.uuid} className="bg-slate-800 p-4 rounded-lg ring-1 ring-slate-700">
+                        <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-700">
+                            <h3 className="text-xl font-bold text-slate-200">{instanceType.name}</h3>
+                            {canAddMore && (
+                                <Button onClick={() => handleAddInstance(instanceType)} className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300">
+                                    <PlusIcon className="w-5 h-5 mr-2" /> Add Instance
+                                </Button>
+                            )}
+                        </div>
+                        <div className="space-y-3">
+                            {instances.length > 0 ? instances.map(instance => (
+                                <div key={instance.uuid} className="bg-slate-900/50 rounded-lg ring-1 ring-slate-700/50 overflow-hidden">
+                                    <div
+                                        className="flex justify-between items-center p-3 cursor-pointer hover:bg-slate-700/20"
+                                        onClick={() => setExpandedInstance(prev => prev === instance.uuid ? null : instance.uuid)}
+                                    >
+                                        <Input
+                                            value={instance.name}
+                                            onClick={e => e.stopPropagation()}
+                                            onChange={e => updateInstance(instanceType.uuid, { ...instance, name: e.target.value })}
+                                            className="bg-transparent border-none p-0 h-auto text-base font-semibold w-auto focus:ring-0"
+                                        />
+                                        <div className="flex items-center gap-2">
+                                            <Button onClick={(e) => { e.stopPropagation(); setDeletingInstance({ typeUuid: instanceType.uuid, instanceUuid: instance.uuid })}} className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 w-8 h-8 p-0 flex-shrink-0"><TrashIcon className="w-4 h-4"/></Button>
+                                            <svg className={`flex-shrink-0 w-6 h-6 text-slate-400 transition-transform duration-200 ${expandedInstance === instance.uuid ? 'rotate-180' : 'rotate-0'}`} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                        </div>
+                                    </div>
+                                    {expandedInstance === instance.uuid && (
+                                        <div className="p-4 border-t border-slate-700/50">
+                                            <ScriptParameterEditor 
+                                                parameters={instanceType.parameters}
+                                                values={instance.parameterValue as Record<string, any>}
+                                                onChange={(newValues) => updateInstance(instanceType.uuid, { ...instance, parameterValue: newValues })}
+                                                allToggleGroups={allToggleGroups}
+                                                allActionWheels={allActionWheels}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            )) : (
+                                <div className="text-center text-slate-500 py-4">No instances configured.</div>
+                            )}
+                        </div>
+                    </div>
+                );
+            })}
+             <ConfirmationDialog
+                open={!!deletingInstance}
+                onCancel={() => setDeletingInstance(null)}
+                onConfirm={handleDeleteInstance}
+                title="Delete Instance?"
+                message={<>Are you sure you want to delete this instance? This action cannot be undone.</>}
+                variant="danger"
+                confirmText="Delete"
+            />
+        </div>
+    );
+}

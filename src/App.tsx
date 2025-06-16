@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import type { UUID, ActionWheel, Avatar, AnimationID, ConditionalSetting, TextureAsset } from "@/types";
+import type { UUID, ActionWheel, Avatar, AnimationID, ConditionalSetting, TextureAsset, Script } from "@/types";
 import type { BBModel, BBModelElement, BBModelOutliner } from "@/bbmodel";
 import { useAvatarStore } from "@/store/avatarStore";
 import { generateUUID } from "@/utils/uuid";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 // Manager Components
 import { ActionWheelsManager } from "@/components/managers/ActionWheelsManager";
 import { AnimationSettingsManager } from "@/components/managers/AnimationSettingsManager";
+import { ScriptsManager } from "@/components/managers/ScriptsManager";
 import { isValidLuaIdent, parseLua } from "@/data/generateLua";
 
 
@@ -231,10 +232,12 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
   );
 }
 
+type EditorTab = 'wheels' | 'settings' | 'scripts';
+
 export function App() {
   const { avatar, isSaving, saveAvatar, updateAvatar, loadAvatar } = useAvatarStore();
   const [viewedWheelUuid, setViewedWheelUuid] = useState<UUID | null>(null);
-  const [activeTab, setActiveTab] = useState('wheels'); // 'wheels' or 'settings'
+  const [activeTab, setActiveTab] = useState<EditorTab>('wheels');
   const [fileLoadError, setFileLoadError] = useState<string | null>(null);
 
   // Get temporal state and actions for undo/redo
@@ -296,6 +299,42 @@ export function App() {
   const allToggleGroups = Object.values(avatar.toggleGroups);
   const allActionWheels = Object.values(avatar.actionWheels);
 
+  const TABS: { id: EditorTab, label: string }[] = [
+      { id: 'wheels', label: 'Action Wheels' },
+      { id: 'settings', label: 'Conditional Settings' },
+      { id: 'scripts', label: 'Scripts' },
+  ];
+
+  const renderActiveTab = () => {
+      switch (activeTab) {
+          case 'wheels':
+              return (
+                  <ActionWheelsManager
+                      allActionWheels={allActionWheels}
+                      allToggleGroups={allToggleGroups}
+                      addActionWheel={addActionWheel}
+                      viewedWheelUuid={viewedWheelUuid}
+                      setViewedWheelUuid={setViewedWheelUuid}
+                  />
+              );
+          case 'settings':
+              return (
+                  <AnimationSettingsManager
+                      allToggleGroups={allToggleGroups}
+                  />
+              );
+          case 'scripts':
+              return (
+                  <ScriptsManager 
+                      allToggleGroups={allToggleGroups}
+                      allActionWheels={allActionWheels}
+                  />
+              );
+          default:
+              return null;
+      }
+  };
+
   return (
     <div className="text-slate-100 h-screen flex flex-col bg-slate-900" style={{ fontFamily: "'Inter', sans-serif" }}>
       <header className="flex justify-between items-center p-2 px-4 border-b border-slate-800 flex-shrink-0 z-20 bg-slate-900/70 backdrop-blur-lg">
@@ -311,78 +350,28 @@ export function App() {
         </div>
       </header>
 
-      <main className="flex-grow min-h-0">
-        {/* --- DESKTOP VIEW --- */}
-        <div className="hidden lg:grid lg:grid-cols-2 h-full">
-            {/* Left Column: Action Wheels Editor */}
-            <div className="bg-slate-800/40 p-6 flex flex-col gap-4 overflow-y-auto border-r border-slate-800">
-                <div className="border-b border-slate-700 pb-3">
-                    <h2 className="text-2xl font-bold text-slate-100">Action Wheels</h2>
-                </div>
-                <ActionWheelsManager
-                    allActionWheels={allActionWheels}
-                    allToggleGroups={allToggleGroups}
-                    addActionWheel={addActionWheel}
-                    viewedWheelUuid={viewedWheelUuid}
-                    setViewedWheelUuid={setViewedWheelUuid}
-                />
-            </div>
+      <main className="flex-grow min-h-0 flex flex-col">
+          {/* Tab Navigation */}
+          <div className="flex-shrink-0 flex border-b border-slate-700 bg-slate-900/70 backdrop-blur-lg overflow-x-auto">
+              {TABS.map(tab => (
+                  <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex-shrink-0 py-3 px-5 text-center text-sm font-semibold transition-colors duration-200 border-b-2 ${
+                          activeTab === tab.id
+                          ? 'border-violet-500 text-white'
+                          : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/60'
+                      }`}
+                  >
+                      {tab.label}
+                  </button>
+              ))}
+          </div>
 
-            {/* Right Column: Conditional Settings */}
-            <div className="bg-slate-800/40 p-6 flex flex-col gap-4 overflow-y-auto">
-               <div className="border-b border-slate-700 pb-3">
-                 <h2 className="text-2xl font-bold text-slate-100">Conditional Settings</h2>
-               </div>
-               <AnimationSettingsManager
-                    allToggleGroups={allToggleGroups}
-               />
-            </div>
-        </div>
-
-        {/* --- MOBILE VIEW --- */}
-        <div className="lg:hidden flex flex-col h-full">
-            {/* Tab Navigation */}
-            <div className="flex-shrink-0 flex border-b border-slate-700">
-                <button
-                    onClick={() => setActiveTab('wheels')}
-                    className={`flex-1 p-3 text-center text-sm font-semibold transition-colors duration-200 ${
-                        activeTab === 'wheels'
-                        ? 'bg-slate-700/80 text-white'
-                        : 'bg-transparent text-slate-400 hover:bg-slate-800/60'
-                    }`}
-                >
-                    Action Wheels
-                </button>
-                <button
-                    onClick={() => setActiveTab('settings')}
-                    className={`flex-1 p-3 text-center text-sm font-semibold transition-colors duration-200 ${
-                        activeTab === 'settings'
-                        ? 'bg-slate-700/80 text-white'
-                        : 'bg-transparent text-slate-400 hover:bg-slate-800/60'
-                    }`}
-                >
-                    Render Settings
-                </button>
-            </div>
-
-            {/* Tab Content */}
-            <div className="flex-grow overflow-y-auto p-4 flex flex-col gap-4">
-              {activeTab === 'wheels' && (
-                <ActionWheelsManager
-                  allActionWheels={allActionWheels}
-                  allToggleGroups={allToggleGroups}
-                  addActionWheel={addActionWheel}
-                  viewedWheelUuid={viewedWheelUuid}
-                  setViewedWheelUuid={setViewedWheelUuid}
-                />
-              )}
-              {activeTab === 'settings' && (
-                <AnimationSettingsManager
-                  allToggleGroups={allToggleGroups}
-                />
-              )}
-            </div>
-        </div>
+          {/* Tab Content */}
+          <div className="flex-grow overflow-y-auto p-4 md:p-6 bg-slate-800/40">
+              {renderActiveTab()}
+          </div>
       </main>
     </div>
   );
