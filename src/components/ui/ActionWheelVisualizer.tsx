@@ -206,11 +206,6 @@ export function ActionWheelVisualizer({
 
       {/* Add Action Button in the next empty slot */}
       {numActions < MAX_ACTIONS && (() => {
-        const addActionAngles = getActionAngles(numActions + 1);
-        const angle = addActionAngles[numActions];
-        const x = WHEEL_RADIUS * Math.cos(angle);
-        const y = WHEEL_RADIUS * Math.sin(angle);
-
         return (
             <button
                 onClick={onAddAction}
@@ -220,7 +215,7 @@ export function ActionWheelVisualizer({
                   height: `${BUTTON_SIZE}px`,
                   top: `calc(50% - ${BUTTON_SIZE / 2}px)`,
                   left: `calc(50% - ${BUTTON_SIZE / 2}px)`,
-                  transform: `translate(${x}px, ${y}px)`,
+                  transform: `translate(${-WHEEL_RADIUS}px, ${-WHEEL_RADIUS}px)`,
                 }}
                 title="Add new action"
             >

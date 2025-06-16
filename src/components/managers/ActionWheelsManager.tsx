@@ -41,33 +41,21 @@ export function ActionWheelsManager({
     };
 
     const deleteActionWheel = (uuid: UUID) => {
-        if (avatar.mainActionWheel === uuid) {
-            alert("Cannot delete the main action wheel. Set another wheel as main first.");
-            return;
-        }
-
-        let usage = "";
-        for (const wheel of Object.values(avatar.actionWheels)) {
-            if (wheel.uuid === uuid) continue;
-            for (const action of wheel.actions) {
-                if (action.effect?.kind === "switchPage" && action.effect.actionWheel === uuid) {
-                    usage = `an action in "${wheel.title}"`;
-                    break;
+        updateAvatar((draft) => {
+            delete draft.actionWheels[uuid];
+            if (draft.mainActionWheel === uuid) {
+                draft.mainActionWheel = Object.values(draft.actionWheels)[0]?.uuid ?? undefined;
+            }
+            for (const wheel of Object.values(draft.actionWheels)) {
+                if (wheel.uuid === uuid) continue;
+                for (const action of wheel.actions) {
+                    if (action.effect?.kind === "switchPage" && action.effect.actionWheel === uuid) {
+                        action.effect.actionWheel = undefined;
+                        break;
+                    }
                 }
             }
-            if (usage) break;
-        }
-
-        if (usage) {
-            alert(`Cannot delete. This wheel is used as a target in ${usage}.`);
-            return;
-        }
-
-        if (window.confirm(`Are you sure you want to delete the "${avatar.actionWheels[uuid].title}" wheel?`)) {
-            updateAvatar((draft) => {
-                delete draft.actionWheels[uuid];
-            });
-        }
+        });
     };
 
     const updateWheelTitle = (uuid: UUID, title: string) => {
