@@ -48,13 +48,8 @@ const getActionAngles = (numActions: number): number[] => {
 };
 
 function RenderIcon({icon}: {icon: IconItem | IconTexture}) {
-    const { items } = useMinecraftItems();
     if (icon.type === 'item') {
-      const item = items?.[icon.id];
-      if (item?.image) {
-          return <img src={`https://lfs.pfg.pw/source/${item.image.uuid}.png`} alt={""} className="w-8 h-8 image-pixelated" />
-      }
-      return <span className="text-xs max-w-full break-words" style={{ lineHeight: 1 }}>{icon.id}</span>;
+      return <RenderItemIcon icon={icon} />
     }
 
     if (icon.type === 'texture') {
@@ -62,6 +57,16 @@ function RenderIcon({icon}: {icon: IconItem | IconTexture}) {
     }
     // Fallback for unknown icon type
     return <span className="text-xs max-w-full break-words" style={{ lineHeight: 1 }}>...</span>;
+}
+
+function RenderItemIcon({icon}: {icon: IconItem}) {
+  const { items } = useMinecraftItems();
+
+  const item = items?.[icon.id];
+  if (item?.image) {
+      return <img src={`https://lfs.pfg.pw/source/${item.image.uuid}.png`} alt={""} className="w-8 h-8 image-pixelated" />
+  }
+  return <span className="text-xs max-w-full break-words" style={{ lineHeight: 1 }}>{icon.id}</span>;
 }
 
 function RenderTextureIcon({icon}: {icon: IconTexture}) {
