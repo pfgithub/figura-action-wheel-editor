@@ -66,6 +66,15 @@ local function dump(o)
       return tostring(o)
    end
 end
+
+-- on error return nil. warn on error or nil.
+local function tryOrNil(cb, name)
+    local status, value = pcall(cb)
+    if not status then value = nil end
+    if not value and name then print("Invalid model part: "..name) end
+    return value
+end
+
 `;
 
 export function isValidLuaIdent(str: string): boolean {
@@ -143,8 +152,7 @@ export function generateLuaInner(avatar: Avatar) {
     let getTexture = (texture: string): string => {
         if(textureVars.has(texture)) return textureVars.get(texture)!;
         const val = ctx.addNextIdent(texture);
-        mainVars += `local ${val} = textures[${luaString(texture)}]\n`;
-        if(warnEnabled) mainVars += `if not ${val} then print(${luaString("Invalid texture: "+texture)}) end\n`;
+        mainVars += `local ${val} = tryOrNil(function() return textures[${luaString(texture)}] end, ${luaString(texture)})\n`;
         textureVars.set(texture, val);
         return val;
     };
@@ -152,9 +160,7 @@ export function generateLuaInner(avatar: Avatar) {
     let getModelPart = (modelPart: string): string => {
         if(modelPartVars.has(modelPart)) return modelPartVars.get(modelPart)!;
         const val = ctx.addNextIdent(modelPart);
-        mainVars += `local status, ${val} = pcall(function() return ${modelPart} end)\n`;
-        mainVars += `if not status then ${val} = nil end\n`;
-        if(warnEnabled) mainVars += `if not ${val} then print(${luaString("Invalid model part: "+modelPart)}) end\n`;
+        mainVars += `local ${val} = tryOrNil(function() return ${modelPart} end, ${warnEnabled ? luaString(modelPart) : null})\n`;
         modelPartVars.set(modelPart, val);
         return val;
     };
@@ -162,9 +168,7 @@ export function generateLuaInner(avatar: Avatar) {
     let getAnimation = (animation: string): string => {
         if(animationVars.has(animation)) return animationVars.get(animation)!;
         const val = ctx.addNextIdent(animation);
-        mainVars += `local status, ${val} = pcall(function() return ${animation} end)\n`;
-        mainVars += `if not status then ${val} = nil end\n`;
-        if(warnEnabled) mainVars += `if not ${val} then print(${luaString("Invalid animation: "+animation)}) end\n`;
+        mainVars += `local ${val} = tryOrNil(function() return ${animation} end, ${luaString(animation)})\n`;
         animationVars.set(animation, val);
         return val;
     };
