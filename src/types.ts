@@ -15,7 +15,7 @@ export type Avatar = {
     actionWheels: Record<UUID, ActionWheel>,
     toggleGroups: Record<UUID, ToggleGroup>,
     conditionalSettings: Record<UUID, ConditionalSetting>,
-    scripts: Record<UUID, Script>[],
+    scripts: Record<UUID, Script>,
 };
 
 export type ActionWheel = {

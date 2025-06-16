@@ -80,7 +80,7 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
                     height: img.height,
                 });
             };
-            img.onerror = () => reject(new Error(`Failed to load image: ${file.name}`));
+            img.onerror = () => reject(new Error(`Failed to load image: ${name}`));
             img.src = imageURL
         });
       };
@@ -94,11 +94,13 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
         actionWheels: {},
         toggleGroups: {},
         conditionalSettings: {},
+        scripts: {},
       } satisfies Avatar;
       // Basic validation
       if (!projectData.actionWheels || !projectData.toggleGroups || !projectData.conditionalSettings) {
           throw new Error('Invalid or corrupted project.figura-editor.lua format.');
       }
+      projectData.scripts ??= {};
 
 
       // --- Parse bbmodels and extract animations and textures ---
