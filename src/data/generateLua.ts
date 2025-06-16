@@ -280,10 +280,6 @@ end
         if(setting.kind === "play_animation") {
             const anim = getAnimation(setting.animation);
             renderContents += `    if ${anim} then ${anim}:setPlaying(${cond}) end\n`;
-            // TODO remove this
-            if(setting.animation === "animations.model.sit") {
-                renderContents += `    if ${cond} then renderer:setOffsetCameraPivot(0, -0.5, 0) else renderer:setOffsetCameraPivot(0, 0, 0) end\n`;
-            }
         }else{
             alwaysWarnings += `print("TODO implement setting ${setting.kind}")\n`;
         }
