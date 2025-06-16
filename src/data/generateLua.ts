@@ -207,7 +207,6 @@ export function generateLuaInner(avatar: Avatar) {
                 const num = ctx.uuidToNumber(action.effect.value);
                 src += `${actionIdent}:onLeftClick(function()\n`;
                 src += `    if ${toggleGroup.activeState} == ${num} then\n`;
-                src += `        print("set false")\n`;
                 src += `        ${toggleGroup.ping}(nil)\n`;
                 src += `    else\n`;
                 src += `        ${toggleGroup.ping}(${num})\n`;
