@@ -35,6 +35,7 @@ await addScript("Camera Pivot", offsetCameraPivot, [
                 uuid: await hashUUID(new TextEncoder().encode(offsetCameraPivot + "/CameraPivot/offset")),
                 name: "Offset",
                 type: {kind: "vec3"},
+                defaultValue: [0, 27.648, 0],
             },
         ],
     },
