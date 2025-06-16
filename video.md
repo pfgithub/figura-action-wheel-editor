@@ -1,0 +1,20 @@
+- create avatar
+- open in blockbench
+- add skin
+- add sit animation
+- add lie animation
+- add wave animation
+- add kick animation
+- show in figura
+- open in avatar editor
+- first person player model fix
+- show again
+- create the menu
+- create the toggle groups
+- show again
+- add crewmate
+- add toggle
+- show again
+- add gaze script
+- add gaze anims following docs
+- set gaze anims
