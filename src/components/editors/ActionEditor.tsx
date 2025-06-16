@@ -1,6 +1,6 @@
 // src/components/editors/ActionEditor.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import type { Action, ActionEffect, ActionWheel, ToggleGroup, IconTexture } from '@/types';
+import type { Action, ActionEffect, ActionWheel, ToggleGroup, IconTexture, UUID } from '@/types';
 import { useAvatarStore } from '@/store/avatarStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -8,6 +8,7 @@ import { FormRow } from '@/components/ui/FormRow';
 import { MinecraftItemPicker } from '@/components/ui/MinecraftItemPicker';
 import { ColorPicker } from '@/components/ui/ColorPicker';
 import { ActionEffectEditor } from './ActionEffectEditor';
+import { Dialog, DialogHeader, DialogContent, DialogFooter } from '@/components/ui/Dialog';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Select } from '@/components/ui/Select';
 import { TrashIcon } from '@/components/ui/icons';
@@ -128,10 +129,37 @@ interface ActionEditorProps {
     deleteAction: () => void;
     allToggleGroups: ToggleGroup[];
     allActionWheels: ActionWheel[];
+    currentWheelUuid: UUID;
+    onMoveAction: (targetWheelUuid: UUID) => void;
 }
 
-export function ActionEditor({ action, updateAction, deleteAction, allToggleGroups, allActionWheels }: ActionEditorProps) {
+export function ActionEditor({ action, updateAction, deleteAction, allToggleGroups, allActionWheels, currentWheelUuid, onMoveAction }: ActionEditorProps) {
     const { textures } = useAvatarStore();
+    const [isMoveDialogOpen, setMoveDialogOpen] = useState(false);
+    const [targetWheel, setTargetWheel] = useState<UUID | ''>('');
+
+    const otherWheels = allActionWheels.filter(w => w.uuid !== currentWheelUuid);
+    const MAX_ACTIONS_PER_WHEEL = 8;
+
+    useEffect(() => {
+        if (isMoveDialogOpen) {
+            setTargetWheel('');
+        }
+    }, [isMoveDialogOpen]);
+
+    const handleMoveConfirm = () => {
+        if (targetWheel) {
+            const targetWheelData = allActionWheels.find(w => w.uuid === targetWheel);
+            if (targetWheelData && targetWheelData.actions.length >= MAX_ACTIONS_PER_WHEEL) {
+                 // This should be prevented by the disabled option, but as a safeguard:
+                alert(`Cannot move action. Wheel "${targetWheelData.title}" is full.`);
+                return;
+            }
+            onMoveAction(targetWheel);
+            setMoveDialogOpen(false);
+        }
+    };
+
 
     const handleIconTypeChange = (newType: 'item' | 'texture') => {
         if (newType === action.icon.type) return;
@@ -173,6 +201,7 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
     };
 
     return (
+        <>
         <div className="bg-slate-800 rounded-lg ring-1 ring-slate-700">
             <div className="p-2 sm:p-4">
                 <div className="flex justify-between items-start mb-6">
@@ -180,10 +209,19 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
                         <h3 className="text-xl font-bold text-slate-100">Edit Action</h3>
                         <p className="text-violet-400 font-mono text-sm">{action.label || 'New Action'}</p>
                     </div>
-                    <Button onClick={deleteAction} className="bg-rose-600 hover:bg-rose-500 flex-shrink-0">
-                        <TrashIcon className="w-5 h-5 sm:mr-2" />
-                        <span className="hidden sm:inline">Delete</span>
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button
+                             onClick={() => setMoveDialogOpen(true)}
+                             disabled={otherWheels.length === 0}
+                             className="bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400"
+                        >
+                             Move...
+                        </Button>
+                        <Button onClick={deleteAction} className="bg-rose-600 hover:bg-rose-500 flex-shrink-0">
+                            <TrashIcon className="w-5 h-5 sm:mr-2" />
+                            <span className="hidden sm:inline">Delete</span>
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="space-y-4">
@@ -245,5 +283,28 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
                 </div>
             </div>
         </div>
+        <Dialog open={isMoveDialogOpen} onClose={() => setMoveDialogOpen(false)}>
+            <DialogHeader>Move Action</DialogHeader>
+            <DialogContent>
+                <p className="text-slate-300 mb-4">Move the action <strong className="text-white">"{action.label}"</strong> to a different wheel.</p>
+                <FormRow label="Destination">
+                    <Select value={targetWheel} onChange={e => setTargetWheel(e.target.value as UUID || '')}>
+                        <option value="">-- Select a wheel --</option>
+                        {otherWheels.map(wheel => (
+                            <option key={wheel.uuid} value={wheel.uuid} disabled={wheel.actions.length >= MAX_ACTIONS_PER_WHEEL}>
+                                {wheel.title} ({wheel.actions.length}/{MAX_ACTIONS_PER_WHEEL})
+                            </option>
+                        ))}
+                    </Select>
+                </FormRow>
+            </DialogContent>
+            <DialogFooter>
+                <Button onClick={() => setMoveDialogOpen(false)} className="bg-slate-600 hover:bg-slate-500">Cancel</Button>
+                <Button onClick={handleMoveConfirm} disabled={!targetWheel} className="bg-violet-600 hover:bg-violet-500">
+                    Move Action
+                </Button>
+            </DialogFooter>
+        </Dialog>
+        </>
     );
 }

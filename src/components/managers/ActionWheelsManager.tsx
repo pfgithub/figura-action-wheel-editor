@@ -110,6 +110,29 @@ export function ActionWheelsManager({
         setSelectedActionIndex(null);
     };
 
+    const moveSelectedAction = (targetWheelUuid: UUID) => {
+        if (!selectedActionData) return;
+        const { action, wheelUuid: sourceWheelUuid, actionIndex } = selectedActionData;
+
+        const targetWheel = avatar.actionWheels[targetWheelUuid];
+        if (targetWheel && targetWheel.actions.length >= MAX_ACTIONS_PER_WHEEL) {
+            alert(`Cannot move action. Wheel "${targetWheel.title}" is full.`);
+            return;
+        }
+
+        updateAvatar(draft => {
+            const source = draft.actionWheels[sourceWheelUuid];
+            const target = draft.actionWheels[targetWheelUuid];
+
+            if (source && target) {
+                source.actions.splice(actionIndex, 1);
+                target.actions.push(action);
+            }
+        });
+
+        setSelectedActionIndex(null);
+    };
+
     const handleReorder = (oldIndex: number, newIndex: number, preDragSelection: number | null) => {
         if (!currentWheel) return;
         updateAvatar(draft => {
@@ -232,6 +255,8 @@ export function ActionWheelsManager({
                                 deleteAction={deleteSelectedAction}
                                 allToggleGroups={allToggleGroups}
                                 allActionWheels={allActionWheels}
+                                currentWheelUuid={selectedActionData.wheelUuid}
+                                onMoveAction={moveSelectedAction}
                             />
                         ) : (
                              <div className="flex flex-col items-center justify-center h-full bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700 min-h-[400px]">
