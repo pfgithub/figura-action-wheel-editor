@@ -9,30 +9,30 @@ async function hashUUID(data: Uint8Array): Promise<UUID> {
     const uuid = `${toHex(hash.subarray(0, 4))}-${toHex(hash.subarray(4,6))}-${toHex(hash.subarray(6, 8))}-${toHex(hash.subarray(8, 10))}-${toHex(hash.subarray(10, 16))}` as UUID;
     return uuid;
 }
-async function addScript(name: string, text: string, instances: ScriptDataInstanceType[]) {
+async function addScript(name: string, text: string, instances: (cb: (sub: string) => Promise<UUID>) => Promise<ScriptDataInstanceType[]>) {
     const uuid = await hashUUID(new TextEncoder().encode(text));
     scripts[uuid] = {
         uuid,
         name,
-        instanceTypes: Object.fromEntries(instances.map(q => [q.uuid, q])),
+        instanceTypes: Object.fromEntries((await instances((sub: string) => hashUUID(new TextEncoder().encode(`[${sub}]` + text)))).map(q => [q.uuid, q])),
     };
 }
 
-await addScript("Camera Pivot", offsetCameraPivot, [
+await addScript("Camera Pivot", offsetCameraPivot, async (sub): Promise<ScriptDataInstanceType[]> => [
     {
-        uuid: await hashUUID(new TextEncoder().encode(offsetCameraPivot + "/CameraPivot")),
+        uuid: await sub("CameraPivot"),
         name: "Camera Pivot",
         mode: "one",
         parameters: [
             {
-                uuid: await hashUUID(new TextEncoder().encode(offsetCameraPivot + "/CameraPivot/modelPart")),
+                uuid: await sub("CameraPivot/modelPart"),
                 name: "Model Root",
                 type: {
                     kind: "ModelPart",      
                 },
             },
             {
-                uuid: await hashUUID(new TextEncoder().encode(offsetCameraPivot + "/CameraPivot/offset")),
+                uuid: await sub("CameraPivot/offset"),
                 name: "Offset",
                 type: {kind: "vec3"},
                 defaultValue: [0, 27.648, 0],
