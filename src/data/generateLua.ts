@@ -197,7 +197,7 @@ export function generateLuaInner(avatar: Avatar) {
         let updateActionWheelStatesBody = "";
         for(const action of actionWheel.actions) {
             const actionIdent = ctx.addUuidIdent(action.uuid);
-            predeclare.push(`local ${actionIdent} = nil`);
+            predeclare.push(`local ${actionIdent} = nil\n`);
             src += `${actionIdent} = ${actionWheelIdent}:newAction()\n`;
             src += `${actionIdent}:title(${luaString(action.label)})\n`;
             if(action.icon.type === "item") {
