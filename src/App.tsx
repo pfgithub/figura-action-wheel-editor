@@ -138,18 +138,19 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
                     if (typeof item === "string") {
                         const element = elements.get(item);
                         if (element) {
-                            const newParts = [modelName, ...parts, element.name];
+                            const newParts = [...parts, element.name];
                             allModelElements.push(`models${stringifyParts(newParts)}`);
                         }
                     }else{
                         const newParts = [...parts, item.name];
                         if (item.children?.length) {
+                          allModelElements.push(`models${stringifyParts(newParts)}`);
                           traverseOutliner(item.children, newParts);
                         }
                     }
                 }
             };
-            traverseOutliner(model.outliner, []);
+            traverseOutliner(model.outliner, [modelName]);
         }
 
         if(Array.isArray(model.textures)) {

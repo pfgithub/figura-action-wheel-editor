@@ -232,7 +232,7 @@ export function generateLuaInner(avatar: Avatar) {
     let renderContents = "";
 
     let renderIdToVarMap = new Map<string, string>();
-    const addCondition = (cond: Condition): string | null => {
+    const addCondition = (cond: Condition): string => {
         if(cond.kind === "toggleGroup") {
             if(!cond.toggleGroup) return "false";
             if(!cond.value) return "false";
@@ -266,6 +266,8 @@ end
             renderVars += `    local ${varId} = ${cond.render}\n`;
             renderIdToVarMap.set(cond.render, varId);
             return varId;
+        }else if(cond.kind === "and") {
+            return cond.conditions.map(cond => `(${addCondition(cond)})`).join(" and ");
         }else{
             alwaysWarnings += `    print("TODO implement condition ${cond.kind}")\n`;
             return "false";
@@ -279,6 +281,9 @@ end
         if(setting.kind === "play_animation") {
             const anim = getAnimation(setting.animation);
             renderContents += `    if ${anim} then ${anim}:setPlaying(${cond}) end\n`;
+        }else if(setting.kind === "hide_element") {
+            const elem = getModelPart(setting.element);
+            renderContents += `    if ${elem} then ${elem}:setVisible(not (${cond})) end\n`;
         }else{
             alwaysWarnings += `print("TODO implement setting ${setting.kind}")\n`;
         }
