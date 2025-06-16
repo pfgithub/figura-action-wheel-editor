@@ -2,11 +2,13 @@ local ocpConfig = {
     modelPart = nil, -- models.model.Character
     enable = true,
     allowEyeOffset = false,
+	allowRotate = false,
     offset = vec(0, 27.648, 0),
 }
 -- %FiguraEditor.LibSetting% ["Body Root Part", "ModelPart"] %(lib).modelPart = %(value)
 -- %FiguraEditor.LibSetting% ["Offset", "vec3", [0, 27.648, 0]] %(lib).offset = %(value)
 -- %FiguraEditor.RenderSetting% "Disable" %(lib).enable = not %(value)
+-- %FiguraEditor.RenderSetting% "Allow Rotate Camera" %(lib).allowRotate = %(value)
 -- %FiguraEditor.RenderSetting% "Move Crosshair (May trigger AntiCheat in multiplayer)" %(lib).enable = not %(value)
 
     
@@ -170,38 +172,40 @@ function events.render(delta,context)
 		animPos.z = 0
         renderer:setOffsetCameraPivot(animPos.x / 16, animPos.y / 16, animPos.z / 16)
 		
-		local playerRot = player:getRot(delta)
-		lookDirDeg = vec(playerRot.x, playerRot.y, 0)
-		if renderer:isCameraBackwards() then lookDirDeg = vec(-lookDirDeg.x, lookDirDeg.y - 180, 0) end
-		
-		local bodyRot = 180 - wrapDeg(player:getBodyYaw(delta))
-		lookDirDeg.y = lookDirDeg.y + bodyRot
-		
-		local lookDirQuat = vecToQuat( lookDirDeg )
-		
-		local bodyDirDeg = ocpConfig.modelPart:getTrueRot()
-		local bodyDirQuat = vecToQuat(bodyDirDeg)
-		
-		local finalDirQuat = quaternionMultiply(lookDirQuat, bodyDirQuat)
-		local finalDirDeg = quatToVec(finalDirQuat)
+		if ocpConfig.allowRotate then
+			local playerRot = player:getRot(delta)
+			lookDirDeg = vec(playerRot.x, playerRot.y, 0)
+			if renderer:isCameraBackwards() then lookDirDeg = vec(-lookDirDeg.x, lookDirDeg.y - 180, 0) end
+			
+			local bodyRot = 180 - wrapDeg(player:getBodyYaw(delta))
+			lookDirDeg.y = lookDirDeg.y + bodyRot
+			
+			local lookDirQuat = vecToQuat( lookDirDeg )
+			
+			local bodyDirDeg = ocpConfig.modelPart:getTrueRot()
+			local bodyDirQuat = vecToQuat(bodyDirDeg)
+			
+			local finalDirQuat = quaternionMultiply(lookDirQuat, bodyDirQuat)
+			local finalDirDeg = quatToVec(finalDirQuat)
 
-		local nextCameraRot = vec(finalDirDeg.x, finalDirDeg.y - bodyRot, finalDirDeg.z)
-		nextCameraRot.x = wrapDeg(nextCameraRot.x)
-		nextCameraRot.y = wrapDeg(nextCameraRot.y)
-		nextCameraRot.z = wrapDeg(nextCameraRot.z)
-		local diffX = playerRot.x - nextCameraRot.x
-		local diffY = playerRot.y - nextCameraRot.y
-		local diffZ = 0 - nextCameraRot.z
-		diffX = math.abs(wrapDeg(diffX))
-		diffY = math.abs(wrapDeg(diffY))
-		diffZ = math.abs(wrapDeg(diffZ))
-		local epsilon = 0.01
-		if diffX > epsilon or diffY > epsilon or diffZ > epsilon then
-			renderer:setCameraRot(nextCameraRot)
-			lastFrameSetRot = true
-		elseif lastFrameSetRot then
-			lastFrameSetRot = false
-			renderer:setCameraRot()
+			local nextCameraRot = vec(finalDirDeg.x, finalDirDeg.y - bodyRot, finalDirDeg.z)
+			nextCameraRot.x = wrapDeg(nextCameraRot.x)
+			nextCameraRot.y = wrapDeg(nextCameraRot.y)
+			nextCameraRot.z = wrapDeg(nextCameraRot.z)
+			local diffX = playerRot.x - nextCameraRot.x
+			local diffY = playerRot.y - nextCameraRot.y
+			local diffZ = 0 - nextCameraRot.z
+			diffX = math.abs(wrapDeg(diffX))
+			diffY = math.abs(wrapDeg(diffY))
+			diffZ = math.abs(wrapDeg(diffZ))
+			local epsilon = 0.01
+			if diffX > epsilon or diffY > epsilon or diffZ > epsilon then
+				renderer:setCameraRot(nextCameraRot)
+				lastFrameSetRot = true
+			elseif lastFrameSetRot then
+				lastFrameSetRot = false
+				renderer:setCameraRot()
+			end
 		end
 		
         if ocpConfig.allowEyeOffset then
