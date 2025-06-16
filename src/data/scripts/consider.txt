@@ -12,3 +12,5 @@ https://discord.com/channels/1129805506354085959/1345908550500876299/13830850842
   in the lua & set up the bones before physbone is loaded
 https://github.com/Bitslayn/Gaze/wiki/1.-Eye-Basics
 - add a gaze component, select horizontal look, vertical look, and optional blink animation
+https://github.com/Manuel-3/figura-scripts/blob/main/src/membrane/membrane.lua
+- add a membrane and its four points
