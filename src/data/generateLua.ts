@@ -172,7 +172,7 @@ export function generateLuaInner(avatar: Avatar) {
         animationVars.set(animation, val);
         return val;
     };
-    type ToggleGroup = {ping: string, activeState: string, onToggled: Lua[]};
+    type ToggleGroup = {toggler: string, ping: string, activeState: string, onToggled: Lua[]};
     const toggleGroups = new Map<UUID, ToggleGroup>();
     let getToggleGroup = (toggleGroup: UUID): ToggleGroup => {
         if(toggleGroups.has(toggleGroup)) return toggleGroups.get(toggleGroup)!;
@@ -184,7 +184,8 @@ export function generateLuaInner(avatar: Avatar) {
         const onToggled: Lua[] = [];
         fns.push(onToggled);
         fns.push(`end\n`);
-        const ret: ToggleGroup = {ping, activeState, onToggled};
+        const toggler = ctx.addNextIdent(toggleGroup);
+        const ret: ToggleGroup = {toggler, ping, activeState, onToggled};
         toggleGroups.set(toggleGroup, ret);
         return ret;
     };
@@ -217,11 +218,7 @@ export function generateLuaInner(avatar: Avatar) {
                 const toggleGroup = getToggleGroup(action.effect.toggleGroup);
                 const num = action.effect.value == null ? "nil" : ctx.uuidToNumber(action.effect.value);
                 src += `${actionIdent}:onToggle(function(toggled)\n`;
-                src += `    if toggled then\n`;
-                src += `        ${toggleGroup.ping}(${num})\n`;
-                src += `    else\n`;
-                src += `        ${toggleGroup.ping}(nil)\n`;
-                src += `    end\n`;
+                src += `    ${toggleGroup.ping}(toggled and ${num} or nil)\n`;
                 src += `end)\n`;
                 toggleGroup.onToggled.push(`    ${actionIdent}:toggled(${toggleGroup.activeState} == ${num})\n`);
             }else if(action.effect?.kind === "switchPage" && action.effect.actionWheel != null) {
