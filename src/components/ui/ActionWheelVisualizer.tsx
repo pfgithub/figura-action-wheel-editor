@@ -5,8 +5,11 @@ import { useAvatarStore } from '@/store/avatarStore';
 import {
     DndContext,
     DragOverlay,
+    PointerSensor,
     useDraggable,
     useDroppable,
+    useSensor,
+    useSensors,
     type DragEndEvent,
     type DragStartEvent,
 } from '@dnd-kit/core';
@@ -233,14 +236,28 @@ export function ActionWheelVisualizer({
               onReorder(oldIndex, newIndex, preDragSelectedActionIndex);
           }
       } else {
-          // Not a valid drop, restore selection
-          onSelectAction(preDragSelectedActionIndex);
+          // Dropped on itself or outside a valid drop zone, treat as a click.
+          const clickedIndex = active.data.current?.index;
+          if (typeof clickedIndex === 'number') {
+              onSelectAction(clickedIndex);
+          } else {
+              // Not a valid drop, restore selection
+              onSelectAction(preDragSelectedActionIndex);
+          }
       }
       setPreDragSelectedActionIndex(null);
   };
   
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        })
+    );
+
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} sensors={sensors}>
         <div
             className="relative flex items-center justify-center bg-slate-800/50 rounded-full ring-4 ring-slate-700"
             style={{ width: `${WHEEL_RADIUS * 2 + BUTTON_SIZE}px`, height: `${WHEEL_RADIUS * 2 + BUTTON_SIZE}px`, margin: '0 auto' }}
