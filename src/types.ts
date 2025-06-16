@@ -15,6 +15,7 @@ export type Avatar = {
     actionWheels: Record<UUID, ActionWheel>,
     toggleGroups: Record<UUID, ToggleGroup>,
     conditionalSettings: Record<UUID, ConditionalSetting>,
+    scripts: Record<UUID, Script>[],
 };
 
 export type ActionWheel = {
@@ -146,4 +147,59 @@ export type Image = {
     width: number,
     height: number,
     thumbhash: string,
+};
+
+export type Script = {
+    uuid: UUID;
+    data: ScriptData,
+    name: string,
+    instances: Record<UUID, ScriptInstance[]>,
+};
+export type ScriptInstance = {
+    uuid: UUID,
+    name: string,
+    parameterValue: unknown,
+};
+
+export type ScriptData = {
+    uuid: UUID,
+    name: string,
+    instanceTypes: Record<UUID, ScriptDataInstanceType>,
+};
+export type ScriptDataInstanceType = {
+    uuid: UUID,
+    name: string,
+    mode: "zero_or_one" | "one" | "many",
+    parameters: ScriptDataInstanceParameter[],
+};
+export type ScriptDataInstanceParameter = {
+    uuid: UUID,
+    name: string,
+    type: LuaType,
+    defaultValue?: unknown,
+    helpText?: string,
+};
+
+export type LuaType = {
+    kind: "table"
+    entries: Record<string, LuaType>,
+} | {
+    kind: "list",
+    child: LuaType,
+} | {
+    kind: "boolean",
+} | {
+    kind: "vec3",
+} | {
+    kind: "string",
+} | {
+    kind: "ModelPart",
+} | {
+    kind: "ActionWheel",
+} | {
+    kind: "ToggleGroup",
+} | {
+    kind: "Animation",
+} | {
+    kind: "item",
 };

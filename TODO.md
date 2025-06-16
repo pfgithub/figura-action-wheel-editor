@@ -63,7 +63,8 @@
 - [ ] add lua library config support:
   - a library can define settings with a comment and you can configure it
   - we can have some default libraries you can add and configure
-- [ ] add support for reordering actions within an action wheel and moving actions between action wheels
+- [x] add support for reordering actions within an action wheel and moving actions between action wheels
+- [ ] add a code editor tab where you can write custom code. you can add parameters.
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
