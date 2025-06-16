@@ -130,7 +130,10 @@ export function generateLuaInner(avatar: Avatar) {
     const warnEnabled = true;
     let alwaysWarnings = ``;
     
-    let fns = ``;
+    type Lua = string | Lua[];
+    const fns: Lua[] = [];
+    const predeclare: Lua[] = [];
+    fns.push(predeclare);
 
     let mainVars = `\n-- Setup vars\n`;
     let src = "";
@@ -165,19 +168,21 @@ export function generateLuaInner(avatar: Avatar) {
         animationVars.set(animation, val);
         return val;
     };
-    type ToggleGroup = {ping: string, activeState: string};
+    type ToggleGroup = {ping: string, activeState: string, onToggled: Lua[]};
     const toggleGroups = new Map<UUID, ToggleGroup>();
     let getToggleGroup = (toggleGroup: UUID): ToggleGroup => {
         if(toggleGroups.has(toggleGroup)) return toggleGroups.get(toggleGroup)!;
         const activeState = ctx.addNextIdent(toggleGroup);
         const ping = "pings.actionEditor_"+ctx.addTrueUuidIdent(toggleGroup);
-        fns += `local ${activeState} = nil\n`;
-        fns += `function ${ping}(nextState)\n`;
-        fns += `    ${activeState} = nextState\n`;
-        fns += `end\n`;
-        const g: ToggleGroup = {ping, activeState};
-        toggleGroups.set(toggleGroup, g);
-        return g;
+        fns.push(`local ${activeState} = nil\n`);
+        fns.push(`function ${ping}(nextState)\n`);
+        fns.push(`    ${activeState} = nextState\n`);
+        const onToggled: Lua[] = [];
+        fns.push(onToggled);
+        fns.push(`end\n`);
+        const ret: ToggleGroup = {ping, activeState, onToggled};
+        toggleGroups.set(toggleGroup, ret);
+        return ret;
     };
 
     src += `\n-- Action wheels\n`;
@@ -189,9 +194,11 @@ export function generateLuaInner(avatar: Avatar) {
     for(const actionWheel of Object.values(avatar.actionWheels)) {
         const actionWheelIdent = ctx.getUuidIdent(actionWheel.uuid);
         if(!actionWheelIdent) continue;
+        let updateActionWheelStatesBody = "";
         for(const action of actionWheel.actions) {
             const actionIdent = ctx.addUuidIdent(action.uuid);
-            src += `local ${actionIdent} = ${actionWheelIdent}:newAction()\n`;
+            predeclare.push(`local ${actionIdent} = nil`);
+            src += `${actionIdent} = ${actionWheelIdent}:newAction()\n`;
             src += `${actionIdent}:title(${luaString(action.label)})\n`;
             if(action.icon.type === "item") {
                 src += `${actionIdent}:item(${luaString(action.icon.id)})\n`;
@@ -202,18 +209,19 @@ export function generateLuaInner(avatar: Avatar) {
                 // no icon
             }
             src += `${actionIdent}:hoverColor(${action.color[0]} / 255, ${action.color[1]} / 255, ${action.color[2]} / 255)\n`;
-            if(action.effect?.kind === "toggle" && action.effect.toggleGroup != null && action.effect.value != null) {
+            if(action.effect?.kind === "toggle" && action.effect.toggleGroup != null) {
                 const toggleGroup = getToggleGroup(action.effect.toggleGroup);
-                const num = ctx.uuidToNumber(action.effect.value);
-                src += `${actionIdent}:onLeftClick(function()\n`;
-                src += `    if ${toggleGroup.activeState} == ${num} then\n`;
-                src += `        ${toggleGroup.ping}(nil)\n`;
-                src += `    else\n`;
+                const num = action.effect.value == null ? "nil" : ctx.uuidToNumber(action.effect.value);
+                src += `${actionIdent}:onToggle(function(toggled)\n`;
+                src += `    if toggled then\n`;
                 src += `        ${toggleGroup.ping}(${num})\n`;
+                src += `    else\n`;
+                src += `        ${toggleGroup.ping}(nil)\n`;
                 src += `    end\n`;
                 src += `end)\n`;
-            }else if(action.effect?.kind === "switchPage") {
-
+                toggleGroup.onToggled.push(`    ${actionIdent}:toggled(${toggleGroup.activeState} == ${num})\n`);
+            }else if(action.effect?.kind === "switchPage" && action.effect.actionWheel != null) {
+                src += `${actionIdent}:onLeftClick(function() action_wheel:setPage(${ctx.getUuidIdent(action.effect.actionWheel)}) end)\n`;
             }else{
                 // no effect
             }
@@ -296,7 +304,7 @@ end
     src += renderContents;
     src += `end\n`;
 
-    return fns + mainVars + src + alwaysWarnings;
+    return fns.flat(Infinity as 1).join("") + mainVars + src + alwaysWarnings;
 }
 
 export function parseLua(source: string): Avatar {

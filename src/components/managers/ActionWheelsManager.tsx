@@ -34,7 +34,7 @@ export function ActionWheelsManager({
 
     if (!avatar) return null; // Should not happen if App component handles loading state
 
-    const setMainWheel = (uuid: UUID) => {
+    const setMainWheel = (uuid: UUID | undefined) => {
         updateAvatar(draft => {
             draft.mainActionWheel = uuid;
         });
@@ -219,11 +219,9 @@ export function ActionWheelsManager({
                         className="text-xl font-semibold bg-slate-700/80 border-slate-600"
                     />
                     <div className="flex gap-2 flex-shrink-0">
-                        {avatar.mainActionWheel !== currentWheel.uuid && (
-                            <Button onClick={() => setMainWheel(currentWheel.uuid)} className="bg-amber-500 hover:bg-amber-400 focus-visible:ring-amber-300">
-                                Set as Main
-                            </Button>
-                        )}
+                        <Button onClick={() => setMainWheel(currentWheel.uuid)} className="bg-amber-500 hover:bg-amber-400 focus-visible:ring-amber-300">
+                            {avatar.mainActionWheel !== currentWheel.uuid ? "Set as Main" : "Unset Main"}
+                        </Button>
                         {allActionWheels.length > 1 && (
                             <Button onClick={() => deleteActionWheel(currentWheel.uuid)} className="bg-rose-600 hover:bg-rose-500 focus-visible:ring-rose-400">
                                 Delete Wheel
