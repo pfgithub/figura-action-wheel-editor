@@ -3,7 +3,7 @@ import {extname} from "path";
 
 export function genViewerPrompt(): string {
     let allFiles: string = "";
-    allFiles += "Output only the affected files. Do not output diffs. You can add, modify, and delete files.\n\n";
+    allFiles += "Output the affected files. Do not output diffs. You can add, modify, and delete files.\n\n";
     allFiles += "# All files\n\n";
     let res: string = "";
     const all = readdirSync(import.meta.dir + "/src", {recursive: true}).filter(q => typeof q === "string").map(q => q.replaceAll("\\", "/"));
