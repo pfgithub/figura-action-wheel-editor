@@ -11,4 +11,4 @@ https://discord.com/channels/1129805506354085959/1345908550500876299/13830850842
 - make a chain conveyor ragdoll lib. since you can make components in lua it can auto copy your model
   in the lua & set up the bones before physbone is loaded
 https://github.com/Bitslayn/Gaze/wiki/1.-Eye-Basics
-- add a gaze component, select horizontal look, vertical look, and blink animations
+- add a gaze component, select horizontal look, vertical look, and optional blink animation

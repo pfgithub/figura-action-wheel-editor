@@ -235,9 +235,8 @@ export function generateLuaInner(avatar: Avatar) {
     const addCondition = (cond: Condition): string => {
         if(cond.kind === "toggleGroup") {
             if(!cond.toggleGroup) return "false";
-            if(!cond.value) return "false";
             const toggleGroup = getToggleGroup(cond.toggleGroup);
-            return `${toggleGroup.activeState} == ${ctx.uuidToNumber(cond.value)}`
+            return `${toggleGroup.activeState} == ${cond.value == null ? "nil" : ctx.uuidToNumber(cond.value)}`
         }else if(cond.kind === "render" && cond.render != null) {
             if(renderIdToVarMap.has(cond.render)) return renderIdToVarMap.get(cond.render)!;
             if(cond.render === "playerIsFlying") {
@@ -268,6 +267,11 @@ end
             return varId;
         }else if(cond.kind === "and") {
             return cond.conditions.map(cond => `(${addCondition(cond)})`).join(" and ");
+        }else if(cond.kind === "or") {
+            return cond.conditions.map(cond => `(${addCondition(cond)})`).join(" or ");
+        }else if(cond.kind === "not") {
+            if(!cond.condition) return "false";
+            return `not (${addCondition(cond.condition)})`;
         }else{
             alwaysWarnings += `    print("TODO implement condition ${cond.kind}")\n`;
             return "false";
