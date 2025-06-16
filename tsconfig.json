@@ -5,7 +5,8 @@
 
     // Bundler mode
     "moduleResolution": "bundler",
-    "module": "Preserve",
+    "module": "preserve",
+    "target": "esnext",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,

@@ -51,8 +51,8 @@ function RenderIcon({icon}: {icon: IconItem | IconTexture}) {
     const { items } = useMinecraftItems();
     if (icon.type === 'item') {
       const item = items?.[icon.id];
-      if (item?.imageUrl) {
-          return <img src={item.imageUrl} alt={""} className="w-8 h-8 image-pixelated" />
+      if (item?.image) {
+          return <img src={`https://lfs.pfg.pw/source/${item.image.uuid}.png`} alt={""} className="w-8 h-8 image-pixelated" />
       }
       return <span className="text-xs max-w-full break-words" style={{ lineHeight: 1 }}>{icon.id}</span>;
     }

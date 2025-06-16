@@ -60,7 +60,7 @@ export function MinecraftItemPickerDialog({ open, onClose, onSelect }: Minecraft
                                     title={`${item.name}\n(${item.id})`}
                                     className="aspect-square flex flex-col items-center justify-center p-1 rounded-md hover:bg-violet-500/30 focus:bg-violet-500/50 focus:outline-none transition-colors group"
                                 >
-                                    <img src={item.imageUrl} alt={item.name} className="w-8 h-8 image-pixelated transition-transform group-hover:scale-110" />
+                                    <img src={`https://lfs.pfg.pw/source/${item.image.uuid}.png`} alt={item.name} className="w-8 h-8 image-pixelated transition-transform group-hover:scale-110" />
                                     <span className="text-xs text-center text-slate-400 truncate w-full block mt-1">{item.name}</span>
                                 </button>
                             ))}

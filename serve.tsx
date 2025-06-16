@@ -12,10 +12,6 @@ const server = serve({
         'Content-Type': "text/plain; charset=utf-8",
       },
     }),
-    "/minecraft-items.json": new Response(JSON.stringify({
-      "minecraft:air": {id: "minecraft:air", name: "Air", imageUrl: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="},
-      "minecraft:stone": {id: "minecraft:stone", name: "Stone", imageUrl: "https://minecraft.wiki/images/Invicon_Stone.png?909de"},
-    })),
   },
 
   development: process.env.NODE_ENV !== "production" && {

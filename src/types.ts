@@ -134,3 +134,16 @@ export type RenderValueData = {
     id: RenderValueID,
     name: string,
 };
+
+export type MinecraftItem = {
+    id: string;
+    name: string;
+    image: Image;
+};
+export type Image = {
+    uuid: string,
+    alt: string,
+    width: number,
+    height: number,
+    thumbhash: string,
+};
