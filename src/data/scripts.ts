@@ -40,3 +40,12 @@ await addScript("Camera Pivot", offsetCameraPivot, async (sub): Promise<ScriptDa
         ],
     },
 ]);
+
+/*
+TODO:
+- need to be able to add RenderSetting from script
+  - it will be ($ScriptName.$ComponentName: $ComponentProp)
+- need to be able to add RenderValue from script
+  - it will be (dropdown: Component List) (dropdown: Render Value)
+- need to be able to add action wheel from script
+*/
