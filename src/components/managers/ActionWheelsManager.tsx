@@ -110,6 +110,27 @@ export function ActionWheelsManager({
         setSelectedActionIndex(null);
     };
 
+    const handleReorder = (oldIndex: number, newIndex: number, preDragSelection: number | null) => {
+        if (!currentWheel) return;
+        updateAvatar(draft => {
+            const wheel = draft.actionWheels[currentWheel.uuid];
+            if (wheel && wheel.actions[oldIndex] && wheel.actions[newIndex]) {
+                // Swap actions
+                const temp = wheel.actions[oldIndex];
+                wheel.actions[oldIndex] = wheel.actions[newIndex];
+                wheel.actions[newIndex] = temp;
+            }
+        });
+    
+        if (preDragSelection === oldIndex) {
+            setSelectedActionIndex(newIndex);
+        } else if (preDragSelection === newIndex) {
+            setSelectedActionIndex(oldIndex);
+        } else {
+            setSelectedActionIndex(preDragSelection);
+        }
+    };
+
     const renderTabBar = () => (
         <div className="flex items-center border-b border-slate-700 mb-6 -mx-2 px-2 pb-px space-x-1 overflow-x-auto">
             {allActionWheels.map(wheel => (
@@ -198,6 +219,7 @@ export function ActionWheelsManager({
                             onAddAction={() => addAction(currentWheel.uuid)}
                             selectedActionIndex={selectedActionIndex}
                             wheelTitle={currentWheel.title}
+                            onReorder={handleReorder}
                         />
                     </div>
 
