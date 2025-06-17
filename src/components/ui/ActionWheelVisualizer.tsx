@@ -133,6 +133,7 @@ function RenderTextureIcon({ icon }: { icon: IconTexture }) {
 			context.imageSmoothingEnabled = false;
 
 			// Clear the canvas before drawing
+			if (!canvas.current) return;
 			context.clearRect(0, 0, canvas.current?.width, canvas.current?.height);
 
 			// Draw the specific part of the texture onto the canvas, scaled up
