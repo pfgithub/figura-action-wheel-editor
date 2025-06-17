@@ -217,7 +217,7 @@ export function ActionWheelsManager({
                         className="text-xl font-semibold bg-slate-700/80 border-slate-600"
                     />
                     <div className="flex gap-2 flex-shrink-0">
-                        <Button onClick={() => setMainWheel(currentWheel.uuid)} className="bg-amber-500 hover:bg-amber-400 focus-visible:ring-amber-300">
+                        <Button onClick={() => setMainWheel(avatar.mainActionWheel === currentWheel.uuid ? undefined : currentWheel.uuid)} className="bg-amber-500 hover:bg-amber-400 focus-visible:ring-amber-300">
                             {avatar.mainActionWheel !== currentWheel.uuid ? "Set as Main" : "Unset Main"}
                         </Button>
                         {allActionWheels.length > 1 && (
