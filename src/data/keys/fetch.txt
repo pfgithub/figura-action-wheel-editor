@@ -1,0 +1,2 @@
+copy("[  "+Array.from(temp0.children).map(q => JSON.stringify({name: q.querySelector("td").textContent, id: q.querySelector("code").textContent})).join(",\n  ")+"\n]")
+https://figura-wiki.pages.dev/enums/Keybinds-List

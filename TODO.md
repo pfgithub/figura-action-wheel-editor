@@ -80,6 +80,7 @@
     causing an error when activeId is not defined
 - [ ] start running typechecking
 - [ ] eslint react checks - it loves to add unsafe early returns before a hook
+- [ ] add keybinds. a keybind has a user-selected name and a Key ID. The list of key ids can be imported from `@/data/KeybindsList.json` and it is of type `{name: string, id: string}[]`. Keybinds can be configured to run Actions.
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
