@@ -1,0 +1,51 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+	"vcs": {
+		"enabled": false,
+		"clientKind": "git",
+		"useIgnoreFile": false
+	},
+	"files": {
+		"ignoreUnknown": false
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab"
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"a11y": {
+				// we can switch to headlessui to fix many of these
+				// (ie some are from a custom dialog element)
+				"noLabelWithoutControl": "off",
+				"useSemanticElements": "off",
+				"useKeyWithClickEvents": "off",
+				"noStaticElementInteractions": "off",
+				"noSvgWithoutTitle": "off",
+				"useButtonType": "off" // TODO
+			},
+			"suspicious": {
+				"noAssignInExpressions": "off", // you're allowed to it's just confusing
+				"noExplicitAny": "off"
+			},
+			"style": {
+				"noNonNullAssertion": "off"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double"
+		}
+	},
+	"assist": {
+		"enabled": true,
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	}
+}

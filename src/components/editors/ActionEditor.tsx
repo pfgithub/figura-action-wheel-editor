@@ -209,9 +209,7 @@ export function ActionEditor({
 	const { avatar, textures } = useAvatarStore();
 	const [isMoveDialogOpen, setMoveDialogOpen] = useState(false);
 	const [targetWheel, setTargetWheel] = useState<UUID | "">("");
-
-	if (!avatar) return null;
-	const allActionWheels = Object.values(avatar.actionWheels);
+	const allActionWheels = Object.values(avatar?.actionWheels ?? {});
 
 	const otherWheels = allActionWheels.filter(
 		(w) => w.uuid !== currentWheelUuid,
@@ -223,6 +221,8 @@ export function ActionEditor({
 			setTargetWheel("");
 		}
 	}, [isMoveDialogOpen]);
+
+	if (!avatar) return null;
 
 	const handleMoveConfirm = () => {
 		if (targetWheel) {

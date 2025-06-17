@@ -1,12 +1,9 @@
 // src/components/dialogs/ToggleGroupDialog.tsx
 import { useState, useEffect } from "react";
 import type {
-	Avatar,
 	ToggleGroup,
 	ToggleGroupOption,
 	UUID,
-	Condition,
-	ConditionalSetting,
 } from "@/types";
 import { useAvatarStore } from "@/store/avatarStore";
 import { generateUUID } from "@/utils/uuid";
@@ -21,86 +18,8 @@ import {
 import { FormRow } from "@/components/ui/FormRow";
 import {
 	ConfirmationDialog,
-	UsageWarningDialog,
 } from "@/components/ui/ConfirmationDialog";
 import { TrashIcon, PlusIcon } from "@/components/ui/icons";
-
-// --- Helper functions for robust usage checking ---
-
-function getSettingName(setting: ConditionalSetting): string {
-	return setting.kind;
-}
-
-function checkAnimationCondition(
-	condition: Condition | undefined,
-	toggleGroupUUID: UUID,
-	settingName: string,
-): string[] {
-	const usages: string[] = [];
-	if (!condition) return usages;
-
-	function traverse(cond: Condition) {
-		if (!cond) return;
-		switch (cond.kind) {
-			case "and":
-			case "or":
-				cond.conditions.forEach(traverse);
-				break;
-			case "not":
-				if (cond.condition) traverse(cond.condition);
-				break;
-			case "toggleGroup":
-				if (cond.toggleGroup === toggleGroupUUID) {
-					usages.push(`the activation condition of ${settingName}`);
-				}
-				break;
-			default:
-				break;
-		}
-	}
-
-	traverse(condition);
-	return usages;
-}
-
-function findToggleGroupUsage(avatar: Avatar, toggleGroupUUID: UUID): string[] {
-	const usages: string[] = [];
-
-	// Check Action Wheels
-	for (const wheel of Object.values(avatar.actionWheels ?? {})) {
-		for (const action of wheel.actions) {
-			if (
-				action.effect?.kind === "toggle" &&
-				action.effect.toggleGroup === toggleGroupUUID
-			) {
-				usages.push(`the action "${action.label}" in wheel "${wheel.title}"`);
-			}
-		}
-	}
-
-	// Check Animation Settings
-	for (const setting of Object.values(avatar.conditionalSettings ?? {})) {
-		usages.push(
-			...checkAnimationCondition(
-				setting.activationCondition,
-				toggleGroupUUID,
-				getSettingName(setting),
-			),
-		);
-	}
-
-	// Check Keybinds
-	for (const keybind of Object.values(avatar.keybinds ?? {})) {
-		if (
-			keybind.effect?.kind === "toggle" &&
-			keybind.effect.toggleGroup === toggleGroupUUID
-		) {
-			usages.push(`the keybind "${keybind.name}"`);
-		}
-	}
-
-	return [...new Set(usages)];
-}
 
 interface ToggleGroupDialogProps {
 	groupToEdit: ToggleGroup | null;
@@ -119,9 +38,8 @@ export function ToggleGroupDialog({
 	const [nameError, setNameError] = useState("");
 	const [optionsError, setOptionsError] = useState("");
 	const [dialogState, setDialogState] = useState<
-		"idle" | "confirmingDelete" | "showingUsage"
+		"idle" | "confirmingDelete"
 	>("idle");
-	const [usages, setUsages] = useState<string[]>([]);
 
 	useEffect(() => {
 		if (groupToEdit) {
@@ -208,13 +126,7 @@ export function ToggleGroupDialog({
 
 	const handleDeleteRequest = () => {
 		if (!groupToEdit || !avatar) return;
-		const currentUsages = findToggleGroupUsage(avatar, groupToEdit.uuid);
-		if (currentUsages.length > 0) {
-			setUsages(currentUsages);
-			setDialogState("showingUsage");
-		} else {
-			setDialogState("confirmingDelete");
-		}
+		setDialogState("confirmingDelete");
 	};
 
 	const confirmDelete = () => {
@@ -293,12 +205,6 @@ export function ToggleGroupDialog({
 				</DialogFooter>
 			</Dialog>
 
-			<UsageWarningDialog
-				open={dialogState === "showingUsage"}
-				onClose={() => setDialogState("idle")}
-				title="Cannot Delete Group"
-				usages={usages}
-			/>
 			<ConfirmationDialog
 				open={dialogState === "confirmingDelete"}
 				onCancel={() => setDialogState("idle")}

@@ -35,10 +35,9 @@ export function ActionEffectEditor({
 		}
 	};
 
-	if (!avatar) return null;
-	const allToggleGroups = Object.values(avatar.toggleGroups);
-	const allActionWheels = Object.values(avatar.actionWheels);
-	const allScripts = avatar.scripts;
+	const allToggleGroups = Object.values(avatar?.toggleGroups ?? {});
+	const allActionWheels = Object.values(avatar?.actionWheels ?? {});
+	const allScripts = avatar?.scripts ?? {};
 
 	const allScriptInstances = React.useMemo(() => {
 		const instances: {
@@ -61,6 +60,8 @@ export function ActionEffectEditor({
 		});
 		return instances;
 	}, [allScripts]);
+	
+	if (!avatar) return null;
 
 	const selectedToggleGroup = allToggleGroups.find(
 		(g) =>

@@ -235,9 +235,7 @@ export function AnimationSettingsManager() {
 	const [deletingId, setDeletingId] = useState<UUID | null>(null);
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-	if (!avatar) return null;
-
-	const { conditionalSettings, scripts: allScripts } = avatar;
+	const { conditionalSettings, scripts: allScripts } = avatar ?? {conditionalSettings: {}, scripts: {}};
 
 	const allScriptInstances = useMemo(() => {
 		const instances: Map<
@@ -317,6 +315,8 @@ export function AnimationSettingsManager() {
 			return name.toLowerCase().includes(lowerFilter);
 		});
 	}, [allConfiguredSettings, lowerFilter, allScriptInstances]);
+
+	if (!avatar) return null;
 
 	const toggleExpand = (uuid: UUID) => {
 		setExpandedId((prev) => (prev === uuid ? null : uuid));

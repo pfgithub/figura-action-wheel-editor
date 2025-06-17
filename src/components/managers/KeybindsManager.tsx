@@ -15,9 +15,7 @@ export function KeybindsManager() {
 	const [selectedKeybindId, setSelectedKeybindId] = useState<UUID | null>(null);
 	const [deletingKeybindId, setDeletingKeybindId] = useState<UUID | null>(null);
 
-	if (!avatar) return null;
-
-	const allKeybinds = Object.values(avatar.keybinds ?? {}).sort((a, b) =>
+	const allKeybinds = Object.values(avatar?.keybinds ?? {}).sort((a, b) =>
 		a.name.localeCompare(b.name),
 	);
 
@@ -30,6 +28,8 @@ export function KeybindsManager() {
 		}
 		return map;
 	}, [keybindsList]);
+
+	if (!avatar) return null;
 
 	const handleAddKeybind = () => {
 		const newUuid = generateUUID();
