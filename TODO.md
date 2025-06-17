@@ -83,6 +83,7 @@
 - [x] add keybinds. a keybind has a user-selected name and a Key ID. The list of key ids can be imported from `@/data/KeybindsList.json` and it is of type `{name: string, id: string}[]`. Keybinds can be configured to run Actions.
 - [ ] make avatar non-optional in useAvatarStore
 - [ ] make a component for each condition node
+- [ ] modify the action wheels and conditional settings tabs to be like scripts and keybinds with the list on the left and the editor on the right
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
