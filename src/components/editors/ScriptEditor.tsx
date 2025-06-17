@@ -27,12 +27,13 @@ function getDefaultValueForType(type: any): any {
 			return type.defaultValue ?? [0, 0, 0];
 		case "list":
 			return [];
-		case "table":
+		case "table": {
 			const obj: Record<string, any> = {};
 			for (const key in type.entries) {
 				obj[key] = getDefaultValueForType(type.entries[key]);
 			}
 			return obj;
+		}
 		default:
 			return type.defaultValue ?? undefined;
 	}

@@ -269,7 +269,7 @@ export function AnimationSettingsManager() {
 						return s.element;
 					case "render":
 						return renderSettings.get(s.render)?.name ?? s.render;
-					case "script":
+					case "script": {
 						const instanceData = allScriptInstances.get(s.scriptInstance);
 						if (instanceData) {
 							const settingDef = instanceData.type.defines.settings[s.setting];
@@ -277,6 +277,7 @@ export function AnimationSettingsManager() {
 								return `${instanceData.script.name} - ${instanceData.instance.name}: ${settingDef.name}`;
 						}
 						return "Unknown Script Setting";
+					}
 				}
 			};
 			return getName(a).localeCompare(getName(b));
@@ -297,7 +298,7 @@ export function AnimationSettingsManager() {
 				case "render":
 					name = renderSettings.get(setting.render)?.name ?? setting.render;
 					break;
-				case "script":
+				case "script": {
 					const instanceData = allScriptInstances.get(setting.scriptInstance);
 					if (instanceData) {
 						const settingDef =
@@ -309,6 +310,7 @@ export function AnimationSettingsManager() {
 						name = "";
 					}
 					break;
+				}
 				default:
 					name = "";
 			}
@@ -394,12 +396,13 @@ export function AnimationSettingsManager() {
 				if (!modelElements.includes(setting.element))
 					warning = "Element not found in loaded .bbmodel files.";
 				break;
-			case "render":
+			case "render": {
 				const renderSetting = renderSettings.get(setting.render);
 				if (!renderSetting) warning = "Invalid render setting";
 				title = renderSetting?.name ?? setting.render;
 				break;
-			case "script":
+			}
+			case "script": {
 				const instanceData = allScriptInstances.get(setting.scriptInstance);
 				if (instanceData) {
 					const settingDef =
@@ -415,6 +418,7 @@ export function AnimationSettingsManager() {
 					warning = "Script instance not found.";
 				}
 				break;
+			}
 		}
 
 		return (

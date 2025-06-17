@@ -1,5 +1,6 @@
 // src/components/editors/ActionEditor.tsx
-import React, { useState, useRef, useEffect } from "react";
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
 import type {
 	Action,
 	ActionEffect,

@@ -154,7 +154,7 @@ export function generateLuaInner(avatar: Avatar) {
 	let src = "";
 
 	const textureVars = new Map<string, string>();
-	let getTexture = (texture: string): string => {
+	const getTexture = (texture: string): string => {
 		if (textureVars.has(texture)) return textureVars.get(texture)!;
 		const val = ctx.addNextIdent(texture);
 		mainVars += `local ${val} = tryOrNil(function() return textures[${luaString(texture)}] end, ${luaString(texture)})\n`;
@@ -162,7 +162,7 @@ export function generateLuaInner(avatar: Avatar) {
 		return val;
 	};
 	const modelPartVars = new Map<string, string>();
-	let getModelPart = (modelPart: string): string => {
+	const getModelPart = (modelPart: string): string => {
 		if (modelPartVars.has(modelPart)) return modelPartVars.get(modelPart)!;
 		const val = ctx.addNextIdent(modelPart);
 		mainVars += `local ${val} = tryOrNil(function() return ${modelPart} end, ${warnEnabled ? luaString(modelPart) : null})\n`;
@@ -170,7 +170,7 @@ export function generateLuaInner(avatar: Avatar) {
 		return val;
 	};
 	const animationVars = new Map<string, string>();
-	let getAnimation = (animation: string): string => {
+	const getAnimation = (animation: string): string => {
 		if (animationVars.has(animation)) return animationVars.get(animation)!;
 		const val = ctx.addNextIdent(animation);
 		mainVars += `local ${val} = tryOrNil(function() return ${animation} end, ${luaString(animation)})\n`;
@@ -184,7 +184,7 @@ export function generateLuaInner(avatar: Avatar) {
 		onToggled: Lua[];
 	};
 	const toggleGroups = new Map<UUID, ToggleGroup>();
-	let getToggleGroup = (toggleGroup: UUID): ToggleGroup => {
+	const getToggleGroup = (toggleGroup: UUID): ToggleGroup => {
 		if (toggleGroups.has(toggleGroup)) return toggleGroups.get(toggleGroup)!;
 		const activeState = ctx.addNextIdent(toggleGroup);
 		const ping = "pings.actionEditor_" + ctx.addTrueUuidIdent(toggleGroup);
@@ -209,7 +209,7 @@ export function generateLuaInner(avatar: Avatar) {
 	for (const actionWheel of Object.values(avatar.actionWheels)) {
 		const actionWheelIdent = ctx.getUuidIdent(actionWheel.uuid);
 		if (!actionWheelIdent) continue;
-		let updateActionWheelStatesBody = "";
+		const updateActionWheelStatesBody = "";
 		for (const action of actionWheel.actions) {
 			const actionIdent = ctx.addUuidIdent(action.uuid);
 			predeclare.push(`local ${actionIdent} = nil\n`);
@@ -262,7 +262,7 @@ export function generateLuaInner(avatar: Avatar) {
 	let renderVars = "";
 	let renderContents = "";
 
-	let renderIdToVarMap = new Map<string, string>();
+	const renderIdToVarMap = new Map<string, string>();
 	const addCondition = (cond: Condition): string => {
 		if (cond.kind === "toggleGroup") {
 			if (!cond.toggleGroup) return "false";

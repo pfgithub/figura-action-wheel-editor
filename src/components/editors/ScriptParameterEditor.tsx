@@ -50,7 +50,7 @@ export function ScriptParameterEditor({
 					/>
 				);
 
-			case "vec3":
+			case "vec3": {
 				const vec =
 					Array.isArray(value) && value.length === 3 ? value : [0, 0, 0];
 				return (
@@ -71,6 +71,7 @@ export function ScriptParameterEditor({
 						))}
 					</div>
 				);
+			}
 
 			case "ModelPart":
 				return (

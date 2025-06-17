@@ -18,7 +18,7 @@ export function genViewerPrompt(): string {
 		} catch (e) {
 			continue;
 		}
-		let omitted = file.startsWith("data/");
+		const omitted = file.startsWith("data/");
 		allFiles += omitted ? `- src/${file} (Omitted)\n` : "- src/" + file + "\n";
 		if (omitted) continue;
 		res += "# src/" + file + "\n\n";
