@@ -52,6 +52,10 @@ export type ActionEffect = {
 } | {
     kind: "switchPage",
     actionWheel?: UUID,
+} | {
+    kind: "switchPageScript",
+    scriptInstance?: UUID,
+    scriptActionWheel?: UUID,
 };
 
 export type ToggleGroupOption = {
@@ -85,7 +89,15 @@ export type RenderSetting = {
     activationCondition?: Condition;
 };
 
-export type ConditionalSetting = PlayAnimationSetting | HideElementSetting | RenderSetting;
+export type ScriptSetting = {
+    uuid: UUID;
+    kind: "script";
+    scriptInstance: UUID,
+    setting: UUID,
+    activationCondition?: Condition;
+};
+
+export type ConditionalSetting = PlayAnimationSetting | HideElementSetting | RenderSetting | ScriptSetting;
 
 export type ConditionOr = {
     id: UUID,
@@ -118,6 +130,12 @@ export type ConditionAnimation = {
     kind: "animation",
     animation?: AnimationID,
     mode?: "STOPPED" | "PAUSED" | "PLAYING",
+};
+export type ConditionScript = {
+    id: UUID,
+    kind: "script",
+    scriptInstance?: UUID,
+    condition?: UUID,
 };
 export type ConditionCustom = {
     id: UUID,
@@ -175,6 +193,23 @@ export type ScriptDataInstanceType = {
     name: string,
     mode: "zero_or_one" | "one" | "many",
     parameters: ScriptDataInstanceParameter[],
+    defines: {
+        conditions: Record<UUID, ScriptDataCondition>,
+        settings: Record<UUID, ScriptDataSetting>,
+        actionWheels: Record<UUID, ScriptDataActionWheel>,
+    },
+};
+export type ScriptDataCondition = {
+    uuid: UUID,
+    name: string,
+};
+export type ScriptDataSetting = {
+    uuid: UUID,
+    name: string,
+};
+export type ScriptDataActionWheel = {
+    uuid: UUID,
+    name: string,
 };
 
 export type ScriptDataInstanceParameter = {
