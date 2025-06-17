@@ -1,4 +1,4 @@
-it's not ready yet
+# it's not ready yet
 
 setup:
 - install bun: https://bun.sh/
