@@ -7,6 +7,7 @@ export function genViewerPrompt(): string {
     allFiles += "# All files\n\n";
     let res: string = "";
     const all = readdirSync(import.meta.dir + "/src", {recursive: true}).filter(q => typeof q === "string").map(q => q.replaceAll("\\", "/"));
+    const sort: {name: string, length: number}[] = [];
     for(const file of all.sort()) {
         let contents: string;
         try {
@@ -21,6 +22,9 @@ export function genViewerPrompt(): string {
         res += "```"+extname(file).slice(1) + "\n";
         res += contents;
         res += "\n```\n\n";
+        sort.push({name: file, length: contents.length});
     }
+    sort.sort((a, b) => a.length - b.length);
+    console.log(sort.map(l => `${l.length}: ${l.name}`).join("\n"));
     return allFiles + "\n" + res;
 }
