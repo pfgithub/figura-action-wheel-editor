@@ -13,6 +13,7 @@ import { ActionWheelsManager } from "@/components/managers/ActionWheelsManager";
 import { AnimationSettingsManager } from "@/components/managers/AnimationSettingsManager";
 import { ScriptsManager } from "@/components/managers/ScriptsManager";
 import { isValidLuaIdent, parseLua } from "@/data/generateLua";
+import { KeybindsManager } from "@/components/managers/KeybindsManager";
 
 
 const stringifyPart = (part: string) => {
@@ -96,12 +97,14 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
         toggleGroups: {},
         conditionalSettings: {},
         scripts: {},
+        keybinds: {},
       } satisfies Avatar;
       // Basic validation
       if (!projectData.actionWheels || !projectData.toggleGroups || !projectData.conditionalSettings) {
           throw new Error('Invalid or corrupted project.figura-editor.lua format.');
       }
       projectData.scripts ??= {};
+      projectData.keybinds ??= {};
 
 
       // --- Parse bbmodels and extract animations and textures ---
@@ -232,7 +235,7 @@ function FileDropzone({ onFileLoaded, setLoadError }: { onFileLoaded: (project: 
   );
 }
 
-type EditorTab = 'wheels' | 'settings' | 'scripts';
+type EditorTab = 'wheels' | 'settings' | 'scripts' | 'keybinds';
 
 export function App() {
   const { avatar, isSaving, saveAvatar, updateAvatar, loadAvatar } = useAvatarStore();
@@ -300,6 +303,7 @@ export function App() {
       { id: 'wheels', label: 'Action Wheels' },
       { id: 'settings', label: 'Conditional Settings' },
       { id: 'scripts', label: 'Scripts' },
+      { id: 'keybinds', label: 'Keybinds' },
   ];
 
   const renderActiveTab = () => {
@@ -319,6 +323,10 @@ export function App() {
           case 'scripts':
               return (
                   <ScriptsManager />
+              );
+          case 'keybinds':
+              return (
+                  <KeybindsManager />
               );
           default:
               return null;

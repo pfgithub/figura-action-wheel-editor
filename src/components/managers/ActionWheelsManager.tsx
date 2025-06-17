@@ -44,13 +44,19 @@ export function ActionWheelsManager({
             if (draft.mainActionWheel === uuid) {
                 draft.mainActionWheel = Object.values(draft.actionWheels)[0]?.uuid ?? undefined;
             }
+            // Clear references to this wheel from other wheels
             for (const wheel of Object.values(draft.actionWheels)) {
                 if (wheel.uuid === uuid) continue;
                 for (const action of wheel.actions) {
                     if (action.effect?.kind === "switchPage" && action.effect.actionWheel === uuid) {
                         action.effect.actionWheel = undefined;
-                        break;
                     }
+                }
+            }
+            // Clear references from keybinds
+            for (const keybind of Object.values(draft.keybinds ?? {})) {
+                if (keybind.effect?.kind === "switchPage" && keybind.effect.actionWheel === uuid) {
+                    keybind.effect.actionWheel = undefined;
                 }
             }
         });

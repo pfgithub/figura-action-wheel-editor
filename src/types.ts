@@ -16,6 +16,19 @@ export type Avatar = {
     toggleGroups: Record<UUID, ToggleGroup>,
     conditionalSettings: Record<UUID, ConditionalSetting>,
     scripts: Record<UUID, Script>,
+    keybinds: Record<UUID, Keybind>,
+};
+
+export type Keybind = {
+    uuid: UUID,
+    name: string,
+    keyId: string,
+    effect?: ActionEffect,
+};
+
+export type KeybindListItem = {
+    name: string;
+    id: string;
 };
 
 export type ActionWheel = {

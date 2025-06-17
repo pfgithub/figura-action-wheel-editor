@@ -61,6 +61,13 @@ function findToggleGroupUsage(avatar: Avatar, toggleGroupUUID: UUID): string[] {
         usages.push(...checkAnimationCondition(setting.activationCondition, toggleGroupUUID, getSettingName(setting)));
     }
     
+    // Check Keybinds
+    for (const keybind of Object.values(avatar.keybinds ?? {})) {
+        if (keybind.effect?.kind === 'toggle' && keybind.effect.toggleGroup === toggleGroupUUID) {
+            usages.push(`the keybind "${keybind.name}"`);
+        }
+    }
+    
     return [...new Set(usages)];
 }
 
