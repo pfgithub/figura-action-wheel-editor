@@ -50,7 +50,10 @@ const getHeader = (avatar: Avatar) => /* lua */ `
 
 
 -- %__DATA_MARKER__%
-${JSON.stringify(avatar, null, 2).split("\n").map(l => "-- " + l).join("\n")}
+${JSON.stringify(avatar, null, 2)
+	.split("\n")
+	.map((l) => "-- " + l)
+	.join("\n")}
 -- %__DATA_MARKER__%
 
 
@@ -78,179 +81,199 @@ end
 `;
 
 export function isValidLuaIdent(str: string): boolean {
-    return !!str.match(/^[A-Za-z_][A-Za-z0-9_]+$/);
+	return !!str.match(/^[A-Za-z_][A-Za-z0-9_]+$/);
 }
 function uuidToIdent(name: string, nameHint?: string): string {
-    const uuidPart = "_" + name.replaceAll("-", "_");
-    if (nameHint && isValidLuaIdent(nameHint)) return nameHint + uuidPart;
-    return uuidPart;
+	const uuidPart = "_" + name.replaceAll("-", "_");
+	if (nameHint && isValidLuaIdent(nameHint)) return nameHint + uuidPart;
+	return uuidPart;
 }
 class Ctx {
-    uuidToIdentMap = new Map<UUID, string>();
-    nextIdentId= 0;
-    uuidToNumberMap = new Map<UUID, number>();
-    nextUuidNumber = 0;
+	uuidToIdentMap = new Map<UUID, string>();
+	nextIdentId = 0;
+	uuidToNumberMap = new Map<UUID, number>();
+	nextUuidNumber = 0;
 
-    addUuidIdent(uuid: UUID, nameHint?: string): string {
-        const name = uuidToIdent(""+this.nextIdentId++, nameHint);
-        if(this.uuidToIdentMap.has(uuid)) {
-            throw new Error("already has");
-        }
-        this.uuidToIdentMap.set(uuid, name);
-        return name;
-    }
-    addTrueUuidIdent(uuid: UUID, nameHint?: string): string {
-        const name = uuidToIdent(""+this.nextIdentId+++"_"+uuid, nameHint);
-        if(this.uuidToIdentMap.has(uuid)) {
-            throw new Error("already has");
-        }
-        this.uuidToIdentMap.set(uuid, name);
-        return name;
-    }
-    addNextIdent(nameHint?: string): string {
-        return uuidToIdent(""+this.nextIdentId++, nameHint);
-    }
-    getUuidIdent(uuid: UUID): string | null {
-        const result = this.uuidToIdentMap.get(uuid);
-        if(!result) return null;
-        return result;
-    }
-    uuidToNumber(uuid: UUID): number {
-        if(this.uuidToNumberMap.has(uuid)) return this.uuidToNumberMap.get(uuid)!;
-        const num = this.nextUuidNumber++;
-        this.uuidToNumberMap.set(uuid, num);
-        return num;
-    }
+	addUuidIdent(uuid: UUID, nameHint?: string): string {
+		const name = uuidToIdent("" + this.nextIdentId++, nameHint);
+		if (this.uuidToIdentMap.has(uuid)) {
+			throw new Error("already has");
+		}
+		this.uuidToIdentMap.set(uuid, name);
+		return name;
+	}
+	addTrueUuidIdent(uuid: UUID, nameHint?: string): string {
+		const name = uuidToIdent("" + this.nextIdentId++ + "_" + uuid, nameHint);
+		if (this.uuidToIdentMap.has(uuid)) {
+			throw new Error("already has");
+		}
+		this.uuidToIdentMap.set(uuid, name);
+		return name;
+	}
+	addNextIdent(nameHint?: string): string {
+		return uuidToIdent("" + this.nextIdentId++, nameHint);
+	}
+	getUuidIdent(uuid: UUID): string | null {
+		const result = this.uuidToIdentMap.get(uuid);
+		if (!result) return null;
+		return result;
+	}
+	uuidToNumber(uuid: UUID): number {
+		if (this.uuidToNumberMap.has(uuid)) return this.uuidToNumberMap.get(uuid)!;
+		const num = this.nextUuidNumber++;
+		this.uuidToNumberMap.set(uuid, num);
+		return num;
+	}
 }
 function luaString(str: string): string {
-    return JSON.stringify(str);
+	return JSON.stringify(str);
 }
 
 export function generateLua(avatar: Avatar) {
-    const header = getHeader(avatar);
-    try {
-        return header + generateLuaInner(avatar);
-    }catch(e){
-        return header + `\nprint(${luaString("figuraeditor bug! "+(e instanceof Error ? e : new Error("" + e)).toString())})\n`;
-    }
+	const header = getHeader(avatar);
+	try {
+		return header + generateLuaInner(avatar);
+	} catch (e) {
+		return (
+			header +
+			`\nprint(${luaString("figuraeditor bug! " + (e instanceof Error ? e : new Error("" + e)).toString())})\n`
+		);
+	}
 }
 export function generateLuaInner(avatar: Avatar) {
-    const ctx = new Ctx();
-    const warnEnabled = true;
-    let alwaysWarnings = ``;
-    
-    type Lua = string | Lua[];
-    const fns: Lua[] = [];
-    const predeclare: Lua[] = [];
-    fns.push(predeclare);
+	const ctx = new Ctx();
+	const warnEnabled = true;
+	let alwaysWarnings = ``;
 
-    let mainVars = `\n-- Setup vars\n`;
-    let src = "";
+	type Lua = string | Lua[];
+	const fns: Lua[] = [];
+	const predeclare: Lua[] = [];
+	fns.push(predeclare);
 
+	let mainVars = `\n-- Setup vars\n`;
+	let src = "";
 
-    const textureVars = new Map<string, string>();
-    let getTexture = (texture: string): string => {
-        if(textureVars.has(texture)) return textureVars.get(texture)!;
-        const val = ctx.addNextIdent(texture);
-        mainVars += `local ${val} = tryOrNil(function() return textures[${luaString(texture)}] end, ${luaString(texture)})\n`;
-        textureVars.set(texture, val);
-        return val;
-    };
-    const modelPartVars = new Map<string, string>();
-    let getModelPart = (modelPart: string): string => {
-        if(modelPartVars.has(modelPart)) return modelPartVars.get(modelPart)!;
-        const val = ctx.addNextIdent(modelPart);
-        mainVars += `local ${val} = tryOrNil(function() return ${modelPart} end, ${warnEnabled ? luaString(modelPart) : null})\n`;
-        modelPartVars.set(modelPart, val);
-        return val;
-    };
-    const animationVars = new Map<string, string>();
-    let getAnimation = (animation: string): string => {
-        if(animationVars.has(animation)) return animationVars.get(animation)!;
-        const val = ctx.addNextIdent(animation);
-        mainVars += `local ${val} = tryOrNil(function() return ${animation} end, ${luaString(animation)})\n`;
-        animationVars.set(animation, val);
-        return val;
-    };
-    type ToggleGroup = {toggler: string, ping: string, activeState: string, onToggled: Lua[]};
-    const toggleGroups = new Map<UUID, ToggleGroup>();
-    let getToggleGroup = (toggleGroup: UUID): ToggleGroup => {
-        if(toggleGroups.has(toggleGroup)) return toggleGroups.get(toggleGroup)!;
-        const activeState = ctx.addNextIdent(toggleGroup);
-        const ping = "pings.actionEditor_"+ctx.addTrueUuidIdent(toggleGroup);
-        fns.push(`local ${activeState} = nil\n`);
-        fns.push(`function ${ping}(nextState)\n`);
-        fns.push(`    ${activeState} = nextState\n`);
-        const onToggled: Lua[] = [];
-        fns.push(onToggled);
-        fns.push(`end\n`);
-        const toggler = ctx.addNextIdent(toggleGroup);
-        const ret: ToggleGroup = {toggler, ping, activeState, onToggled};
-        toggleGroups.set(toggleGroup, ret);
-        return ret;
-    };
+	const textureVars = new Map<string, string>();
+	let getTexture = (texture: string): string => {
+		if (textureVars.has(texture)) return textureVars.get(texture)!;
+		const val = ctx.addNextIdent(texture);
+		mainVars += `local ${val} = tryOrNil(function() return textures[${luaString(texture)}] end, ${luaString(texture)})\n`;
+		textureVars.set(texture, val);
+		return val;
+	};
+	const modelPartVars = new Map<string, string>();
+	let getModelPart = (modelPart: string): string => {
+		if (modelPartVars.has(modelPart)) return modelPartVars.get(modelPart)!;
+		const val = ctx.addNextIdent(modelPart);
+		mainVars += `local ${val} = tryOrNil(function() return ${modelPart} end, ${warnEnabled ? luaString(modelPart) : null})\n`;
+		modelPartVars.set(modelPart, val);
+		return val;
+	};
+	const animationVars = new Map<string, string>();
+	let getAnimation = (animation: string): string => {
+		if (animationVars.has(animation)) return animationVars.get(animation)!;
+		const val = ctx.addNextIdent(animation);
+		mainVars += `local ${val} = tryOrNil(function() return ${animation} end, ${luaString(animation)})\n`;
+		animationVars.set(animation, val);
+		return val;
+	};
+	type ToggleGroup = {
+		toggler: string;
+		ping: string;
+		activeState: string;
+		onToggled: Lua[];
+	};
+	const toggleGroups = new Map<UUID, ToggleGroup>();
+	let getToggleGroup = (toggleGroup: UUID): ToggleGroup => {
+		if (toggleGroups.has(toggleGroup)) return toggleGroups.get(toggleGroup)!;
+		const activeState = ctx.addNextIdent(toggleGroup);
+		const ping = "pings.actionEditor_" + ctx.addTrueUuidIdent(toggleGroup);
+		fns.push(`local ${activeState} = nil\n`);
+		fns.push(`function ${ping}(nextState)\n`);
+		fns.push(`    ${activeState} = nextState\n`);
+		const onToggled: Lua[] = [];
+		fns.push(onToggled);
+		fns.push(`end\n`);
+		const toggler = ctx.addNextIdent(toggleGroup);
+		const ret: ToggleGroup = { toggler, ping, activeState, onToggled };
+		toggleGroups.set(toggleGroup, ret);
+		return ret;
+	};
 
-    src += `\n-- Action wheels\n`;
-    for(const actionWheel of Object.values(avatar.actionWheels)) {
-        const name = ctx.addUuidIdent(actionWheel.uuid, actionWheel.title);
-        src += `local ${name} = action_wheel:newPage()\n`;
-    }
-    src += `\n-- Action wheel actions\n`;
-    for(const actionWheel of Object.values(avatar.actionWheels)) {
-        const actionWheelIdent = ctx.getUuidIdent(actionWheel.uuid);
-        if(!actionWheelIdent) continue;
-        let updateActionWheelStatesBody = "";
-        for(const action of actionWheel.actions) {
-            const actionIdent = ctx.addUuidIdent(action.uuid);
-            predeclare.push(`local ${actionIdent} = nil\n`);
-            src += `${actionIdent} = ${actionWheelIdent}:newAction()\n`;
-            src += `${actionIdent}:title(${luaString(action.label)})\n`;
-            if(action.icon.type === "item") {
-                src += `${actionIdent}:item(${luaString(action.icon.id)})\n`;
-            }else if(action.icon.type === "texture") {
-                const texVar = getTexture(action.icon.file);
-                src += `if ${texVar} then ${actionIdent}:texture(${texVar}, ${action.icon.u}, ${action.icon.v}, ${action.icon.width}, ${action.icon.height}, ${action.icon.scale}) end\n`;
-            }else{
-                // no icon
-            }
-            src += `${actionIdent}:hoverColor(${action.color[0]} / 255, ${action.color[1]} / 255, ${action.color[2]} / 255)\n`;
-            if(action.effect?.kind === "toggle" && action.effect.toggleGroup != null) {
-                const toggleGroup = getToggleGroup(action.effect.toggleGroup);
-                const num = action.effect.value == null ? "nil" : ctx.uuidToNumber(action.effect.value);
-                src += `${actionIdent}:onToggle(function(toggled)\n`;
-                src += `    ${toggleGroup.ping}(toggled and ${num} or nil)\n`;
-                src += `end)\n`;
-                toggleGroup.onToggled.push(`    ${actionIdent}:toggled(${toggleGroup.activeState} == ${num})\n`);
-            }else if(action.effect?.kind === "switchPage" && action.effect.actionWheel != null) {
-                src += `${actionIdent}:onLeftClick(function() action_wheel:setPage(${ctx.getUuidIdent(action.effect.actionWheel)}) end)\n`;
-            }else{
-                // no effect
-            }
-        }
-    }
-    src += `\n-- Action wheel main\n`;
-    const mainName = avatar.mainActionWheel ? ctx.getUuidIdent(avatar.mainActionWheel) : null;
-    if(mainName) {
-        src += `action_wheel:setPage(${mainName})\n`;
-    }
+	src += `\n-- Action wheels\n`;
+	for (const actionWheel of Object.values(avatar.actionWheels)) {
+		const name = ctx.addUuidIdent(actionWheel.uuid, actionWheel.title);
+		src += `local ${name} = action_wheel:newPage()\n`;
+	}
+	src += `\n-- Action wheel actions\n`;
+	for (const actionWheel of Object.values(avatar.actionWheels)) {
+		const actionWheelIdent = ctx.getUuidIdent(actionWheel.uuid);
+		if (!actionWheelIdent) continue;
+		let updateActionWheelStatesBody = "";
+		for (const action of actionWheel.actions) {
+			const actionIdent = ctx.addUuidIdent(action.uuid);
+			predeclare.push(`local ${actionIdent} = nil\n`);
+			src += `${actionIdent} = ${actionWheelIdent}:newAction()\n`;
+			src += `${actionIdent}:title(${luaString(action.label)})\n`;
+			if (action.icon.type === "item") {
+				src += `${actionIdent}:item(${luaString(action.icon.id)})\n`;
+			} else if (action.icon.type === "texture") {
+				const texVar = getTexture(action.icon.file);
+				src += `if ${texVar} then ${actionIdent}:texture(${texVar}, ${action.icon.u}, ${action.icon.v}, ${action.icon.width}, ${action.icon.height}, ${action.icon.scale}) end\n`;
+			} else {
+				// no icon
+			}
+			src += `${actionIdent}:hoverColor(${action.color[0]} / 255, ${action.color[1]} / 255, ${action.color[2]} / 255)\n`;
+			if (
+				action.effect?.kind === "toggle" &&
+				action.effect.toggleGroup != null
+			) {
+				const toggleGroup = getToggleGroup(action.effect.toggleGroup);
+				const num =
+					action.effect.value == null
+						? "nil"
+						: ctx.uuidToNumber(action.effect.value);
+				src += `${actionIdent}:onToggle(function(toggled)\n`;
+				src += `    ${toggleGroup.ping}(toggled and ${num} or nil)\n`;
+				src += `end)\n`;
+				toggleGroup.onToggled.push(
+					`    ${actionIdent}:toggled(${toggleGroup.activeState} == ${num})\n`,
+				);
+			} else if (
+				action.effect?.kind === "switchPage" &&
+				action.effect.actionWheel != null
+			) {
+				src += `${actionIdent}:onLeftClick(function() action_wheel:setPage(${ctx.getUuidIdent(action.effect.actionWheel)}) end)\n`;
+			} else {
+				// no effect
+			}
+		}
+	}
+	src += `\n-- Action wheel main\n`;
+	const mainName = avatar.mainActionWheel
+		? ctx.getUuidIdent(avatar.mainActionWheel)
+		: null;
+	if (mainName) {
+		src += `action_wheel:setPage(${mainName})\n`;
+	}
 
-    
-    src += `\n-- Render event\n`;
-    src += `function events.render(delta, context)\n`;
-    let renderVars = "";
-    let renderContents = "";
+	src += `\n-- Render event\n`;
+	src += `function events.render(delta, context)\n`;
+	let renderVars = "";
+	let renderContents = "";
 
-    let renderIdToVarMap = new Map<string, string>();
-    const addCondition = (cond: Condition): string => {
-        if(cond.kind === "toggleGroup") {
-            if(!cond.toggleGroup) return "false";
-            const toggleGroup = getToggleGroup(cond.toggleGroup);
-            return `${toggleGroup.activeState} == ${cond.value == null ? "nil" : ctx.uuidToNumber(cond.value)}`
-        }else if(cond.kind === "render" && cond.render != null) {
-            if(renderIdToVarMap.has(cond.render)) return renderIdToVarMap.get(cond.render)!;
-            if(cond.render === "playerIsFlying") {
-                // fly detection
-                mainVars += `playerIsFlying = false
+	let renderIdToVarMap = new Map<string, string>();
+	const addCondition = (cond: Condition): string => {
+		if (cond.kind === "toggleGroup") {
+			if (!cond.toggleGroup) return "false";
+			const toggleGroup = getToggleGroup(cond.toggleGroup);
+			return `${toggleGroup.activeState} == ${cond.value == null ? "nil" : ctx.uuidToNumber(cond.value)}`;
+		} else if (cond.kind === "render" && cond.render != null) {
+			if (renderIdToVarMap.has(cond.render))
+				return renderIdToVarMap.get(cond.render)!;
+			if (cond.render === "playerIsFlying") {
+				// fly detection
+				mainVars += `playerIsFlying = false
 do
   local wasFlying = false
   function pings.setPlayerIsFlying(value)
@@ -267,49 +290,58 @@ do
   end
 end
 `;
-                renderIdToVarMap.set(cond.render, "playerIsFlying");
-                return "playerIsFlying";
-            }
-            const varId = ctx.addNextIdent(cond.render);
-            renderVars += `    local ${varId} = ${cond.render}\n`;
-            renderIdToVarMap.set(cond.render, varId);
-            return varId;
-        }else if(cond.kind === "and") {
-            return cond.conditions.map(cond => `(${addCondition(cond)})`).join(" and ");
-        }else if(cond.kind === "or") {
-            return cond.conditions.map(cond => `(${addCondition(cond)})`).join(" or ");
-        }else if(cond.kind === "not") {
-            if(!cond.condition) return "false";
-            return `not (${addCondition(cond.condition)})`;
-        }else{
-            alwaysWarnings += `    print("TODO implement condition ${cond.kind}")\n`;
-            return "false";
-        }
-    };
-    
-    for(const setting of Object.values(avatar.conditionalSettings)) {
-        if(!setting.activationCondition) continue;
+				renderIdToVarMap.set(cond.render, "playerIsFlying");
+				return "playerIsFlying";
+			}
+			const varId = ctx.addNextIdent(cond.render);
+			renderVars += `    local ${varId} = ${cond.render}\n`;
+			renderIdToVarMap.set(cond.render, varId);
+			return varId;
+		} else if (cond.kind === "and") {
+			return cond.conditions
+				.map((cond) => `(${addCondition(cond)})`)
+				.join(" and ");
+		} else if (cond.kind === "or") {
+			return cond.conditions
+				.map((cond) => `(${addCondition(cond)})`)
+				.join(" or ");
+		} else if (cond.kind === "not") {
+			if (!cond.condition) return "false";
+			return `not (${addCondition(cond.condition)})`;
+		} else {
+			alwaysWarnings += `    print("TODO implement condition ${cond.kind}")\n`;
+			return "false";
+		}
+	};
 
-        const cond = addCondition(setting.activationCondition);
-        if(setting.kind === "play_animation") {
-            const anim = getAnimation(setting.animation);
-            renderContents += `    if ${anim} then ${anim}:setPlaying(${cond}) end\n`;
-        }else if(setting.kind === "hide_element") {
-            const elem = getModelPart(setting.element);
-            renderContents += `    if ${elem} then ${elem}:setVisible(not (${cond})) end\n`;
-        }else{
-            alwaysWarnings += `print("TODO implement setting ${setting.kind}")\n`;
-        }
-    }
-    src += renderVars;
-    src += renderContents;
-    src += `end\n`;
+	for (const setting of Object.values(avatar.conditionalSettings)) {
+		if (!setting.activationCondition) continue;
 
-    return fns.flat(Infinity as 1).join("") + mainVars + src + alwaysWarnings;
+		const cond = addCondition(setting.activationCondition);
+		if (setting.kind === "play_animation") {
+			const anim = getAnimation(setting.animation);
+			renderContents += `    if ${anim} then ${anim}:setPlaying(${cond}) end\n`;
+		} else if (setting.kind === "hide_element") {
+			const elem = getModelPart(setting.element);
+			renderContents += `    if ${elem} then ${elem}:setVisible(not (${cond})) end\n`;
+		} else {
+			alwaysWarnings += `print("TODO implement setting ${setting.kind}")\n`;
+		}
+	}
+	src += renderVars;
+	src += renderContents;
+	src += `end\n`;
+
+	return fns.flat(Infinity as 1).join("") + mainVars + src + alwaysWarnings;
 }
 
 export function parseLua(source: string): Avatar {
-    const dmsplit = source.split("-- %__DATA_MARKER__%");
-    if(dmsplit.length !== 3) throw new Error("Invalid or corrupted source");
-    return JSON.parse(dmsplit[1].split("\n").map(l => l.startsWith("--") ? l.slice(2) : l).join("\n"));
+	const dmsplit = source.split("-- %__DATA_MARKER__%");
+	if (dmsplit.length !== 3) throw new Error("Invalid or corrupted source");
+	return JSON.parse(
+		dmsplit[1]
+			.split("\n")
+			.map((l) => (l.startsWith("--") ? l.slice(2) : l))
+			.join("\n"),
+	);
 }

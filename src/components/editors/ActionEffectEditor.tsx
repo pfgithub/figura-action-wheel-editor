@@ -1,132 +1,217 @@
-import React from 'react';
-import type { ActionEffect, Script, ScriptDataInstanceType, ScriptInstance, UUID } from '@/types';
-import { useAvatarStore } from '@/store/avatarStore';
-import { FormRow } from '@/components/ui/FormRow';
-import { Select } from '@/components/ui/Select';
-import { SegmentedControl } from '@/components/ui/SegmentedControl';
-import { ToggleGroupControls } from '@/components/shared/ToggleGroupControls';
+import React from "react";
+import type {
+	ActionEffect,
+	Script,
+	ScriptDataInstanceType,
+	ScriptInstance,
+	UUID,
+} from "@/types";
+import { useAvatarStore } from "@/store/avatarStore";
+import { FormRow } from "@/components/ui/FormRow";
+import { Select } from "@/components/ui/Select";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { ToggleGroupControls } from "@/components/shared/ToggleGroupControls";
 
 interface ActionEffectEditorProps {
-    effect?: ActionEffect;
-    updateEffect: (e: ActionEffect | undefined) => void;
+	effect?: ActionEffect;
+	updateEffect: (e: ActionEffect | undefined) => void;
 }
 
-export function ActionEffectEditor({ effect, updateEffect }: ActionEffectEditorProps) {
-    const { avatar } = useAvatarStore();
+export function ActionEffectEditor({
+	effect,
+	updateEffect,
+}: ActionEffectEditorProps) {
+	const { avatar } = useAvatarStore();
 
-    const handleKindChange = (kind: ActionEffect['kind'] | undefined) => {
-        if (kind === 'toggle') {
-            updateEffect({ kind });
-        } else if (kind === 'switchPage') {
-            updateEffect({ kind: 'switchPage' });
-        } else if (kind === 'switchPageScript') {
-            updateEffect({ kind: 'switchPageScript' });
-        } else {
-            updateEffect(undefined);
-        }
-    };
-    
-    if (!avatar) return null;
-    const allToggleGroups = Object.values(avatar.toggleGroups);
-    const allActionWheels = Object.values(avatar.actionWheels);
-    const allScripts = avatar.scripts;
-    
-    const allScriptInstances = React.useMemo(() => {
-        const instances: { instance: ScriptInstance, script: Script, type: ScriptDataInstanceType }[] = [];
-        Object.values(allScripts).forEach(script => {
-            Object.entries(script.instances).forEach(([typeUuid, insts]) => {
-                const type = script.data.instanceTypes[typeUuid as UUID];
-                if (type?.defines?.actionWheels && Object.keys(type.defines.actionWheels).length > 0) {
-                    insts.forEach(instance => instances.push({ instance, script, type }));
-                }
-            });
-        });
-        return instances;
-    }, [allScripts]);
+	const handleKindChange = (kind: ActionEffect["kind"] | undefined) => {
+		if (kind === "toggle") {
+			updateEffect({ kind });
+		} else if (kind === "switchPage") {
+			updateEffect({ kind: "switchPage" });
+		} else if (kind === "switchPageScript") {
+			updateEffect({ kind: "switchPageScript" });
+		} else {
+			updateEffect(undefined);
+		}
+	};
 
-    const selectedToggleGroup = allToggleGroups.find(g => g.uuid === (effect?.kind === 'toggle' ? effect.toggleGroup : undefined));
-    const selectedScriptInstanceData = allScriptInstances.find(i => i.instance.uuid === (effect?.kind === 'switchPageScript' ? effect.scriptInstance : undefined));
-    const availableScriptWheels = selectedScriptInstanceData ? Object.values(selectedScriptInstanceData.type.defines.actionWheels) : [];
+	if (!avatar) return null;
+	const allToggleGroups = Object.values(avatar.toggleGroups);
+	const allActionWheels = Object.values(avatar.actionWheels);
+	const allScripts = avatar.scripts;
 
-    return (
-        <div className="space-y-4">
-            <FormRow label="Effect Type">
-                <SegmentedControl
-                    value={effect?.kind}
-                    onChange={handleKindChange}
-                    options={[
-                        { label: 'None', value: undefined },
-                        { label: 'Toggle Option', value: 'toggle' },
-                        { label: 'Switch Wheel', value: 'switchPage' },
-                        { label: 'Script Wheel', value: 'switchPageScript' },
-                    ]}
-                />
-            </FormRow>
+	const allScriptInstances = React.useMemo(() => {
+		const instances: {
+			instance: ScriptInstance;
+			script: Script;
+			type: ScriptDataInstanceType;
+		}[] = [];
+		Object.values(allScripts).forEach((script) => {
+			Object.entries(script.instances).forEach(([typeUuid, insts]) => {
+				const type = script.data.instanceTypes[typeUuid as UUID];
+				if (
+					type?.defines?.actionWheels &&
+					Object.keys(type.defines.actionWheels).length > 0
+				) {
+					insts.forEach((instance) =>
+						instances.push({ instance, script, type }),
+					);
+				}
+			});
+		});
+		return instances;
+	}, [allScripts]);
 
-            {effect?.kind === 'toggle' && (
-                <>
-                    <FormRow label="Toggle Group">
-                        <ToggleGroupControls
-                            selectedGroupUUID={effect.toggleGroup}
-                            onGroupChange={(newUUID) => {
-                                updateEffect({ ...effect, toggleGroup: newUUID, value: undefined });
-                            }}
-                        />
-                    </FormRow>
-                    <FormRow label="Value">
-                        <Select
-                            value={effect.value ?? ''}
-                            onChange={(e) => updateEffect({ ...effect, value: e.target.value ? e.target.value as UUID : undefined })}
-                            disabled={!effect.toggleGroup}
-                        >
-                            <option value="">{effect.toggleGroup ? '-- Select an option --' : '-- First select a group --'}</option>
-                            {selectedToggleGroup && Object.entries(selectedToggleGroup.options).map(([uuid, option]) => <option key={uuid} value={uuid}>{option.name}</option>)}
-                        </Select>
-                    </FormRow>
-                </>
-            )}
+	const selectedToggleGroup = allToggleGroups.find(
+		(g) =>
+			g.uuid === (effect?.kind === "toggle" ? effect.toggleGroup : undefined),
+	);
+	const selectedScriptInstanceData = allScriptInstances.find(
+		(i) =>
+			i.instance.uuid ===
+			(effect?.kind === "switchPageScript" ? effect.scriptInstance : undefined),
+	);
+	const availableScriptWheels = selectedScriptInstanceData
+		? Object.values(selectedScriptInstanceData.type.defines.actionWheels)
+		: [];
 
-            {effect?.kind === 'switchPage' && (
-                <FormRow label="Target Wheel">
-                    <Select
-                        value={effect.actionWheel ?? ''}
-                        onChange={(e) => updateEffect({ ...effect, actionWheel: e.target.value ? e.target.value as UUID : undefined })}
-                        disabled={allActionWheels.length === 0}
-                    >
-                        <option value="">-- Select a wheel --</option>
-                        {allActionWheels.map(w => <option key={w.uuid} value={w.uuid}>{w.title}</option>)}
-                    </Select>
-                </FormRow>
-            )}
-            
-            {effect?.kind === 'switchPageScript' && (
-                <>
-                    <FormRow label="Script Instance">
-                        <Select
-                            value={effect.scriptInstance ?? ''}
-                            onChange={(e) => updateEffect({ ...effect, scriptInstance: e.target.value ? e.target.value as UUID : undefined, scriptActionWheel: undefined })}
-                            disabled={allScriptInstances.length === 0}
-                        >
-                            <option value="">{allScriptInstances.length > 0 ? '-- Select an instance --' : '-- No instances provide wheels --'}</option>
-                            {allScriptInstances.map(({ instance, script }) => (
-                                <option key={instance.uuid} value={instance.uuid}>{script.name} - {instance.name}</option>
-                            ))}
-                        </Select>
-                    </FormRow>
-                    <FormRow label="Target Wheel">
-                        <Select
-                            value={effect.scriptActionWheel ?? ''}
-                            onChange={(e) => updateEffect({ ...effect, scriptActionWheel: e.target.value ? e.target.value as UUID : undefined })}
-                            disabled={!effect.scriptInstance}
-                        >
-                            <option value="">{effect.scriptInstance ? '-- Select a wheel --' : '-- First select an instance --'}</option>
-                            {availableScriptWheels.map(w => (
-                                <option key={w.uuid} value={w.uuid}>{w.name}</option>
-                            ))}
-                        </Select>
-                    </FormRow>
-                </>
-            )}
-        </div>
-    );
+	return (
+		<div className="space-y-4">
+			<FormRow label="Effect Type">
+				<SegmentedControl
+					value={effect?.kind}
+					onChange={handleKindChange}
+					options={[
+						{ label: "None", value: undefined },
+						{ label: "Toggle Option", value: "toggle" },
+						{ label: "Switch Wheel", value: "switchPage" },
+						{ label: "Script Wheel", value: "switchPageScript" },
+					]}
+				/>
+			</FormRow>
+
+			{effect?.kind === "toggle" && (
+				<>
+					<FormRow label="Toggle Group">
+						<ToggleGroupControls
+							selectedGroupUUID={effect.toggleGroup}
+							onGroupChange={(newUUID) => {
+								updateEffect({
+									...effect,
+									toggleGroup: newUUID,
+									value: undefined,
+								});
+							}}
+						/>
+					</FormRow>
+					<FormRow label="Value">
+						<Select
+							value={effect.value ?? ""}
+							onChange={(e) =>
+								updateEffect({
+									...effect,
+									value: e.target.value ? (e.target.value as UUID) : undefined,
+								})
+							}
+							disabled={!effect.toggleGroup}
+						>
+							<option value="">
+								{effect.toggleGroup
+									? "-- Select an option --"
+									: "-- First select a group --"}
+							</option>
+							{selectedToggleGroup &&
+								Object.entries(selectedToggleGroup.options).map(
+									([uuid, option]) => (
+										<option key={uuid} value={uuid}>
+											{option.name}
+										</option>
+									),
+								)}
+						</Select>
+					</FormRow>
+				</>
+			)}
+
+			{effect?.kind === "switchPage" && (
+				<FormRow label="Target Wheel">
+					<Select
+						value={effect.actionWheel ?? ""}
+						onChange={(e) =>
+							updateEffect({
+								...effect,
+								actionWheel: e.target.value
+									? (e.target.value as UUID)
+									: undefined,
+							})
+						}
+						disabled={allActionWheels.length === 0}
+					>
+						<option value="">-- Select a wheel --</option>
+						{allActionWheels.map((w) => (
+							<option key={w.uuid} value={w.uuid}>
+								{w.title}
+							</option>
+						))}
+					</Select>
+				</FormRow>
+			)}
+
+			{effect?.kind === "switchPageScript" && (
+				<>
+					<FormRow label="Script Instance">
+						<Select
+							value={effect.scriptInstance ?? ""}
+							onChange={(e) =>
+								updateEffect({
+									...effect,
+									scriptInstance: e.target.value
+										? (e.target.value as UUID)
+										: undefined,
+									scriptActionWheel: undefined,
+								})
+							}
+							disabled={allScriptInstances.length === 0}
+						>
+							<option value="">
+								{allScriptInstances.length > 0
+									? "-- Select an instance --"
+									: "-- No instances provide wheels --"}
+							</option>
+							{allScriptInstances.map(({ instance, script }) => (
+								<option key={instance.uuid} value={instance.uuid}>
+									{script.name} - {instance.name}
+								</option>
+							))}
+						</Select>
+					</FormRow>
+					<FormRow label="Target Wheel">
+						<Select
+							value={effect.scriptActionWheel ?? ""}
+							onChange={(e) =>
+								updateEffect({
+									...effect,
+									scriptActionWheel: e.target.value
+										? (e.target.value as UUID)
+										: undefined,
+								})
+							}
+							disabled={!effect.scriptInstance}
+						>
+							<option value="">
+								{effect.scriptInstance
+									? "-- Select a wheel --"
+									: "-- First select an instance --"}
+							</option>
+							{availableScriptWheels.map((w) => (
+								<option key={w.uuid} value={w.uuid}>
+									{w.name}
+								</option>
+							))}
+						</Select>
+					</FormRow>
+				</>
+			)}
+		</div>
+	);
 }
