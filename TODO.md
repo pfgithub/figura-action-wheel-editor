@@ -70,7 +70,7 @@
 - [ ] find which files are largest and split them up
 - [ ] migrate the code to use useAvatarStore() rather than passing props down when it makes sense
 - [ ] Combine the 'switch wheel' and 'script wheel' tabs.
-- [ ] split up AnimationConditionEditor into multiple tabs
+- [ ] split up AnimationConditionEditor into multiple files
   - it's always breaking that one
   - three times it has omitted
     ```
