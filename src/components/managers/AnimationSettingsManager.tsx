@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import type { UUID, ToggleGroup, ConditionalSetting, PlayAnimationSetting, HideElementSetting, RenderSetting, RenderSettingID, AnimationID, Script, ScriptSetting, ScriptInstance, ScriptDataInstanceType } from '@/types';
+import type { UUID, ConditionalSetting, PlayAnimationSetting, HideElementSetting, RenderSetting, RenderSettingID, AnimationID, Script, ScriptSetting, ScriptInstance, ScriptDataInstanceType } from '@/types';
 import { useAvatarStore } from '@/store/avatarStore';
 import { AnimationSettingEditor } from '@/components/editors/AnimationSettingEditor';
 import { PlusIcon, TrashIcon, WarningIcon } from '@/components/ui/icons';
@@ -45,10 +45,9 @@ const summarizeCondition = (setting?: ConditionalSetting): string => {
 // --- Add Setting Dialog Content ---
 interface AddSettingDialogContentProps {
   onAdd: (id: string, kind: SettingView) => void;
-  allScripts: Record<UUID, Script>;
 }
 
-function AddSettingDialogContent({ onAdd, allScripts }: AddSettingDialogContentProps) {
+function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
     const { avatar, animations, modelElements } = useAvatarStore();
     const [view, setView] = useState<SettingView>('play_animation');
     const [filter, setFilter] = useState('');
@@ -58,6 +57,7 @@ function AddSettingDialogContent({ onAdd, allScripts }: AddSettingDialogContentP
     const unconfiguredItems = useMemo(() => {
         if (!avatar) return [];
         const allSettings = Object.values(avatar.conditionalSettings);
+        const allScripts = avatar.scripts;
         
         if (view === 'play_animation') {
             const configuredAnims = new Set(allSettings.filter((s): s is PlayAnimationSetting => s.kind === 'play_animation').map(s => s.animation));
@@ -101,7 +101,7 @@ function AddSettingDialogContent({ onAdd, allScripts }: AddSettingDialogContentP
             return available.filter(item => item.name.toLowerCase().includes(lowerFilter));
         }
         return [];
-    }, [view, avatar, animations, modelElements, allScripts, lowerFilter]);
+    }, [view, avatar, animations, modelElements, lowerFilter]);
     
     const viewConfig = {
         play_animation: { placeholder: `Search ${animations.length} animations...`, emptyText: "No unconfigured animations found." },
@@ -148,12 +148,7 @@ function AddSettingDialogContent({ onAdd, allScripts }: AddSettingDialogContentP
 
 // --- AnimationSettingsManager Component ---
 
-interface AnimationSettingsManagerProps {
-    allToggleGroups: ToggleGroup[];
-    allScripts: Record<UUID, Script>;
-}
-
-export function AnimationSettingsManager({ allToggleGroups, allScripts }: AnimationSettingsManagerProps) {
+export function AnimationSettingsManager() {
     const { avatar, animations, modelElements, updateAvatar } = useAvatarStore();
     
     const [filter, setFilter] = useState('');
@@ -163,7 +158,7 @@ export function AnimationSettingsManager({ allToggleGroups, allScripts }: Animat
     
     if (!avatar) return null;
 
-    const { conditionalSettings } = avatar;
+    const { conditionalSettings, scripts: allScripts } = avatar;
 
     const allScriptInstances = useMemo(() => {
         const instances: Map<UUID, { instance: ScriptInstance, script: Script, type: ScriptDataInstanceType }> = new Map();
@@ -331,9 +326,6 @@ export function AnimationSettingsManager({ allToggleGroups, allScripts }: Animat
                         <AnimationSettingEditor 
                             setting={setting} 
                             updateSetting={updateSetting} 
-                            allToggleGroups={allToggleGroups}
-                            allAnimations={animations}
-                            allScripts={allScripts}
                         />
                     </div>
                 )}
@@ -379,7 +371,7 @@ export function AnimationSettingsManager({ allToggleGroups, allScripts }: Animat
             <Dialog open={isAddDialogOpen} onClose={() => setIsAddDialogOpen(false)} className="max-w-4xl">
                 <DialogHeader>Add Conditional Setting</DialogHeader>
                 <DialogContent>
-                    <AddSettingDialogContent onAdd={handleAddSetting} allScripts={allScripts} />
+                    <AddSettingDialogContent onAdd={handleAddSetting} />
                 </DialogContent>
                 <DialogFooter>
                     <Button onClick={() => setIsAddDialogOpen(false)} className="bg-slate-600 hover:bg-slate-500">Close</Button>

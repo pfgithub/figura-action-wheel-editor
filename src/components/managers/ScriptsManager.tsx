@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Script, ToggleGroup, ActionWheel, UUID } from '@/types';
+import type { Script, UUID } from '@/types';
 import { useAvatarStore } from '@/store/avatarStore';
 import { scripts as availableScripts } from '@/data/scripts';
 import { Button } from '@/components/ui/Button';
@@ -8,12 +8,7 @@ import { Dialog, DialogHeader, DialogContent, DialogFooter } from '@/components/
 import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 import { ScriptEditor } from '@/components/editors/ScriptEditor';
 
-interface ScriptsManagerProps {
-    allToggleGroups: ToggleGroup[];
-    allActionWheels: ActionWheel[];
-}
-
-export function ScriptsManager({ allToggleGroups, allActionWheels }: ScriptsManagerProps) {
+export function ScriptsManager() {
     const { avatar, updateAvatar } = useAvatarStore();
     const [isAddDialogOpen, setAddDialogOpen] = useState(false);
     const [selectedScriptId, setSelectedScriptId] = useState<UUID | null>(null);
@@ -90,8 +85,6 @@ export function ScriptsManager({ allToggleGroups, allActionWheels }: ScriptsMana
                         </div>
                          <ScriptEditor 
                             script={selectedScript} 
-                            allToggleGroups={allToggleGroups}
-                            allActionWheels={allActionWheels}
                         />
                     </div>
                 ) : (

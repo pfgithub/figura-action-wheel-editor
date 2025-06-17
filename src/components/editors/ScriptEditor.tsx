@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Script, ScriptDataInstanceType, ScriptInstance, ToggleGroup, UUID, ActionWheel } from '@/types';
+import type { Script, ScriptDataInstanceType, ScriptInstance, UUID } from '@/types';
 import { useAvatarStore } from '@/store/avatarStore';
 import { generateUUID } from '@/utils/uuid';
 import { Button } from '@/components/ui/Button';
@@ -10,8 +10,6 @@ import { ScriptParameterEditor } from './ScriptParameterEditor';
 
 interface ScriptEditorProps {
     script: Script;
-    allToggleGroups: ToggleGroup[];
-    allActionWheels: ActionWheel[];
 }
 
 function getDefaultValueForType(type: any): any {
@@ -30,7 +28,7 @@ function getDefaultValueForType(type: any): any {
     }
 }
 
-export function ScriptEditor({ script, allToggleGroups, allActionWheels }: ScriptEditorProps) {
+export function ScriptEditor({ script }: ScriptEditorProps) {
     const { updateAvatar } = useAvatarStore();
     const [expandedInstance, setExpandedInstance] = useState<UUID | null>(null);
     const [deletingInstance, setDeletingInstance] = useState<{ typeUuid: UUID, instanceUuid: UUID } | null>(null);
@@ -139,8 +137,6 @@ export function ScriptEditor({ script, allToggleGroups, allActionWheels }: Scrip
                                                 parameters={instanceType.parameters}
                                                 values={instance.parameterValue as Record<string, any>}
                                                 onChange={(newValues) => updateInstance(instanceType.uuid, { ...instance, parameterValue: newValues })}
-                                                allToggleGroups={allToggleGroups}
-                                                allActionWheels={allActionWheels}
                                             />
                                         </div>
                                     )}

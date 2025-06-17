@@ -1,6 +1,6 @@
-// src/components/editors/ActionEffectEditor.tsx
 import React from 'react';
-import type { ActionEffect, ActionWheel, Script, ScriptDataInstanceType, ScriptInstance, ToggleGroup, UUID } from '@/types';
+import type { ActionEffect, Script, ScriptDataInstanceType, ScriptInstance, UUID } from '@/types';
+import { useAvatarStore } from '@/store/avatarStore';
 import { FormRow } from '@/components/ui/FormRow';
 import { Select } from '@/components/ui/Select';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
@@ -9,12 +9,11 @@ import { ToggleGroupControls } from '@/components/shared/ToggleGroupControls';
 interface ActionEffectEditorProps {
     effect?: ActionEffect;
     updateEffect: (e: ActionEffect | undefined) => void;
-    allToggleGroups: ToggleGroup[];
-    allActionWheels: ActionWheel[];
-    allScripts: Record<UUID, Script>;
 }
 
-export function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allActionWheels, allScripts }: ActionEffectEditorProps) {
+export function ActionEffectEditor({ effect, updateEffect }: ActionEffectEditorProps) {
+    const { avatar } = useAvatarStore();
+
     const handleKindChange = (kind: ActionEffect['kind'] | undefined) => {
         if (kind === 'toggle') {
             updateEffect({ kind });
@@ -26,6 +25,11 @@ export function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allA
             updateEffect(undefined);
         }
     };
+    
+    if (!avatar) return null;
+    const allToggleGroups = Object.values(avatar.toggleGroups);
+    const allActionWheels = Object.values(avatar.actionWheels);
+    const allScripts = avatar.scripts;
     
     const allScriptInstances = React.useMemo(() => {
         const instances: { instance: ScriptInstance, script: Script, type: ScriptDataInstanceType }[] = [];
@@ -63,7 +67,6 @@ export function ActionEffectEditor({ effect, updateEffect, allToggleGroups, allA
                 <>
                     <FormRow label="Toggle Group">
                         <ToggleGroupControls
-                            allToggleGroups={allToggleGroups}
                             selectedGroupUUID={effect.toggleGroup}
                             onGroupChange={(newUUID) => {
                                 updateEffect({ ...effect, toggleGroup: newUUID, value: undefined });

@@ -296,10 +296,6 @@ export function App() {
   }
 
   // Once a project is loaded, show the main editor UI.
-  const allToggleGroups = Object.values(avatar.toggleGroups);
-  const allActionWheels = Object.values(avatar.actionWheels);
-  const allScripts = avatar.scripts;
-
   const TABS: { id: EditorTab, label: string }[] = [
       { id: 'wheels', label: 'Action Wheels' },
       { id: 'settings', label: 'Conditional Settings' },
@@ -311,9 +307,6 @@ export function App() {
           case 'wheels':
               return (
                   <ActionWheelsManager
-                      allActionWheels={allActionWheels}
-                      allToggleGroups={allToggleGroups}
-                      allScripts={allScripts}
                       addActionWheel={addActionWheel}
                       viewedWheelUuid={viewedWheelUuid}
                       setViewedWheelUuid={setViewedWheelUuid}
@@ -321,17 +314,11 @@ export function App() {
               );
           case 'settings':
               return (
-                  <AnimationSettingsManager
-                      allToggleGroups={allToggleGroups}
-                      allScripts={allScripts}
-                  />
+                  <AnimationSettingsManager />
               );
           case 'scripts':
               return (
-                  <ScriptsManager 
-                      allToggleGroups={allToggleGroups}
-                      allActionWheels={allActionWheels}
-                  />
+                  <ScriptsManager />
               );
           default:
               return null;

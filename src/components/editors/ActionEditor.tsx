@@ -127,18 +127,18 @@ interface ActionEditorProps {
     action: Action;
     updateAction: (a: Action) => void;
     deleteAction: () => void;
-    allToggleGroups: ToggleGroup[];
-    allActionWheels: ActionWheel[];
-    allScripts: Record<UUID, Script>,
     currentWheelUuid: UUID;
     onMoveAction: (targetWheelUuid: UUID) => void;
 }
 
-export function ActionEditor({ action, updateAction, deleteAction, allToggleGroups, allActionWheels, allScripts, currentWheelUuid, onMoveAction }: ActionEditorProps) {
-    const { textures } = useAvatarStore();
+export function ActionEditor({ action, updateAction, deleteAction, currentWheelUuid, onMoveAction }: ActionEditorProps) {
+    const { avatar, textures } = useAvatarStore();
     const [isMoveDialogOpen, setMoveDialogOpen] = useState(false);
     const [targetWheel, setTargetWheel] = useState<UUID | ''>('');
 
+    if (!avatar) return null;
+    const allActionWheels = Object.values(avatar.actionWheels);
+    
     const otherWheels = allActionWheels.filter(w => w.uuid !== currentWheelUuid);
     const MAX_ACTIONS_PER_WHEEL = 8;
 
@@ -280,7 +280,7 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
 
                     <h4 className="text-lg font-semibold text-slate-300 border-b border-slate-700 pb-2 mb-4">Action Effect</h4>
                     
-                    <ActionEffectEditor effect={action.effect} updateEffect={effect => updateAction({ ...action, effect })} allToggleGroups={allToggleGroups} allActionWheels={allActionWheels} allScripts={allScripts} />
+                    <ActionEffectEditor effect={action.effect} updateEffect={effect => updateAction({ ...action, effect })} />
                 </div>
             </div>
         </div>

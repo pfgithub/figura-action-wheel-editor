@@ -1,22 +1,24 @@
 import React from 'react';
-import type { ScriptDataInstanceParameter, ToggleGroup, ActionWheel, AnimationID, UUID } from '@/types';
+import type { ScriptDataInstanceParameter, UUID } from '@/types';
+import { useAvatarStore } from '@/store/avatarStore';
 import { FormRow } from '@/components/ui/FormRow';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { MinecraftItemPicker } from '@/components/ui/MinecraftItemPicker';
-import { useAvatarStore } from '@/store/avatarStore';
 
 interface ScriptParameterEditorProps {
     parameters: ScriptDataInstanceParameter[];
     values: Record<string, any>;
     onChange: (newValues: Record<string, any>) => void;
-    allToggleGroups: ToggleGroup[];
-    allActionWheels: ActionWheel[];
 }
 
-export function ScriptParameterEditor({ parameters, values, onChange, allToggleGroups, allActionWheels }: ScriptParameterEditorProps) {
-    const { modelElements, animations } = useAvatarStore();
+export function ScriptParameterEditor({ parameters, values, onChange }: ScriptParameterEditorProps) {
+    const { avatar, modelElements, animations } = useAvatarStore();
 
+    if (!avatar) return null;
+    const allToggleGroups = Object.values(avatar.toggleGroups);
+    const allActionWheels = Object.values(avatar.actionWheels);
+    
     const handleValueChange = (paramName: string, newValue: any) => {
         onChange({ ...values, [paramName]: newValue });
     };

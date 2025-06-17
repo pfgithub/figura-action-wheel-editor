@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { UUID, Action, ActionWheel, ToggleGroup, Script } from '@/types';
+import type { UUID, Action } from '@/types';
 import { useAvatarStore } from '@/store/avatarStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -8,9 +8,6 @@ import { ActionWheelVisualizer } from '@/components/ui/ActionWheelVisualizer';
 import { generateUUID } from '@/utils/uuid';
 
 interface ActionWheelsManagerProps {
-    allToggleGroups: ToggleGroup[];
-    allActionWheels: ActionWheel[];
-    allScripts: Record<UUID, Script>;
     addActionWheel: () => void;
     viewedWheelUuid: UUID | null;
     setViewedWheelUuid: (uuid: UUID | null) => void;
@@ -19,9 +16,6 @@ interface ActionWheelsManagerProps {
 const MAX_ACTIONS_PER_WHEEL = 8;
 
 export function ActionWheelsManager({
-    allToggleGroups,
-    allActionWheels,
-    allScripts,
     addActionWheel,
     viewedWheelUuid,
     setViewedWheelUuid
@@ -36,6 +30,8 @@ export function ActionWheelsManager({
 
     if (!avatar) return null; // Should not happen if App component handles loading state
 
+    const allActionWheels = Object.values(avatar.actionWheels);
+    
     const setMainWheel = (uuid: UUID | undefined) => {
         updateAvatar(draft => {
             draft.mainActionWheel = uuid;
@@ -253,9 +249,6 @@ export function ActionWheelsManager({
                                 action={selectedActionData.action}
                                 updateAction={updateSelectedAction}
                                 deleteAction={deleteSelectedAction}
-                                allToggleGroups={allToggleGroups}
-                                allActionWheels={allActionWheels}
-                                allScripts={allScripts}
                                 currentWheelUuid={selectedActionData.wheelUuid}
                                 onMoveAction={moveSelectedAction}
                             />

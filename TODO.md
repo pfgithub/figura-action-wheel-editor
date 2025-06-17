@@ -79,6 +79,7 @@
     ```
     causing an error when activeId is not defined
 - [ ] start running typechecking
+- [ ] eslint react checks - it loves to add unsafe early returns before a hook
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 

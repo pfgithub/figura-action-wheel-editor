@@ -10,6 +10,7 @@ import {
 } from '@dnd-kit/core';
 import { produce, type WritableDraft } from 'immer';
 import type { Condition, ToggleGroup, UUID, ConditionNot, ConditionAnd, ConditionOr, AnimationID, ConditionCustom, Script, ScriptInstance, ScriptDataInstanceType, ConditionScript } from '@/types';
+import { useAvatarStore } from '@/store/avatarStore';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
@@ -110,19 +111,17 @@ function DropZone({ id, path, label = "Drop condition here" }: { id: string, pat
 interface ConditionNodeProps {
     path: string;
     condition?: Condition;
-    allToggleGroups: ToggleGroup[];
-    allAnimations: AnimationID[];
-    allScripts: Record<UUID, Script>;
     updateCondition: (newCondition?: Condition) => void;
     deleteNode: () => void;
 }
 
-function ConditionNode({ path, condition, updateCondition, deleteNode, allToggleGroups, allAnimations, allScripts }: ConditionNodeProps) {
-    if (!condition) {
-        return <DropZone id={path} path={path} label={"Drag a condition from the panel to start"} />;
-    }
-
-    const styles = kindStyles[condition.kind];
+function ConditionNode({ path, condition, updateCondition, deleteNode }: ConditionNodeProps) {
+    const { avatar, animations } = useAvatarStore();
+    
+    if (!avatar) return null;
+    const allToggleGroups = Object.values(avatar.toggleGroups);
+    const allAnimations = animations;
+    const allScripts = avatar.scripts;
 
     const {
         listeners: dragListeners,
@@ -132,6 +131,12 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
         id: path,
         data: { path, type: 'condition' },
     });
+
+    if (!condition) {
+        return <DropZone id={path} path={path} label={"Drag a condition from the panel to start"} />;
+    }
+
+    const styles = kindStyles[condition.kind];
 
     const setNodeRef = (node: HTMLElement | null) => {
         setDraggableNodeRef(node);
@@ -175,9 +180,6 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                                 deleteNode={() => handleUpdate(draft => {
                                     if (draft.kind === 'and' || draft.kind === 'or') draft.conditions.splice(i, 1);
                                 })}
-                                allToggleGroups={allToggleGroups}
-                                allAnimations={allAnimations}
-                                allScripts={allScripts}
                             />
                         ))}
                         <DropZone id={`${path}.add`} path={path} label="Add sub-condition" />
@@ -195,9 +197,6 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                             deleteNode={() => handleUpdate(draft => {
                                 if (draft.kind === 'not') draft.condition = undefined;
                             })}
-                            allToggleGroups={allToggleGroups}
-                            allAnimations={allAnimations}
-                            allScripts={allScripts}
                         />
                     </div>
                 );
@@ -209,7 +208,6 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                             <span className="flex-shrink-0 pr-2">When</span>
                             <div className="flex-grow">
                                 <ToggleGroupControls
-                                    allToggleGroups={allToggleGroups}
                                     selectedGroupUUID={condition.toggleGroup}
                                     onGroupChange={(newUUID) => {
                                         handleUpdate(draft => {
@@ -376,17 +374,11 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
 interface AnimationConditionEditorProps {
   condition?: Condition;
   updateCondition: (c: Condition | undefined) => void;
-  allToggleGroups: ToggleGroup[];
-  allAnimations: AnimationID[];
-  allScripts: Record<UUID, Script>;
 }
 
 export function AnimationConditionEditor({
   condition,
   updateCondition,
-  allToggleGroups,
-  allAnimations,
-  allScripts,
 }: AnimationConditionEditorProps) {
     const [activeId, setActiveId] = useState<string | null>(null);
     const activeConditionData = useMemo(() => {
@@ -511,9 +503,6 @@ export function AnimationConditionEditor({
                         condition={condition}
                         updateCondition={updateCondition}
                         deleteNode={() => updateCondition(undefined)}
-                        allToggleGroups={allToggleGroups}
-                        allAnimations={allAnimations}
-                        allScripts={allScripts}
                     />
                 </div>
             </div>

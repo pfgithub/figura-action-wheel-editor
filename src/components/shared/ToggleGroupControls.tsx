@@ -1,18 +1,20 @@
-// src/components/shared/ToggleGroupControls.tsx
 import React, { useState } from 'react';
 import type { ToggleGroup, UUID } from '@/types';
+import { useAvatarStore } from '@/store/avatarStore';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { ToggleGroupDialog } from '@/components/dialogs/ToggleGroupDialog';
 import { EditIcon, PlusIcon } from '@/components/ui/icons';
 
 interface ToggleGroupControlsProps {
-    allToggleGroups: ToggleGroup[];
     selectedGroupUUID: UUID | undefined;
     onGroupChange: (newUUID: UUID) => void;
 }
 
-export function ToggleGroupControls({ allToggleGroups, selectedGroupUUID, onGroupChange }: ToggleGroupControlsProps) {
+export function ToggleGroupControls({ selectedGroupUUID, onGroupChange }: ToggleGroupControlsProps) {
+    const { avatar } = useAvatarStore();
+    const allToggleGroups = avatar ? Object.values(avatar.toggleGroups) : [];
+
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [groupToEdit, setGroupToEdit] = useState<ToggleGroup | null>(null);
 
