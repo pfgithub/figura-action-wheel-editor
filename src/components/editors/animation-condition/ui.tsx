@@ -1,4 +1,4 @@
-import React from "react";
+
 import { useDroppable } from "@dnd-kit/core";
 
 export const GripVerticalIcon = () => (

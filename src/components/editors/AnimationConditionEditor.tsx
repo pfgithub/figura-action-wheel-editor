@@ -1,5 +1,5 @@
 // src/components/editors/AnimationConditionEditor.tsx
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
 	DndContext,
 	DragOverlay,
@@ -66,7 +66,7 @@ export function AnimationConditionEditor({
 		const overId = over.id as string;
 
 		// Prevent dropping a component inside of itself or its children
-		if (!activeId.startsWith("palette-") && overId.startsWith(activeId + ".")) {
+		if (!activeId.startsWith("palette-") && overId.startsWith(`${activeId}.`)) {
 			return;
 		}
 

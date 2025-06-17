@@ -27,7 +27,7 @@ async function addScript(
 		instanceTypes: Object.fromEntries(
 			(
 				await instances((sub: string) =>
-					hashUUID(new TextEncoder().encode(`[${sub}]` + text)),
+					hashUUID(new TextEncoder().encode(`[${sub}]${text}`)),
 				)
 			).map((q) => [q.uuid, q]),
 		),

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import type { Script, UUID } from "@/types";
 import { useAvatarStore } from "@/store/avatarStore";
 import { scripts as availableScripts } from "@/data/scripts";

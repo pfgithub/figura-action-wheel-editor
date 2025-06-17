@@ -1,5 +1,4 @@
 import { generateLua, parseLua } from "@/data/generateLua";
-import type { Avatar } from "@/types";
 
 const fpath =
 	"c:\\Users\\pfg\\GameSaves\\Minecraft\\Instances\\MyWorlds\\figura\\avatars\\Nova_next\\project.figura-editor.lua";

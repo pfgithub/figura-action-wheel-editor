@@ -32,7 +32,7 @@ const playerPart = [
 for (const layer of playerPart) {
 	addRenderSetting(
 		`vanilla_model.${layer}.setVisible(%cond%)`,
-		"Hide vanilla_model." + layer + " (Group)",
+		`Hide vanilla_model.${layer} (Group)`,
 	);
 }
 const playerParts = [
@@ -71,7 +71,7 @@ const playerParts = [
 for (const part of playerParts) {
 	addRenderSetting(
 		`vanilla_model.${part}.setVisible(%cond%)`,
-		"Hide vanilla_model." + part + " (Part)",
+		`Hide vanilla_model.${part} (Part)`,
 	);
 }
 
@@ -115,7 +115,7 @@ const playerDoing = [
 	["wet", `player:isWet()`],
 ];
 for (const [name, value] of playerDoing) {
-	addRenderValue(value, "Player is " + name);
+	addRenderValue(value, `Player is ${name}`);
 }
 
 addRenderValue(`context == "FIRST_PERSON"`, "Rendering in First Person");

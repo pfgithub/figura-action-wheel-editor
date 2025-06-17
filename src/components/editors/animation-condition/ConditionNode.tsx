@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { produce } from "immer";
 import type {
@@ -287,7 +287,7 @@ export function ConditionNode({
 						});
 					});
 					return instances;
-				}, [allScripts]);
+				}, []);
 
 				const selectedInstanceData = allScriptInstances.find(
 					(i) => i.instance.uuid === condition.scriptInstance,

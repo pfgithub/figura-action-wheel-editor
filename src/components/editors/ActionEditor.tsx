@@ -3,12 +3,8 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import type {
 	Action,
-	ActionEffect,
-	ActionWheel,
-	ToggleGroup,
 	IconTexture,
 	UUID,
-	Script,
 } from "@/types";
 import { useAvatarStore } from "@/store/avatarStore";
 import { Button } from "@/components/ui/Button";

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import type { ToggleGroup, UUID } from "@/types";
 import { useAvatarStore } from "@/store/avatarStore";
 import { Select } from "@/components/ui/Select";

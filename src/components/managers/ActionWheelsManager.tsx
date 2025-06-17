@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { UUID, Action } from "@/types";
 import { useAvatarStore } from "@/store/avatarStore";
 import { Button } from "@/components/ui/Button";
@@ -28,7 +28,7 @@ export function ActionWheelsManager({
 	// Reset selection when the viewed wheel changes
 	useEffect(() => {
 		setSelectedActionIndex(null);
-	}, [viewedWheelUuid]);
+	}, []);
 
 	if (!avatar) return null; // Should not happen if App component handles loading state
 
@@ -167,7 +167,7 @@ export function ActionWheelsManager({
 		if (!currentWheel) return;
 		updateAvatar((draft) => {
 			const wheel = draft.actionWheels[currentWheel.uuid];
-			if (wheel && wheel.actions[oldIndex] && wheel.actions[newIndex]) {
+			if (wheel?.actions[oldIndex] && wheel.actions[newIndex]) {
 				// Swap actions
 				const temp = wheel.actions[oldIndex];
 				wheel.actions[oldIndex] = wheel.actions[newIndex];

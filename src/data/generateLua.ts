@@ -52,7 +52,7 @@ const getHeader = (avatar: Avatar) => /* lua */ `
 -- %__DATA_MARKER__%
 ${JSON.stringify(avatar, null, 2)
 	.split("\n")
-	.map((l) => "-- " + l)
+	.map((l) => `-- ${l}`)
 	.join("\n")}
 -- %__DATA_MARKER__%
 
@@ -84,7 +84,7 @@ export function isValidLuaIdent(str: string): boolean {
 	return !!str.match(/^[A-Za-z_][A-Za-z0-9_]+$/);
 }
 function uuidToIdent(name: string, nameHint?: string): string {
-	const uuidPart = "_" + name.replaceAll("-", "_");
+	const uuidPart = `_${name.replaceAll("-", "_")}`;
 	if (nameHint && isValidLuaIdent(nameHint)) return nameHint + uuidPart;
 	return uuidPart;
 }
@@ -95,7 +95,7 @@ class Ctx {
 	nextUuidNumber = 0;
 
 	addUuidIdent(uuid: UUID, nameHint?: string): string {
-		const name = uuidToIdent("" + this.nextIdentId++, nameHint);
+		const name = uuidToIdent(`${this.nextIdentId++}`, nameHint);
 		if (this.uuidToIdentMap.has(uuid)) {
 			throw new Error("already has");
 		}
@@ -103,7 +103,7 @@ class Ctx {
 		return name;
 	}
 	addTrueUuidIdent(uuid: UUID, nameHint?: string): string {
-		const name = uuidToIdent("" + this.nextIdentId++ + "_" + uuid, nameHint);
+		const name = uuidToIdent(`${this.nextIdentId++}_${uuid}`, nameHint);
 		if (this.uuidToIdentMap.has(uuid)) {
 			throw new Error("already has");
 		}
@@ -111,7 +111,7 @@ class Ctx {
 		return name;
 	}
 	addNextIdent(nameHint?: string): string {
-		return uuidToIdent("" + this.nextIdentId++, nameHint);
+		return uuidToIdent(`${this.nextIdentId++}`, nameHint);
 	}
 	getUuidIdent(uuid: UUID): string | null {
 		const result = this.uuidToIdentMap.get(uuid);
@@ -136,7 +136,7 @@ export function generateLua(avatar: Avatar) {
 	} catch (e) {
 		return (
 			header +
-			`\nprint(${luaString("figuraeditor bug! " + (e instanceof Error ? e : new Error("" + e)).toString())})\n`
+			`\nprint(${luaString(`figuraeditor bug! ${(e instanceof Error ? e : new Error(`${e}`)).toString()}`)})\n`
 		);
 	}
 }
@@ -187,7 +187,7 @@ export function generateLuaInner(avatar: Avatar) {
 	const getToggleGroup = (toggleGroup: UUID): ToggleGroup => {
 		if (toggleGroups.has(toggleGroup)) return toggleGroups.get(toggleGroup)!;
 		const activeState = ctx.addNextIdent(toggleGroup);
-		const ping = "pings.actionEditor_" + ctx.addTrueUuidIdent(toggleGroup);
+		const ping = `pings.actionEditor_${ctx.addTrueUuidIdent(toggleGroup)}`;
 		fns.push(`local ${activeState} = nil\n`);
 		fns.push(`function ${ping}(nextState)\n`);
 		fns.push(`    ${activeState} = nextState\n`);
@@ -209,7 +209,7 @@ export function generateLuaInner(avatar: Avatar) {
 	for (const actionWheel of Object.values(avatar.actionWheels)) {
 		const actionWheelIdent = ctx.getUuidIdent(actionWheel.uuid);
 		if (!actionWheelIdent) continue;
-		const updateActionWheelStatesBody = "";
+		const _updateActionWheelStatesBody = "";
 		for (const action of actionWheel.actions) {
 			const actionIdent = ctx.addUuidIdent(action.uuid);
 			predeclare.push(`local ${actionIdent} = nil\n`);

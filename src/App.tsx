@@ -5,9 +5,7 @@ import type {
 	ActionWheel,
 	Avatar,
 	AnimationID,
-	ConditionalSetting,
 	TextureAsset,
-	Script,
 } from "@/types";
 import type { BBModel, BBModelElement, BBModelOutliner } from "@/bbmodel";
 import { useAvatarStore } from "@/store/avatarStore";

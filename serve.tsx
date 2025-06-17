@@ -1,8 +1,6 @@
 import { serve } from "bun";
 import index from "@/index.html";
 import { genViewerPrompt } from "prompt";
-import type { AnimationID, Avatar, UUID } from "@/types";
-import { mkdirSync } from "fs";
 
 const server = serve({
 	routes: {

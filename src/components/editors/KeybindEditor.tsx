@@ -1,5 +1,4 @@
-// src/components/editors/KeybindEditor.tsx
-import React from "react";
+
 import type { Keybind } from "@/types";
 import { FormRow } from "@/components/ui/FormRow";
 import { Input } from "@/components/ui/Input";

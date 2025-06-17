@@ -1,4 +1,4 @@
-import React from "react";
+
 import type { ScriptDataInstanceParameter, UUID } from "@/types";
 import { useAvatarStore } from "@/store/avatarStore";
 import { FormRow } from "@/components/ui/FormRow";

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Action, IconItem, IconTexture } from "@/types";
 import { useMinecraftItems } from "@/hooks/useMinecraftItems";
 import { useAvatarStore } from "@/store/avatarStore";
@@ -133,7 +133,7 @@ function RenderTextureIcon({ icon }: { icon: IconTexture }) {
 			context.imageSmoothingEnabled = false;
 
 			// Clear the canvas before drawing
-			context.clearRect(0, 0, canvas.current!.width, canvas.current!.height);
+			context.clearRect(0, 0, canvas.current?.width, canvas.current?.height);
 
 			// Draw the specific part of the texture onto the canvas, scaled up
 			context.drawImage(
