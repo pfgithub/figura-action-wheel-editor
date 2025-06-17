@@ -66,6 +66,19 @@
 - [x] add support for reordering actions within an action wheel and moving actions between action wheels
 - [ ] add a code editor tab where you can write custom code. you can add parameters.
 - [ ] right now, a ScriptDataInstanceType with mode "one" can have zero instances! Fix the app to always have one instance of a ScriptDataInstanceType with mode "one".
+- [ ] apply prettier to all source files
+- [ ] find which files are largest and split them up
+- [ ] migrate the code to use useAvatarStore() rather than passing props down when it makes sense
+- [ ] Combine the 'switch wheel' and 'script wheel' tabs.
+- [ ] split up AnimationConditionEditor into multiple tabs
+  - it's always breaking that one
+  - three times it has omitted
+    ```
+    const activeId = active.id as string;
+    const overId = over.id as string;
+    ```
+    causing an error when activeId is not defined
+- [ ] start running typechecking
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 

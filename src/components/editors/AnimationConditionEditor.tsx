@@ -9,7 +9,7 @@ import {
     type DragStartEvent,
 } from '@dnd-kit/core';
 import { produce, type WritableDraft } from 'immer';
-import type { Condition, ToggleGroup, UUID, ConditionNot, ConditionAnd, ConditionOr, AnimationID, ConditionCustom } from '@/types';
+import type { Condition, ToggleGroup, UUID, ConditionNot, ConditionAnd, ConditionOr, AnimationID, ConditionCustom, Script, ScriptInstance, ScriptDataInstanceType, ConditionScript } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
@@ -28,6 +28,7 @@ const kindStyles: { [key in PaletteItemKind]: { label: string; border: string; b
   render: { label: 'Other State', border: 'border-rose-500', bg: 'bg-rose-900/30', text: 'text-rose-300' },
   animation: { label: 'Animation State', border: 'border-fuchsia-500', bg: 'bg-fuchsia-900/30', text: 'text-fuchsia-300' },
   custom: { label: 'Custom Lua', border: 'border-slate-500', bg: 'bg-slate-700/50', text: 'text-slate-300' },
+  script: { label: 'Script Condition', border: 'border-teal-500', bg: 'bg-teal-900/30', text: 'text-teal-300' },
 };
 type PaletteItemKind = Condition['kind'];
 function getParentAndFinalKey(path: string): { parentPath: string | null; finalKey: string | number } {
@@ -81,7 +82,7 @@ function PaletteItem({ kind }: { kind: PaletteItemKind }) {
     );
 }
 function ConditionPalette() {
-    const paletteItems: PaletteItemKind[] = ['and', 'or', 'not', 'toggleGroup', 'render', 'animation', 'custom'];
+    const paletteItems: PaletteItemKind[] = ['and', 'or', 'not', 'toggleGroup', 'render', 'animation', 'script', 'custom'];
     return (
         <div className="w-64 flex-shrink-0 p-3 bg-slate-900/50 rounded-lg space-y-2 self-start">
             <h3 className="font-bold text-slate-300 mb-2">Conditions</h3>
@@ -111,11 +112,12 @@ interface ConditionNodeProps {
     condition?: Condition;
     allToggleGroups: ToggleGroup[];
     allAnimations: AnimationID[];
+    allScripts: Record<UUID, Script>;
     updateCondition: (newCondition?: Condition) => void;
     deleteNode: () => void;
 }
 
-function ConditionNode({ path, condition, updateCondition, deleteNode, allToggleGroups, allAnimations }: ConditionNodeProps) {
+function ConditionNode({ path, condition, updateCondition, deleteNode, allToggleGroups, allAnimations, allScripts }: ConditionNodeProps) {
     if (!condition) {
         return <DropZone id={path} path={path} label={"Drag a condition from the panel to start"} />;
     }
@@ -175,6 +177,7 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                                 })}
                                 allToggleGroups={allToggleGroups}
                                 allAnimations={allAnimations}
+                                allScripts={allScripts}
                             />
                         ))}
                         <DropZone id={`${path}.add`} path={path} label="Add sub-condition" />
@@ -194,6 +197,7 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                             })}
                             allToggleGroups={allToggleGroups}
                             allAnimations={allAnimations}
+                            allScripts={allScripts}
                         />
                     </div>
                 );
@@ -290,6 +294,54 @@ function ConditionNode({ path, condition, updateCondition, deleteNode, allToggle
                         </Select>
                     </div>
                 );
+            case 'script': {
+                const allScriptInstances = useMemo(() => {
+                    const instances: { instance: ScriptInstance, script: Script, type: ScriptDataInstanceType }[] = [];
+                    Object.values(allScripts).forEach(script => {
+                        Object.entries(script.instances).forEach(([typeUuid, insts]) => {
+                            const type = script.data.instanceTypes[typeUuid as UUID];
+                            if (type?.defines?.conditions && Object.keys(type.defines.conditions).length > 0) {
+                                insts.forEach(instance => instances.push({ instance, script, type }));
+                            }
+                        });
+                    });
+                    return instances;
+                }, [allScripts]);
+
+                const selectedInstanceData = allScriptInstances.find(i => i.instance.uuid === condition.scriptInstance);
+                const availableConditions = selectedInstanceData ? Object.values(selectedInstanceData.type.defines.conditions) : [];
+
+                return (
+                    <div className="space-y-2 text-slate-300 p-3 text-sm">
+                        <Select
+                            value={condition.scriptInstance ?? ''}
+                            onChange={(e) => handleUpdate(draft => {
+                                if (draft.kind === 'script') {
+                                    draft.scriptInstance = e.target.value ? e.target.value as UUID : undefined;
+                                    draft.condition = undefined;
+                                }
+                            })}
+                            className="w-full bg-slate-800/80"
+                        >
+                            <option value="">{allScriptInstances.length > 0 ? '-- Select an instance --' : '-- No instances provide conditions --'}</option>
+                            {allScriptInstances.map(({ instance, script }) => (
+                                <option key={instance.uuid} value={instance.uuid}>{script.name} - {instance.name}</option>
+                            ))}
+                        </Select>
+                        <Select
+                            value={condition.condition ?? ''}
+                            onChange={(e) => handleUpdate(draft => {
+                                if (draft.kind === 'script') draft.condition = e.target.value ? e.target.value as UUID : undefined;
+                            })}
+                            disabled={!selectedInstanceData}
+                            className="w-full bg-slate-800/80"
+                        >
+                            <option value="">{selectedInstanceData ? '-- Select a condition --' : '-- First select an instance --'}</option>
+                            {availableConditions.map(c => <option key={c.uuid} value={c.uuid}>{c.name}</option>)}
+                        </Select>
+                    </div>
+                );
+            }
             case 'custom':
                  return (
                     <div className="p-3">
@@ -326,6 +378,7 @@ interface AnimationConditionEditorProps {
   updateCondition: (c: Condition | undefined) => void;
   allToggleGroups: ToggleGroup[];
   allAnimations: AnimationID[];
+  allScripts: Record<UUID, Script>;
 }
 
 export function AnimationConditionEditor({
@@ -333,6 +386,7 @@ export function AnimationConditionEditor({
   updateCondition,
   allToggleGroups,
   allAnimations,
+  allScripts,
 }: AnimationConditionEditorProps) {
     const [activeId, setActiveId] = useState<string | null>(null);
     const activeConditionData = useMemo(() => {
@@ -360,6 +414,8 @@ export function AnimationConditionEditor({
                 return { id, kind: 'render' };
             case 'animation':
                 return { id, kind: 'animation', mode: 'PLAYING' };
+            case 'script':
+                return { id, kind: 'script' };
             case 'custom':
                 return { id, kind: 'custom', expression: '' };
         }
@@ -457,6 +513,7 @@ export function AnimationConditionEditor({
                         deleteNode={() => updateCondition(undefined)}
                         allToggleGroups={allToggleGroups}
                         allAnimations={allAnimations}
+                        allScripts={allScripts}
                     />
                 </div>
             </div>

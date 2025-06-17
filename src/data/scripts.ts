@@ -38,6 +38,24 @@ await addScript("Camera Pivot", offsetCameraPivot, async (sub): Promise<ScriptDa
                 defaultValue: [0, 27.648, 0],
             },
         ],
+        defines: {
+            conditions: {},
+            settings: {
+                [await sub("CameraPivot/Disable")]: {
+                    uuid: await sub("CameraPivot/Disable"),
+                    name: "Disable",
+                },
+                [await sub("CameraPivot/Allow Rotate Camera")]: {
+                    uuid: await sub("CameraPivot/Allow Rotate Camera"),
+                    name: "Allow Rotate Camera",
+                },
+                [await sub("CameraPivot/Move Crosshair")]: {
+                    uuid: await sub("CameraPivot/Move Crosshair"),
+                    name: "Fix Crosshair (May trigger AntiCheat in multiplayer)",
+                },
+            },
+            actionWheels: {},
+        },
     },
 ]);
 

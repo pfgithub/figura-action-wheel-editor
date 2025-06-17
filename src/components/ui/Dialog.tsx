@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 export const Dialog = ({ children, open, onClose, className }: { children: React.ReactNode; open: boolean; onClose: () => void; className?: string; }) => {
     useEffect(() => {
@@ -25,7 +26,7 @@ export const Dialog = ({ children, open, onClose, className }: { children: React
             role="dialog"
         >
             <div 
-                className={`bg-slate-800 rounded-lg shadow-2xl w-full max-w-md p-6 ring-1 ring-slate-700 ${className ?? ''}`}
+                className={twMerge(`bg-slate-800 rounded-lg shadow-2xl w-full max-w-md p-6 ring-1 ring-slate-700`, className)}
                 onClick={(e) => e.stopPropagation()}
             >
                 {children}

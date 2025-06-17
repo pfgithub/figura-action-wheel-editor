@@ -1,5 +1,5 @@
 import React from "react";
-import type { ConditionalSetting, ToggleGroup, AnimationID } from "@/types";
+import type { ConditionalSetting, ToggleGroup, AnimationID, Script, UUID } from "@/types";
 import { AnimationConditionEditor } from "./AnimationConditionEditor";
 
 interface AnimationSettingEditorProps {
@@ -7,9 +7,10 @@ interface AnimationSettingEditorProps {
   updateSetting: (s: ConditionalSetting) => void;
   allToggleGroups: ToggleGroup[];
   allAnimations: AnimationID[];
+  allScripts: Record<UUID, Script>;
 }
 
-export function AnimationSettingEditor({ setting, updateSetting, allToggleGroups, allAnimations }: AnimationSettingEditorProps) {
+export function AnimationSettingEditor({ setting, updateSetting, allToggleGroups, allAnimations, allScripts }: AnimationSettingEditorProps) {
   return (
     <div className="space-y-4">
       <div>
@@ -21,6 +22,7 @@ export function AnimationSettingEditor({ setting, updateSetting, allToggleGroups
             updateCondition={(newCond) => updateSetting({ ...setting, activationCondition: newCond })}
             allToggleGroups={allToggleGroups}
             allAnimations={allAnimations}
+            allScripts={allScripts}
           />
         </div>
       </div>

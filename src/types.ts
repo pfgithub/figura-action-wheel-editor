@@ -143,7 +143,7 @@ export type ConditionCustom = {
     expression?: string,
 };
 
-export type Condition = ConditionOr | ConditionAnd | ConditionNot | ConditionToggleGroup | ConditionRender | ConditionAnimation | ConditionCustom;
+export type Condition = ConditionOr | ConditionAnd | ConditionNot | ConditionToggleGroup | ConditionRender | ConditionAnimation | ConditionScript | ConditionCustom;
 
 export type RenderSettingData = {
     id: RenderSettingID,

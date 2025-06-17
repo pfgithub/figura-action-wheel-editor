@@ -87,7 +87,12 @@ export function ScriptEditor({ script, allToggleGroups, allActionWheels }: Scrip
             {Object.values(script.data.instanceTypes).map(instanceType => {
                 const instances = script.instances[instanceType.uuid] ?? [];
                 const canAddMore = instanceType.mode === 'many' || (instanceType.mode !== 'zero_or_one' && instances.length === 0);
-                
+                const hasDefines = instanceType.defines && (
+                    Object.keys(instanceType.defines.conditions).length > 0 ||
+                    Object.keys(instanceType.defines.settings).length > 0 ||
+                    Object.keys(instanceType.defines.actionWheels).length > 0
+                );
+
                 return (
                     <div key={instanceType.uuid} className="bg-slate-800 p-4 rounded-lg ring-1 ring-slate-700">
                         <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-700">
@@ -98,6 +103,18 @@ export function ScriptEditor({ script, allToggleGroups, allActionWheels }: Scrip
                                 </Button>
                             )}
                         </div>
+                        
+                        {hasDefines && (
+                             <div className="mb-4 p-3 bg-slate-900/30 rounded-md text-sm space-y-2">
+                                <h4 className="font-semibold text-slate-300">This instance type provides:</h4>
+                                <ul className="list-disc list-inside text-slate-400 pl-2">
+                                    {Object.keys(instanceType.defines.conditions).length > 0 && <li><strong>Conditions:</strong> {Object.values(instanceType.defines.conditions).map(c => c.name).join(', ')}</li>}
+                                    {Object.keys(instanceType.defines.settings).length > 0 && <li><strong>Settings:</strong> {Object.values(instanceType.defines.settings).map(s => s.name).join(', ')}</li>}
+                                    {Object.keys(instanceType.defines.actionWheels).length > 0 && <li><strong>Action Wheels:</strong> {Object.values(instanceType.defines.actionWheels).map(w => w.name).join(', ')}</li>}
+                                </ul>
+                            </div>
+                        )}
+
                         <div className="space-y-3">
                             {instances.length > 0 ? instances.map(instance => (
                                 <div key={instance.uuid} className="bg-slate-900/50 rounded-lg ring-1 ring-slate-700/50 overflow-hidden">

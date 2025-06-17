@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import type { UUID, ToggleGroup, ConditionalSetting, PlayAnimationSetting, HideElementSetting, RenderSetting, RenderSettingID, AnimationID } from '@/types';
+import type { UUID, ToggleGroup, ConditionalSetting, PlayAnimationSetting, HideElementSetting, RenderSetting, RenderSettingID, AnimationID, Script, ScriptSetting, ScriptInstance, ScriptDataInstanceType } from '@/types';
 import { useAvatarStore } from '@/store/avatarStore';
 import { AnimationSettingEditor } from '@/components/editors/AnimationSettingEditor';
 import { PlusIcon, TrashIcon, WarningIcon } from '@/components/ui/icons';
@@ -11,7 +11,7 @@ import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { renderSettings } from '@/data/renderSettings';
 import { Dialog, DialogHeader, DialogContent, DialogFooter } from '@/components/ui/Dialog';
 
-type SettingView = 'play_animation' | 'hide_element' | 'render';
+type SettingView = 'play_animation' | 'hide_element' | 'render' | 'script';
 
 // Helper to summarize the condition for display in the UI
 const summarizeCondition = (setting?: ConditionalSetting): string => {
@@ -30,6 +30,7 @@ const summarizeCondition = (setting?: ConditionalSetting): string => {
             case 'render':
             case 'animation':
             case 'custom':
+            case 'script':
                 return 1;
             default:
                 return 0;
@@ -44,9 +45,10 @@ const summarizeCondition = (setting?: ConditionalSetting): string => {
 // --- Add Setting Dialog Content ---
 interface AddSettingDialogContentProps {
   onAdd: (id: string, kind: SettingView) => void;
+  allScripts: Record<UUID, Script>;
 }
 
-function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
+function AddSettingDialogContent({ onAdd, allScripts }: AddSettingDialogContentProps) {
     const { avatar, animations, modelElements } = useAvatarStore();
     const [view, setView] = useState<SettingView>('play_animation');
     const [filter, setFilter] = useState('');
@@ -54,7 +56,8 @@ function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
     const lowerFilter = filter.toLowerCase();
     
     const unconfiguredItems = useMemo(() => {
-        const allSettings = Object.values(avatar?.conditionalSettings ?? {});
+        if (!avatar) return [];
+        const allSettings = Object.values(avatar.conditionalSettings);
         
         if (view === 'play_animation') {
             const configuredAnims = new Set(allSettings.filter((s): s is PlayAnimationSetting => s.kind === 'play_animation').map(s => s.animation));
@@ -74,13 +77,37 @@ function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
                 .filter(rs => !configuredKinds.has(rs.id) && rs.name.toLowerCase().includes(lowerFilter))
                 .map(rs => ({ id: rs.id, name: rs.name }));
         }
+        if (view === 'script') {
+            const configuredScriptSettings = new Set(allSettings.filter((s): s is ScriptSetting => s.kind === 'script').map(s => `${s.scriptInstance}:${s.setting}`));
+            const available: {id: string, name: string}[] = [];
+            Object.values(allScripts).forEach(script => {
+                Object.entries(script.instances).forEach(([typeUuid, instances]) => {
+                    const type = script.data.instanceTypes[typeUuid as UUID];
+                    if (type?.defines?.settings) {
+                        instances.forEach(instance => {
+                            Object.values(type.defines.settings).forEach(settingDef => {
+                                const compositeId = `${instance.uuid}:${settingDef.uuid}`;
+                                if (!configuredScriptSettings.has(compositeId)) {
+                                    available.push({
+                                        id: compositeId,
+                                        name: `${script.name} - ${instance.name}: ${settingDef.name}`,
+                                    });
+                                }
+                            });
+                        });
+                    }
+                });
+            });
+            return available.filter(item => item.name.toLowerCase().includes(lowerFilter));
+        }
         return [];
-    }, [view, avatar, animations, modelElements, lowerFilter]);
+    }, [view, avatar, animations, modelElements, allScripts, lowerFilter]);
     
     const viewConfig = {
         play_animation: { placeholder: `Search ${animations.length} animations...`, emptyText: "No unconfigured animations found." },
         hide_element: { placeholder: `Search ${modelElements.length} elements...`, emptyText: "No unconfigured elements found." },
         render: { placeholder: "Search render settings...", emptyText: "All render settings are configured." },
+        script: { placeholder: "Search script settings...", emptyText: "No unconfigured script settings found." },
     };
 
     const renderUnconfiguredItem = (item: { id: string, name: string }) => (
@@ -99,6 +126,7 @@ function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
                     { label: 'Play Animation', value: 'play_animation' },
                     { label: 'Hide Element', value: 'hide_element' },
                     { label: 'Render', value: 'render' },
+                    { label: 'Script', value: 'script' },
                 ]}
             />
             <Input
@@ -122,9 +150,10 @@ function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
 
 interface AnimationSettingsManagerProps {
     allToggleGroups: ToggleGroup[];
+    allScripts: Record<UUID, Script>;
 }
 
-export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsManagerProps) {
+export function AnimationSettingsManager({ allToggleGroups, allScripts }: AnimationSettingsManagerProps) {
     const { avatar, animations, modelElements, updateAvatar } = useAvatarStore();
     
     const [filter, setFilter] = useState('');
@@ -135,21 +164,41 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
     if (!avatar) return null;
 
     const { conditionalSettings } = avatar;
+
+    const allScriptInstances = useMemo(() => {
+        const instances: Map<UUID, { instance: ScriptInstance, script: Script, type: ScriptDataInstanceType }> = new Map();
+        Object.values(allScripts).forEach(script => {
+            Object.entries(script.instances).forEach(([typeUuid, insts]) => {
+                const type = script.data.instanceTypes[typeUuid as UUID];
+                if (type) {
+                    insts.forEach(instance => instances.set(instance.uuid, { instance, script, type }));
+                }
+            });
+        });
+        return instances;
+    }, [allScripts]);
     
     const lowerFilter = filter.toLowerCase();
 
     const allConfiguredSettings = useMemo(() => {
         return Object.values(conditionalSettings).sort((a, b) => {
-            const getName = (s: ConditionalSetting) => {
+            const getName = (s: ConditionalSetting): string => {
                 switch(s.kind) {
                     case 'play_animation': return s.animation;
                     case 'hide_element': return s.element;
                     case 'render': return renderSettings.get(s.render)?.name ?? s.render;
+                    case 'script':
+                        const instanceData = allScriptInstances.get(s.scriptInstance);
+                        if (instanceData) {
+                            const settingDef = instanceData.type.defines.settings[s.setting];
+                            if (settingDef) return `${instanceData.script.name} - ${instanceData.instance.name}: ${settingDef.name}`;
+                        }
+                        return "Unknown Script Setting";
                 }
             };
             return getName(a).localeCompare(getName(b));
         });
-    }, [conditionalSettings]);
+    }, [conditionalSettings, allScriptInstances]);
 
     const filteredSettings = useMemo(() => {
         if (!lowerFilter) return allConfiguredSettings;
@@ -159,11 +208,20 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                 case 'play_animation': name = setting.animation; break;
                 case 'hide_element': name = setting.element; break;
                 case 'render': name = renderSettings.get(setting.render)?.name ?? setting.render; break;
+                case 'script':
+                    const instanceData = allScriptInstances.get(setting.scriptInstance);
+                    if (instanceData) {
+                        const settingDef = instanceData.type.defines.settings[setting.setting];
+                        name = settingDef ? `${instanceData.script.name} - ${instanceData.instance.name}: ${settingDef.name}` : '';
+                    } else {
+                        name = '';
+                    }
+                    break;
                 default: name = '';
             }
             return name.toLowerCase().includes(lowerFilter);
         });
-    }, [allConfiguredSettings, lowerFilter]);
+    }, [allConfiguredSettings, lowerFilter, allScriptInstances]);
 
     const toggleExpand = (uuid: UUID) => {
         setExpandedId(prev => (prev === uuid ? null : uuid));
@@ -177,6 +235,9 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
             newSetting = { uuid: newUuid, kind: 'play_animation', animation: id as AnimationID };
         } else if (kind === 'hide_element') {
             newSetting = { uuid: newUuid, kind: 'hide_element', element: id };
+        } else if (kind === 'script') {
+            const [instanceUuid, settingUuid] = id.split(':');
+            newSetting = { uuid: newUuid, kind: 'script', scriptInstance: instanceUuid as UUID, setting: settingUuid as UUID };
         } else { // render
             newSetting = { uuid: newUuid, kind: 'render', render: id as RenderSettingID };
         }
@@ -228,6 +289,21 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                 if(!renderSetting) warning = "Invalid render setting";
                 title = renderSetting?.name ?? setting.render;
                 break;
+            case 'script':
+                const instanceData = allScriptInstances.get(setting.scriptInstance);
+                if (instanceData) {
+                    const settingDef = instanceData.type.defines.settings[setting.setting];
+                    if (settingDef) {
+                        title = `${instanceData.script.name} - ${instanceData.instance.name}: ${settingDef.name}`;
+                    } else {
+                        title = "Unknown Script Setting";
+                        warning = "Setting definition not found in script.";
+                    }
+                } else {
+                    title = "Unknown Script Setting";
+                    warning = "Script instance not found.";
+                }
+                break;
         }
 
         return (
@@ -257,6 +333,7 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                             updateSetting={updateSetting} 
                             allToggleGroups={allToggleGroups}
                             allAnimations={animations}
+                            allScripts={allScripts}
                         />
                     </div>
                 )}
@@ -299,10 +376,10 @@ export function AnimationSettingsManager({ allToggleGroups }: AnimationSettingsM
                 confirmText="Delete"
             />
             
-            <Dialog open={isAddDialogOpen} onClose={() => setIsAddDialogOpen(false)} className="max-w-2xl">
+            <Dialog open={isAddDialogOpen} onClose={() => setIsAddDialogOpen(false)} className="max-w-4xl">
                 <DialogHeader>Add Conditional Setting</DialogHeader>
                 <DialogContent>
-                    <AddSettingDialogContent onAdd={handleAddSetting} />
+                    <AddSettingDialogContent onAdd={handleAddSetting} allScripts={allScripts} />
                 </DialogContent>
                 <DialogFooter>
                     <Button onClick={() => setIsAddDialogOpen(false)} className="bg-slate-600 hover:bg-slate-500">Close</Button>

@@ -1,6 +1,6 @@
 // src/components/editors/ActionEditor.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import type { Action, ActionEffect, ActionWheel, ToggleGroup, IconTexture, UUID } from '@/types';
+import type { Action, ActionEffect, ActionWheel, ToggleGroup, IconTexture, UUID, Script } from '@/types';
 import { useAvatarStore } from '@/store/avatarStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -129,11 +129,12 @@ interface ActionEditorProps {
     deleteAction: () => void;
     allToggleGroups: ToggleGroup[];
     allActionWheels: ActionWheel[];
+    allScripts: Record<UUID, Script>,
     currentWheelUuid: UUID;
     onMoveAction: (targetWheelUuid: UUID) => void;
 }
 
-export function ActionEditor({ action, updateAction, deleteAction, allToggleGroups, allActionWheels, currentWheelUuid, onMoveAction }: ActionEditorProps) {
+export function ActionEditor({ action, updateAction, deleteAction, allToggleGroups, allActionWheels, allScripts, currentWheelUuid, onMoveAction }: ActionEditorProps) {
     const { textures } = useAvatarStore();
     const [isMoveDialogOpen, setMoveDialogOpen] = useState(false);
     const [targetWheel, setTargetWheel] = useState<UUID | ''>('');
@@ -279,7 +280,7 @@ export function ActionEditor({ action, updateAction, deleteAction, allToggleGrou
 
                     <h4 className="text-lg font-semibold text-slate-300 border-b border-slate-700 pb-2 mb-4">Action Effect</h4>
                     
-                    <ActionEffectEditor effect={action.effect} updateEffect={effect => updateAction({ ...action, effect })} allToggleGroups={allToggleGroups} allActionWheels={allActionWheels} />
+                    <ActionEffectEditor effect={action.effect} updateEffect={effect => updateAction({ ...action, effect })} allToggleGroups={allToggleGroups} allActionWheels={allActionWheels} allScripts={allScripts} />
                 </div>
             </div>
         </div>
