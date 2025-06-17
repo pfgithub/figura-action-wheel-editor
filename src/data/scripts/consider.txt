@@ -14,3 +14,14 @@ https://github.com/Bitslayn/Gaze/wiki/1.-Eye-Basics
 - add a gaze component, select horizontal look, vertical look, and optional blink animation
 https://github.com/Manuel-3/figura-scripts/blob/main/src/membrane/membrane.lua
 - add a membrane and its four points
+
+
+EZAnims https://discord.com/channels/1129805506354085959/1143024882041503844
+Tail & Ears https://discord.com/channels/1129805506354085959/1134542462837342260
+Membrane https://discord.com/channels/1129805506354085959/1277688574296330343
+Swinging Physics https://discord.com/channels/1129805506354085959/1130796677754802196
+GS AnimBlend https://discord.com/channels/1129805506354085959/1135537784543776829
+FOX Camera https://discord.com/channels/1129805506354085959/1368284918798483496
+Gaze https://discord.com/channels/1129805506354085959/1375552327104331786
+Katt Dynamic Crosshair https://discord.com/channels/1129805506354085959/1130967942528503868
+Katt Armor https://discord.com/channels/1129805506354085959/1137506926742216835
