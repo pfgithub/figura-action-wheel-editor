@@ -1,11 +1,6 @@
 import {
 	DndContext,
 	type DragEndEvent,
-	type DragStartEvent,
-	PointerSensor,
-	useDraggable,
-	useSensor,
-	useSensors,
 } from "@dnd-kit/core";
 import {
 	SortableContext,
@@ -15,6 +10,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import { AnimationConditionEditor } from "@/components/editors/AnimationConditionEditor";
+import { MasterDetailManager } from "@/components/layout/MasterDetailManager";
 import { Button } from "@/components/ui/Button";
 import {
 	Dialog,
@@ -32,7 +28,6 @@ import type {
 	AnimationLayer,
 	AnimationNode,
 	AnimationTransition,
-	Condition,
 	UUID,
 } from "@/types";
 import { generateUUID } from "@/utils/uuid";
@@ -42,16 +37,14 @@ interface AnimationNodeDetailsEditorProps {
 	layer: AnimationLayer;
 	node: AnimationNode;
 	onNodeChange: (updatedNode: AnimationNode) => void;
-	onSetDefault: () => void;
 }
 
 function AnimationNodeDetailsEditor({
 	layer,
 	node,
 	onNodeChange,
-	onSetDefault,
 }: AnimationNodeDetailsEditorProps) {
-	const { updateAvatar, animations } = useAvatarStore();
+	const { animations } = useAvatarStore();
 	const [editingTransition, setEditingTransition] =
 		useState<AnimationTransition | null>(null);
 
@@ -105,13 +98,6 @@ function AnimationNodeDetailsEditor({
 	return (
 		<>
 			<div className="space-y-4">
-				<FormRow label="Node Name">
-					<Input
-						value={node.name}
-						onChange={(e) => onUpdate("name", e.target.value)}
-						disabled={isNoneNode}
-					/>
-				</FormRow>
 				<FormRow label="Animation">
 					<Select
 						value={node.animation}
@@ -158,6 +144,7 @@ function AnimationNodeDetailsEditor({
 				<Button
 					onClick={addTransition}
 					className="w-full mt-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300"
+					disabled={otherNodes.length === 0}
 				>
 					<PlusIcon className="mr-2 h-5 w-5" /> Add Transition
 				</Button>
@@ -239,9 +226,7 @@ function TransitionEditor({
 					}
 					className="flex-grow"
 				>
-					{otherNodes.length === 0 && (
-						<option>-- No other nodes --</option>
-					)}
+					{otherNodes.length === 0 && <option>-- No other nodes --</option>}
 					{otherNodes.map((n) => (
 						<option key={n.uuid} value={n.uuid}>
 							{n.name}
@@ -259,56 +244,28 @@ function TransitionEditor({
 	);
 }
 
-// --- Draggable Node Component ---
-function DraggableNode({
-	node,
-	isNone,
-	isSelected,
-	onSelect,
-}: {
-	node: AnimationNode;
-	isNone: boolean;
-	isSelected: boolean;
-	onSelect: () => void;
-}) {
-	const { attributes, listeners, setNodeRef } = useDraggable({
-		id: node.uuid,
-	});
-
-	let className = `p-3 rounded-lg shadow-lg cursor-grab w-48 transition-colors duration-200 `;
-	if (isSelected) {
-		className += "bg-violet-600 ring-2 ring-violet-300";
-	} else if (isNone) {
-		className += "bg-slate-600 hover:bg-slate-500 ring-1 ring-slate-400";
-	} else {
-		className += "bg-slate-700 hover:bg-slate-600";
-	}
-
-	return (
-		<div
-			ref={setNodeRef}
-			style={{
-				position: "absolute",
-				left: node.position.x,
-				top: node.position.y,
-				touchAction: "none",
-			}}
-			className={className}
-			onClick={onSelect}
-			{...attributes}
-			{...listeners}
+const EmptyState = () => (
+	<div className="flex flex-col items-center justify-center h-full text-slate-500">
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			className="w-16 h-16 mb-4"
 		>
-			<div className="flex items-start gap-2">
-				<div className="flex-1">
-					<h4 className="font-bold text-white truncate">{node.name}</h4>
-					<p className="text-xs text-slate-300 truncate">
-						{node.animation || "(No animation)"}
-					</p>
-				</div>
-			</div>
-		</div>
-	);
-}
+			<path d="M10 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
+			<polyline points="17 9 22 4" />
+			<path d="M22 9h-5V4" />
+		</svg>
+		<h3 className="text-lg font-semibold">Select a node to edit</h3>
+		<p className="text-sm">Choose a node from the list, or add a new one.</p>
+	</div>
+);
 
 // --- Main Layer Editor ---
 interface AnimationLayerEditorProps {
@@ -316,31 +273,15 @@ interface AnimationLayerEditorProps {
 }
 
 export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
-	const { avatar, updateAvatar, animations } = useAvatarStore();
+	const { updateAvatar, animations } = useAvatarStore();
 	const [selectedNodeId, setSelectedNodeId] = useState<UUID | null>(null);
 	const [isAddNodeOpen, setAddNodeOpen] = useState(false);
 	const [newNodeAnim, setNewNodeAnim] = useState<AnimationID | "">("");
-
-	const sensors = useSensors(
-		useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-	);
 
 	const updateNode = (updatedNode: AnimationNode) => {
 		updateAvatar((draft) => {
 			const l = draft.animationLayers?.[layer.uuid];
 			if (l) l.nodes[updatedNode.uuid] = updatedNode;
-		});
-	};
-
-	const handleDragEnd = (event: DragEndEvent) => {
-		const { active, delta } = event;
-		const nodeId = active.id as UUID;
-		updateAvatar((draft) => {
-			const node = draft.animationLayers?.[layer.uuid]?.nodes[nodeId];
-			if (node) {
-				node.position.x += delta.x;
-				node.position.y += delta.y;
-			}
 		});
 	};
 
@@ -354,7 +295,7 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 			uuid,
 			name: newName,
 			animation: newNodeAnim,
-			position: { x: 50, y: 50 },
+			position: { x: 50, y: 50 }, // Position is unused, but kept for schema
 			transitions: [],
 		};
 
@@ -369,8 +310,9 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 		setSelectedNodeId(uuid);
 	};
 
-	const handleDeleteNode = (nodeId: UUID) => {
-		if (nodeId === layer.noneNode) return;
+	const handleDeleteNode = (nodeToDelete: AnimationNode) => {
+		const nodeId = nodeToDelete.uuid;
+		if (nodeId === layer.noneNode) return; // Safeguard
 		updateAvatar((draft) => {
 			const l = draft.animationLayers?.[layer.uuid];
 			if (l) {
@@ -384,116 +326,74 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 		if (selectedNodeId === nodeId) setSelectedNodeId(null);
 	};
 
-	const selectedNode = layer.nodes[selectedNodeId!] ?? null;
-	const nodeMap = new Map(Object.values(layer.nodes).map((n) => [n.uuid, n]));
+	const allNodes = Object.values(layer.nodes).sort((a, b) => {
+		if (a.uuid === layer.noneNode) return -1;
+		if (b.uuid === layer.noneNode) return 1;
+		return a.name.localeCompare(b.name);
+	});
+
+	const selectedNode = allNodes.find((n) => n.uuid === selectedNodeId) ?? null;
 
 	return (
-		<div className="flex h-full gap-4">
-			{/* Node Canvas */}
-			<DndContext onDragEnd={handleDragEnd} sensors={sensors}>
-				<div className="flex-grow bg-slate-900/50 rounded-lg ring-1 ring-slate-700 relative overflow-hidden">
-					<div className="p-2 absolute top-0 left-0 z-10">
-						<Button
-							onClick={() => setAddNodeOpen(true)}
-							className="bg-violet-600 hover:bg-violet-500"
-						>
-							<PlusIcon className="mr-2 h-5 w-5" /> Add Node
-						</Button>
-					</div>
-
-					<svg className="absolute w-full h-full pointer-events-none">
-						<defs>
-							<marker
-								id="arrowhead"
-								markerWidth="10"
-								markerHeight="7"
-								refX="0"
-								refY="3.5"
-								orient="auto"
+		<>
+			<MasterDetailManager<AnimationNode>
+				items={allNodes}
+				selectedId={selectedNodeId}
+				onSelectId={setSelectedNodeId}
+				title="Nodes"
+				onAddItem={() => setAddNodeOpen(true)}
+				onDeleteItem={
+					selectedNode && selectedNode.uuid !== layer.noneNode
+						? handleDeleteNode
+						: undefined
+				}
+				addText="Add Node"
+				deleteText="Delete Node"
+				editorTitle={(node) =>
+					node.uuid === layer.noneNode ? (
+						<span className="text-xl font-bold text-slate-100">
+							{node.name}
+						</span>
+					) : (
+						<Input
+							value={node.name}
+							onChange={(e) => updateNode({ ...node, name: e.target.value })}
+							className="bg-transparent border-none p-0 h-auto text-xl font-bold w-full focus:ring-0 focus:bg-slate-700"
+						/>
+					)
+				}
+				renderListItem={(node, isSelected) => (
+					<button
+						className={`w-full text-left p-3 rounded-lg transition-colors duration-150 flex items-center gap-3 ${isSelected ? "bg-violet-500/20 ring-2 ring-violet-500" : "bg-slate-800 hover:bg-slate-700"}`}
+					>
+						{node.uuid === layer.noneNode && (
+							<span
+								className="text-amber-400 font-bold"
+								title="None Node (Default State)"
 							>
-								<polygon points="0 0, 10 3.5, 0 7" fill="#6b7280" />
-							</marker>
-							<marker
-								id="arrowhead-default"
-								markerWidth="10"
-								markerHeight="7"
-								refX="0"
-								refY="3.5"
-								orient="auto"
-							>
-								<polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b" />
-							</marker>
-						</defs>
-						{Object.values(layer.nodes).flatMap((node) =>
-							node.transitions.map((trans) => {
-								const targetNode = nodeMap.get(trans.targetNode);
-								if (!targetNode) return null;
-								const start = {
-									x: node.position.x + 192,
-									y: node.position.y + 30,
-								};
-								const end = {
-									x: targetNode.position.x,
-									y: targetNode.position.y + 30,
-								};
-								return (
-									<line
-										key={trans.uuid}
-										x1={start.x}
-										y1={start.y}
-										x2={end.x}
-										y2={end.y}
-										stroke="#6b7280"
-										strokeWidth="2"
-										markerEnd="url(#arrowhead)"
-									/>
-								);
-							}),
+								◆
+							</span>
 						)}
-					</svg>
-
-					{Object.values(layer.nodes).map((node) => (
-						<DraggableNode
-							key={node.uuid}
-							node={node}
-							isSelected={selectedNodeId === node.uuid}
-							isNone={layer.noneNode === node.uuid}
-							onSelect={() => setSelectedNodeId(node.uuid)}
-						/>
-					))}
-				</div>
-			</DndContext>
-
-			{/* Details Panel */}
-			<div className="w-96 flex-shrink-0 bg-slate-800 p-4 rounded-lg ring-1 ring-slate-700 overflow-y-auto">
-				{selectedNode ? (
-					<div>
-						<div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-700">
-							<h3 className="text-xl font-bold text-slate-100">Node Details</h3>
-							<Button
-								onClick={() => handleDeleteNode(selectedNode.uuid)}
-								disabled={selectedNode.uuid === layer.noneNode}
-								className="bg-rose-600 hover:bg-rose-500"
-							>
-								<TrashIcon className="w-5 h-5 sm:mr-2" />
-								<span className="hidden sm:inline">Delete Node</span>
-							</Button>
+						<div className="flex-grow">
+							<h3 className="font-semibold text-slate-100 truncate">
+								{node.name}
+							</h3>
+							<p className="text-sm text-slate-400 truncate">
+								{node.animation || "(No animation)"}
+							</p>
 						</div>
-						<AnimationNodeDetailsEditor
-							layer={layer}
-							node={selectedNode}
-							onNodeChange={updateNode}
-						/>
-					</div>
-				) : (
-					<div className="text-center text-slate-500 pt-10">
-						<h3 className="text-lg font-semibold">Select a node to edit</h3>
-						<p className="text-sm">
-							Click a node on the canvas to see its details.
-						</p>
-					</div>
+					</button>
 				)}
-			</div>
+				renderEditor={(node) => (
+					<AnimationNodeDetailsEditor
+						key={node.uuid}
+						layer={layer}
+						node={node}
+						onNodeChange={updateNode}
+					/>
+				)}
+				renderEmptyState={EmptyState}
+			/>
 
 			{/* Add Node Dialog */}
 			<Dialog open={isAddNodeOpen} onClose={() => setAddNodeOpen(false)}>
@@ -529,6 +429,6 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 					</Button>
 				</DialogFooter>
 			</Dialog>
-		</div>
+		</>
 	);
 }
