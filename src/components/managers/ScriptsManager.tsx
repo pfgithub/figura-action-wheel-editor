@@ -11,7 +11,8 @@ import {
 import { PlusIcon } from "@/components/ui/icons";
 import { scripts as availableScripts } from "@/data/scripts";
 import { useAvatarStore } from "@/store/avatarStore";
-import type { Script, UUID } from "@/types";
+import type { Script, ScriptInstance, UUID } from "@/types";
+import { generateUUID } from "@/utils/uuid";
 
 const EmptyState = () => (
 	<div className="flex flex-col items-center justify-center h-full text-slate-500">
@@ -38,6 +39,28 @@ const EmptyState = () => (
 	</div>
 );
 
+function getDefaultValueForType(type: any): any {
+	switch (type.kind) {
+		case "string":
+			return type.defaultValue ?? "";
+		case "boolean":
+			return type.defaultValue ?? false;
+		case "vec3":
+			return type.defaultValue ?? [0, 0, 0];
+		case "list":
+			return [];
+		case "table": {
+			const obj: Record<string, any> = {};
+			for (const key in type.entries) {
+				obj[key] = getDefaultValueForType(type.entries[key]);
+			}
+			return obj;
+		}
+		default:
+			return type.defaultValue ?? undefined;
+	}
+}
+
 export function ScriptsManager() {
 	const { avatar, updateAvatar } = useAvatarStore();
 	const [isAddDialogOpen, setAddDialogOpen] = useState(false);
@@ -58,6 +81,25 @@ export function ScriptsManager() {
 			data: JSON.parse(JSON.stringify(scriptData)), // Deep copy
 			instances: {},
 		};
+
+		// Automatically create instances for types with mode "one"
+		for (const instanceType of Object.values(scriptData.instanceTypes)) {
+			if (instanceType.mode === "one") {
+				const paramValues: Record<string, any> = {};
+				instanceType.parameters.forEach((param) => {
+					paramValues[param.name] = getDefaultValueForType(param.type);
+				});
+
+				const newInstance: ScriptInstance = {
+					uuid: generateUUID(),
+					name: instanceType.name,
+					parameterValue: paramValues,
+				};
+
+				newScript.instances[instanceType.uuid] = [newInstance];
+			}
+		}
+
 		updateAvatar((draft) => {
 			draft.scripts[newScript.uuid] = newScript;
 		});
@@ -66,6 +108,18 @@ export function ScriptsManager() {
 	};
 
 	const handleDelete = (itemToDelete: Script) => {
+		// Do not allow deleting scripts that have a "one" instance type, as they are mandatory
+		const hasMandatoryInstance = Object.values(
+			itemToDelete.data.instanceTypes,
+		).some((it) => it.mode === "one");
+
+		if (hasMandatoryInstance) {
+			alert(
+				`The script "${itemToDelete.name}" cannot be deleted because it is a mandatory script.`,
+			);
+			return;
+		}
+
 		if (!itemToDelete) return;
 		updateAvatar((draft) => {
 			delete draft.scripts[itemToDelete.uuid];
@@ -73,6 +127,12 @@ export function ScriptsManager() {
 		if (selectedId === itemToDelete.uuid) {
 			setSelectedId(null);
 		}
+	};
+
+	const isDeletable = (script: Script) => {
+		return !Object.values(script.data.instanceTypes).some(
+			(it) => it.mode === "one",
+		);
 	};
 
 	return (
@@ -94,7 +154,9 @@ export function ScriptsManager() {
 						<h3 className="font-semibold text-slate-100">{script.name}</h3>
 					</button>
 				)}
-				renderEditor={(script) => <ScriptEditor script={script} />}
+				renderEditor={(script) => (
+					<ScriptEditor key={script.uuid} script={script} />
+				)}
 				renderEmptyState={EmptyState}
 			/>
 

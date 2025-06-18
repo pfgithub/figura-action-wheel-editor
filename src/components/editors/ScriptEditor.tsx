@@ -97,9 +97,11 @@ export function ScriptEditor({ script }: ScriptEditorProps) {
 		<div className="space-y-6">
 			{Object.values(script.data.instanceTypes).map((instanceType) => {
 				const instances = script.instances[instanceType.uuid] ?? [];
-				const canAddMore =
+				const canAdd =
 					instanceType.mode === "many" ||
-					(instanceType.mode !== "zero_or_one" && instances.length === 0);
+					(instanceType.mode === "zero_or_one" && instances.length === 0);
+				const canDelete = instanceType.mode !== "one";
+
 				const hasDefines =
 					instanceType.defines &&
 					(Object.keys(instanceType.defines.conditions).length > 0 ||
@@ -115,7 +117,7 @@ export function ScriptEditor({ script }: ScriptEditorProps) {
 							<h3 className="text-xl font-bold text-slate-200">
 								{instanceType.name}
 							</h3>
-							{canAddMore && (
+							{canAdd && (
 								<Button
 									onClick={() => handleAddInstance(instanceType)}
 									className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300"
@@ -167,69 +169,81 @@ export function ScriptEditor({ script }: ScriptEditorProps) {
 										className="bg-slate-900/50 rounded-lg ring-1 ring-slate-700/50 overflow-hidden"
 									>
 										<div
-											className="flex justify-between items-center p-3 cursor-pointer hover:bg-slate-700/20"
-											onClick={() =>
+											className={`flex justify-between items-center p-3 ${instanceType.parameters.length > 0 ? "cursor-pointer" : ""} hover:bg-slate-700/20`}
+											onClick={() => {
+												if (instanceType.parameters.length === 0) return;
 												setExpandedInstance((prev) =>
 													prev === instance.uuid ? null : instance.uuid,
-												)
-											}
+												);
+											}}
 										>
-											<Input
-												value={instance.name}
-												onClick={(e) => e.stopPropagation()}
-												onChange={(e) =>
-													updateInstance(instanceType.uuid, {
-														...instance,
-														name: e.target.value,
-													})
-												}
-												className="bg-transparent border-none p-0 h-auto text-base font-semibold w-auto focus:ring-0"
-											/>
-											<div className="flex items-center gap-2">
-												<Button
-													onClick={(e) => {
-														e.stopPropagation();
-														handleDeleteInstance(
-															instanceType.uuid,
-															instance.uuid,
-														);
-													}}
-													className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 w-8 h-8 p-0 flex-shrink-0"
-												>
-													<TrashIcon className="w-4 h-4" />
-												</Button>
-												<svg
-													className={`flex-shrink-0 w-6 h-6 text-slate-400 transition-transform duration-200 ${expandedInstance === instance.uuid ? "rotate-180" : "rotate-0"}`}
-													xmlns="http://www.w3.org/2000/svg"
-													width="24"
-													height="24"
-													viewBox="0 0 24 24"
-													fill="none"
-													stroke="currentColor"
-													strokeWidth="2"
-													strokeLinecap="round"
-													strokeLinejoin="round"
-												>
-													<path d="m6 9 6 6 6-6" />
-												</svg>
-											</div>
-										</div>
-										{expandedInstance === instance.uuid && (
-											<div className="p-4 border-t border-slate-700/50">
-												<ScriptParameterEditor
-													parameters={instanceType.parameters}
-													values={
-														instance.parameterValue as Record<string, any>
-													}
-													onChange={(newValues) =>
+											{instanceType.mode === "one" ? (
+												<span className="text-base font-semibold">
+													{instance.name}
+												</span>
+											) : (
+												<Input
+													value={instance.name}
+													onClick={(e) => e.stopPropagation()}
+													onChange={(e) =>
 														updateInstance(instanceType.uuid, {
 															...instance,
-															parameterValue: newValues,
+															name: e.target.value,
 														})
 													}
+													className="bg-transparent border-none p-0 h-auto text-base font-semibold w-auto focus:ring-0"
 												/>
+											)}
+											<div className="flex items-center gap-2">
+												{canDelete && (
+													<Button
+														onClick={(e) => {
+															e.stopPropagation();
+															handleDeleteInstance(
+																instanceType.uuid,
+																instance.uuid,
+															);
+														}}
+														className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 w-8 h-8 p-0 flex-shrink-0"
+													>
+														<TrashIcon className="w-4 h-4" />
+													</Button>
+												)}
+												{instanceType.parameters.length > 0 && (
+													<svg
+														className={`flex-shrink-0 w-6 h-6 text-slate-400 transition-transform duration-200 ${expandedInstance === instance.uuid ? "rotate-180" : "rotate-0"}`}
+														xmlns="http://www.w3.org/2000/svg"
+														width="24"
+														height="24"
+														viewBox="0 0 24 24"
+														fill="none"
+														stroke="currentColor"
+														strokeWidth="2"
+														strokeLinecap="round"
+														strokeLinejoin="round"
+													>
+														<path d="m6 9 6 6 6-6" />
+													</svg>
+												)}
 											</div>
-										)}
+										</div>
+										{expandedInstance === instance.uuid &&
+											instanceType.parameters.length > 0 && (
+												<div className="p-4 border-t border-slate-700/50">
+													<ScriptParameterEditor
+														parameters={instanceType.parameters}
+														values={
+															instance.parameterValue as Record<string, any>
+														}
+														onChange={(newValues) =>
+															updateInstance(instanceType.uuid, {
+																...instance,
+																parameterValue: newValues,
+															})
+														}
+													/>
+												</div>
+											)}
 									</div>
 								))
 							) : (

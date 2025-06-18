@@ -65,7 +65,7 @@
   - we can have some default libraries you can add and configure
 - [x] add support for reordering actions within an action wheel and moving actions between action wheels
 - [ ] add a code editor tab where you can write custom code. you can add parameters.
-- [ ] right now, a ScriptDataInstanceType with mode "one" can have zero instances! Fix the app to always have one instance of a ScriptDataInstanceType with mode "one".
+- [x] right now, a ScriptDataInstanceType with mode "one" can have zero instances! Fix the app to always have one instance of a ScriptDataInstanceType with mode "one".
 - [ ] apply prettier to all source files
 - [ ] find which files are largest and split them up
 - [ ] migrate the code to use useAvatarStore() rather than passing props down when it makes sense
@@ -93,7 +93,8 @@
 - [ ] add multi-action support
 - [ ] add sound action (need to look at ogg files)
 - [ ] (repeatable) Determine what part of the code is most in need of refactoring and refactor it.
-- [ ] because the application has undo/redo, "confirm delete" dialogs are not needed. remove all confirm delete dialogs.
+- [x] because the application has undo/redo, "confirm delete" dialogs are not needed. remove all confirm delete dialogs.
+- [ ] add the ability to mark toggle groups as "saved"
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
