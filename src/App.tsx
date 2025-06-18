@@ -132,13 +132,8 @@ type EditorTab =
 	| "keybinds";
 
 export function App() {
-	const {
-		avatar,
-		isSaving,
-		saveAvatar,
-		updateAvatar,
-		loadAvatar,
-	} = useAvatarStore();
+	const { avatar, isSaving, saveAvatar, updateAvatar, loadAvatar } =
+		useAvatarStore();
 	const [viewedWheelUuid, setViewedWheelUuid] = useState<UUID | null>(null);
 	const [activeTab, setActiveTab] = useState<EditorTab>("wheels");
 	const [fileLoadError, setFileLoadError] = useState<string | null>(null);

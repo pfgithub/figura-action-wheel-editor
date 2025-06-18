@@ -93,9 +93,7 @@ function AnimationNodeDetailsEditor({
 			transitions: isNew
 				? [...node.transitions, localTransitionState]
 				: node.transitions.map((t) =>
-						t.uuid === localTransitionState.uuid
-							? localTransitionState
-							: t,
+						t.uuid === localTransitionState.uuid ? localTransitionState : t,
 					),
 		});
 

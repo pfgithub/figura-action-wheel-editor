@@ -323,9 +323,11 @@ export function MetadataEditorDialog({
 		metadata: originalMetadata,
 		updateMetadata,
 		modelElements,
-        saveMetadata,
+		saveMetadata,
 	} = useAvatarStore();
-	const [localMetadata, setLocalMetadata] = useState<AvatarMetadata | null>(null);
+	const [localMetadata, setLocalMetadata] = useState<AvatarMetadata | null>(
+		null,
+	);
 	const [partToAdd, setPartToAdd] = useState("");
 
 	useEffect(() => {
@@ -406,8 +408,8 @@ export function MetadataEditorDialog({
 			);
 			Object.assign(draft, localMetadata);
 		});
-        // Download the file
-        saveMetadata();
+		// Download the file
+		saveMetadata();
 
 		onClose();
 	};
@@ -433,7 +435,9 @@ export function MetadataEditorDialog({
 					<FormRow label="Name">
 						<Input
 							value={localMetadata.name ?? ""}
-							onChange={(e) => handleUpdate("name", e.target.value || undefined)}
+							onChange={(e) =>
+								handleUpdate("name", e.target.value || undefined)
+							}
 							placeholder="e.g., Katt"
 						/>
 					</FormRow>
