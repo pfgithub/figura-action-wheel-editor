@@ -395,8 +395,35 @@ end
 		predeclare.push(`local ${varname} = ${ctx.uuidToNumber(state.noneNode)}`);
 		// we can consider supporting saving animation states
 
+		// call noneNode's animationStartFn on init
+
 		for(const node of Object.values(state.nodes)) {
 			const num = ctx.uuidToNumber(node.uuid);
+
+			for(const transition of node.transitions) {
+				if(transition.activationCondition == null) continue;
+
+				// to support waitForFinish, make the activation condition AND(animation done, existing condition)
+				const updateFrequency = getUpdateFrequency(transition.activationCondition);
+
+				// now we have to add the transition in two places:
+				// - unless updateFrequency is render then add it in thisAnimationStartFn
+				// - add it in the updatefrequency place
+				// which is:
+				// - fn checkAnimationNTransitionN()
+				//       if varname == num and activationCondition then
+				//           thisAnimationStopFn()
+				//           nextAnimationStartFn()
+				//       end
+				//   end
+				//   function thisAnimationStopFn()
+				//       thisAnimation:stop()
+				//   end
+				//   function nextAnimationStartFn()
+				//       nextAnimation:start()
+				//       run next animation action
+				//   end
+			}
 
 			// now for each condition we add it under (if animation state == this one) check condition
 		}
