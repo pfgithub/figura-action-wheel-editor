@@ -29,7 +29,7 @@ export function ActionWheelsManager({
 	// Reset selection when the viewed wheel changes
 	useEffect(() => {
 		setSelectedActionIndex(null);
-	}, [viewedWheelUuid]);
+	}, []);
 
 	if (!avatar) return null; // Should not happen if App component handles loading state
 

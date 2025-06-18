@@ -127,7 +127,7 @@ export async function loadProjectFromFiles(
 		let model: BBModel;
 		try {
 			model = JSON.parse(content);
-		} catch (e) {
+		} catch (_e) {
 			console.warn(`Skipping non-JSON bbmodel file: ${file.name}`);
 			continue;
 		}

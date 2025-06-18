@@ -1,7 +1,7 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useAvatarStore } from "@/store/avatarStore";
-import type { ActionWheel, Avatar, UUID } from "@/types";
+import type { ActionWheel, UUID } from "@/types";
 import { generateUUID } from "@/utils/uuid";
 import "./index.css";
 
