@@ -9,6 +9,7 @@ import "./index.css";
 import { ActionWheelsManager } from "@/components/managers/ActionWheelsManager";
 import { AnimationSettingsManager } from "@/components/managers/AnimationSettingsManager";
 import { KeybindsManager } from "@/components/managers/KeybindsManager";
+import { MetadataManager } from "@/components/managers/MetadataManager";
 import { ScriptsManager } from "@/components/managers/ScriptsManager";
 // UI Components
 import { Button } from "@/components/ui/Button";
@@ -122,11 +123,17 @@ function FileDropzone({
 	);
 }
 
-type EditorTab = "wheels" | "settings" | "scripts" | "keybinds";
+type EditorTab = "wheels" | "settings" | "scripts" | "keybinds" | "metadata";
 
 export function App() {
-	const { avatar, isSaving, saveAvatar, updateAvatar, loadAvatar } =
-		useAvatarStore();
+	const {
+		avatar,
+		isSaving,
+		saveAvatar,
+		saveMetadata,
+		updateAvatar,
+		loadAvatar,
+	} = useAvatarStore();
 	const [viewedWheelUuid, setViewedWheelUuid] = useState<UUID | null>(null);
 	const [activeTab, setActiveTab] = useState<EditorTab>("wheels");
 	const [fileLoadError, setFileLoadError] = useState<string | null>(null);
@@ -174,6 +181,7 @@ export function App() {
 			data.animations,
 			data.modelElements,
 			data.textures,
+			data.metadata,
 		);
 	};
 
@@ -208,6 +216,7 @@ export function App() {
 		{ id: "settings", label: "Conditional Settings" },
 		{ id: "scripts", label: "Scripts" },
 		{ id: "keybinds", label: "Keybinds" },
+		{ id: "metadata", label: "Metadata" },
 	];
 
 	const renderActiveTab = () => {
@@ -226,6 +235,8 @@ export function App() {
 				return <ScriptsManager />;
 			case "keybinds":
 				return <KeybindsManager />;
+			case "metadata":
+				return <MetadataManager />;
 			default:
 				return null;
 		}
@@ -256,11 +267,18 @@ export function App() {
 						Redo
 					</Button>
 					<Button
+						onClick={saveMetadata}
+						disabled={isSaving}
+						className="bg-emerald-600 hover:bg-emerald-500 focus-visible:ring-emerald-400"
+					>
+						{isSaving ? "Saving..." : "Save Metadata"}
+					</Button>
+					<Button
 						onClick={saveAvatar}
 						disabled={isSaving || pastStates.length === 0}
 						className="bg-violet-600 hover:bg-violet-500 text-base py-2 px-6 focus-visible:ring-violet-400"
 					>
-						{isSaving ? "Saving..." : "Save"}
+						{isSaving ? "Saving..." : "Save Project"}
 					</Button>
 				</div>
 			</header>

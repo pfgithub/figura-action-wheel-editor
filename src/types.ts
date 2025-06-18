@@ -10,6 +10,29 @@ export type TextureAsset = {
 	height: number;
 };
 
+export type AvatarMetadata = {
+	name?: string;
+	description?: string;
+	author?: string; // Will be ignored if authors is present
+	authors?: string[];
+	version?: string;
+	color?: string; // hex string without #
+	autoScripts?: string[];
+	autoAnims?: string[];
+	ignoredTextures?: string[];
+	customizations?: Record<string, Customization>;
+};
+
+export type Customization = {
+	primaryRenderType?: string;
+	secondaryRenderType?: string;
+	parentType?: string;
+	moveTo?: string;
+	visible?: boolean;
+	remove?: boolean;
+	smooth?: boolean;
+};
+
 export type Avatar = {
 	mainActionWheel?: UUID;
 	actionWheels: Record<UUID, ActionWheel>;

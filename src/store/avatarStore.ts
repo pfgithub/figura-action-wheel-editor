@@ -2,12 +2,19 @@ import { produce, type WritableDraft } from "immer";
 import { temporal } from "zundo";
 import { create } from "zustand";
 import { generateLua } from "@/data/generateLua";
-import type { AnimationID, Avatar, TextureAsset } from "@/types";
+import type {
+	AnimationID,
+	Avatar,
+	AvatarMetadata,
+	TextureAsset,
+} from "@/types";
 
 export type AvatarUpdater = (draft: WritableDraft<Avatar>) => void;
+export type MetadataUpdater = (draft: WritableDraft<AvatarMetadata>) => void;
 
 interface AvatarState {
 	avatar: Avatar | null;
+	metadata: AvatarMetadata | null;
 	animations: AnimationID[];
 	modelElements: string[];
 	textures: TextureAsset[];
@@ -17,9 +24,12 @@ interface AvatarState {
 		animations: AnimationID[],
 		modelElements: string[],
 		textures: TextureAsset[],
+		metadata: AvatarMetadata,
 	) => void;
 	saveAvatar: () => void;
+	saveMetadata: () => void;
 	updateAvatar: (updater: AvatarUpdater) => void;
+	updateMetadata: (updater: MetadataUpdater) => void;
 	clearAvatar: () => void;
 }
 
@@ -28,14 +38,15 @@ export const useAvatarStore = create<AvatarState>()(
 		(set, get) => ({
 			// --- State ---
 			avatar: null,
+			metadata: null,
 			animations: [],
 			modelElements: [],
 			textures: [],
 			isSaving: false,
 
 			// --- Actions ---
-			loadAvatar: (data, animations, modelElements, textures) => {
-				set({ avatar: data, animations, modelElements, textures });
+			loadAvatar: (data, animations, modelElements, textures, metadata) => {
+				set({ avatar: data, animations, modelElements, textures, metadata });
 				// After loading a new project, clear the undo/redo history.
 				useAvatarStore.temporal.getState().clear();
 			},
@@ -64,8 +75,37 @@ export const useAvatarStore = create<AvatarState>()(
 				}
 			},
 
+			saveMetadata: () => {
+				const { metadata } = get();
+				if (!metadata) return;
+				set({ isSaving: true });
+				try {
+					const metadataJson = JSON.stringify(metadata, null, 4);
+					const blob = new Blob([metadataJson], { type: "application/json" });
+					const url = URL.createObjectURL(blob);
+					const a = document.createElement("a");
+					a.href = url;
+					a.download = "avatar.json";
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
+					URL.revokeObjectURL(url);
+				} catch (err: any) {
+					console.error("Error saving metadata:", err);
+					alert(`Error saving metadata: ${err.message}`);
+				} finally {
+					set({ isSaving: false });
+				}
+			},
+
 			clearAvatar: () => {
-				set({ avatar: null, animations: [], modelElements: [], textures: [] });
+				set({
+					avatar: null,
+					metadata: null,
+					animations: [],
+					modelElements: [],
+					textures: [],
+				});
 				useAvatarStore.temporal.getState().clear();
 			},
 
@@ -78,10 +118,23 @@ export const useAvatarStore = create<AvatarState>()(
 					}),
 				);
 			},
+
+			updateMetadata: (updater) => {
+				set(
+					produce((state: AvatarState) => {
+						if (state.metadata) {
+							updater(state.metadata);
+						}
+					}),
+				);
+			},
 		}),
 		{
-			// Only track the 'avatar' property in the undo/redo history.
-			partialize: (state) => ({ avatar: state.avatar }),
+			// Track 'avatar' and 'metadata' in the undo/redo history.
+			partialize: (state) => ({
+				avatar: state.avatar,
+				metadata: state.metadata,
+			}),
 			// Limit the number of history entries
 			limit: 100,
 		},

@@ -1,6 +1,12 @@
 import type { BBModel, BBModelElement, BBModelOutliner } from "@/bbmodel";
 import { isValidLuaIdent, parseLua } from "@/data/generateLua";
-import type { AnimationID, Avatar, TextureAsset, UUID } from "@/types";
+import type {
+	AnimationID,
+	Avatar,
+	AvatarMetadata,
+	TextureAsset,
+	UUID,
+} from "@/types";
 
 // --- Path Utilities (specific to project loading) ---
 
@@ -53,6 +59,7 @@ const readImage = (name: string, imageURL: string): Promise<TextureAsset> => {
 
 export interface LoadedProjectData {
 	project: Avatar;
+	metadata: AvatarMetadata;
 	animations: AnimationID[];
 	modelElements: string[];
 	textures: TextureAsset[];
@@ -66,6 +73,7 @@ export async function loadProjectFromFiles(
 	}
 
 	let projectFile: File | null = null;
+	let metadataFile: File | null = null;
 	const bbmodelFiles: File[] = [];
 	const imageFiles: File[] = [];
 	const imageExtensions = [".png", ".jpg", ".jpeg", ".webp"];
@@ -79,6 +87,8 @@ export async function loadProjectFromFiles(
 				);
 			}
 			projectFile = file;
+		} else if (lowerName === "avatar.json") {
+			metadataFile = file;
 		} else if (lowerName.endsWith(".bbmodel")) {
 			bbmodelFiles.push(file);
 		} else if (imageExtensions.some((ext) => lowerName.endsWith(ext))) {
@@ -89,6 +99,9 @@ export async function loadProjectFromFiles(
 	// Read all files in parallel
 	const projectFileContent = projectFile
 		? await readFileAsText(projectFile)
+		: null;
+	const metadataFileContent = metadataFile
+		? await readFileAsText(metadataFile)
 		: null;
 	const bbmodelFileContents = await Promise.all(
 		bbmodelFiles.map(readFileAsText),
@@ -114,6 +127,18 @@ export async function loadProjectFromFiles(
 	}
 	projectData.scripts ??= {};
 	projectData.keybinds ??= {};
+
+	// --- Parse avatar.json ---
+	let metadata: AvatarMetadata = {};
+	if (metadataFileContent) {
+		try {
+			metadata = JSON.parse(metadataFileContent);
+		} catch (e) {
+			throw new Error(
+				"Failed to parse avatar.json. Please ensure it's valid JSON.",
+			);
+		}
+	}
 
 	// --- Parse bbmodels and extract animations and textures ---
 	const allAnimations: AnimationID[] = [];
@@ -195,6 +220,7 @@ export async function loadProjectFromFiles(
 
 	return {
 		project: projectData,
+		metadata,
 		animations: allAnimations,
 		modelElements: allModelElements,
 		textures: allTextures,
