@@ -28,8 +28,8 @@ export function ActionEffectEditor({
 			updateEffect({ kind });
 		} else if (kind === "switchPage") {
 			updateEffect({ kind: "switchPage" });
-		} else if (kind === "switchPageScript") {
-			updateEffect({ kind: "switchPageScript" });
+		} else if (kind === "scriptAction") {
+			updateEffect({ kind: "scriptAction" });
 		} else {
 			updateEffect(undefined);
 		}
@@ -49,8 +49,8 @@ export function ActionEffectEditor({
 			Object.entries(script.instances).forEach(([typeUuid, insts]) => {
 				const type = script.data.instanceTypes[typeUuid as UUID];
 				if (
-					type?.defines?.actionWheels &&
-					Object.keys(type.defines.actionWheels).length > 0
+					type?.defines?.action &&
+					Object.keys(type.defines.action).length > 0
 				) {
 					insts.forEach((instance) =>
 						instances.push({ instance, script, type }),
@@ -70,10 +70,10 @@ export function ActionEffectEditor({
 	const selectedScriptInstanceData = allScriptInstances.find(
 		(i) =>
 			i.instance.uuid ===
-			(effect?.kind === "switchPageScript" ? effect.scriptInstance : undefined),
+			(effect?.kind === "scriptAction" ? effect.scriptInstance : undefined),
 	);
 	const availableScriptWheels = selectedScriptInstanceData
-		? Object.values(selectedScriptInstanceData.type.defines.actionWheels)
+		? Object.values(selectedScriptInstanceData.type.defines.action)
 		: [];
 
 	return (
@@ -86,7 +86,7 @@ export function ActionEffectEditor({
 						{ label: "None", value: undefined },
 						{ label: "Toggle Option", value: "toggle" },
 						{ label: "Switch Wheel", value: "switchPage" },
-						{ label: "Script Wheel", value: "switchPageScript" },
+						{ label: "Script Wheel", value: "scriptAction" },
 					]}
 				/>
 			</FormRow>
@@ -158,7 +158,7 @@ export function ActionEffectEditor({
 				</FormRow>
 			)}
 
-			{effect?.kind === "switchPageScript" && (
+			{effect?.kind === "scriptAction" && (
 				<>
 					<FormRow label="Script Instance">
 						<Select
@@ -169,7 +169,7 @@ export function ActionEffectEditor({
 									scriptInstance: e.target.value
 										? (e.target.value as UUID)
 										: undefined,
-									scriptActionWheel: undefined,
+									scriptAction: undefined,
 								})
 							}
 							disabled={allScriptInstances.length === 0}
@@ -186,13 +186,13 @@ export function ActionEffectEditor({
 							))}
 						</Select>
 					</FormRow>
-					<FormRow label="Target Wheel">
+					<FormRow label="Target Action">
 						<Select
-							value={effect.scriptActionWheel ?? ""}
+							value={effect.scriptAction ?? ""}
 							onChange={(e) =>
 								updateEffect({
 									...effect,
-									scriptActionWheel: e.target.value
+									scriptAction: e.target.value
 										? (e.target.value as UUID)
 										: undefined,
 								})
@@ -201,7 +201,7 @@ export function ActionEffectEditor({
 						>
 							<option value="">
 								{effect.scriptInstance
-									? "-- Select a wheel --"
+									? "-- Select an action --"
 									: "-- First select an instance --"}
 							</option>
 							{availableScriptWheels.map((w) => (

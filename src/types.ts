@@ -69,9 +69,9 @@ export type ActionEffect =
 			actionWheel?: UUID;
 	  }
 	| {
-			kind: "switchPageScript";
+			kind: "scriptAction";
 			scriptInstance?: UUID;
-			scriptActionWheel?: UUID;
+			scriptAction?: UUID;
 	  };
 
 export type ToggleGroupOption = {
@@ -224,7 +224,7 @@ export type ScriptDataInstanceType = {
 	defines: {
 		conditions: Record<UUID, ScriptDataCondition>;
 		settings: Record<UUID, ScriptDataSetting>;
-		actionWheels: Record<UUID, ScriptDataActionWheel>;
+		action: Record<UUID, ScriptDataAction>;
 	};
 };
 export type ScriptDataCondition = {
@@ -235,7 +235,7 @@ export type ScriptDataSetting = {
 	uuid: UUID;
 	name: string;
 };
-export type ScriptDataActionWheel = {
+export type ScriptDataAction = {
 	uuid: UUID;
 	name: string;
 };

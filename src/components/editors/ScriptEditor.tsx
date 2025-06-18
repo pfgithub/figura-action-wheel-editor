@@ -110,7 +110,7 @@ export function ScriptEditor({ script }: ScriptEditorProps) {
 					instanceType.defines &&
 					(Object.keys(instanceType.defines.conditions).length > 0 ||
 						Object.keys(instanceType.defines.settings).length > 0 ||
-						Object.keys(instanceType.defines.actionWheels).length > 0);
+						Object.keys(instanceType.defines.action).length > 0);
 
 				return (
 					<div
@@ -153,11 +153,11 @@ export function ScriptEditor({ script }: ScriptEditorProps) {
 												.join(", ")}
 										</li>
 									)}
-									{Object.keys(instanceType.defines.actionWheels).length >
+									{Object.keys(instanceType.defines.action).length >
 										0 && (
 										<li>
 											<strong>Action Wheels:</strong>{" "}
-											{Object.values(instanceType.defines.actionWheels)
+											{Object.values(instanceType.defines.action)
 												.map((w) => w.name)
 												.join(", ")}
 										</li>

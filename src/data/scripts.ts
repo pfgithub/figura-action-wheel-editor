@@ -73,7 +73,7 @@ await addScript(
 						name: "Fix Crosshair (May trigger AntiCheat in multiplayer)",
 					},
 				},
-				actionWheels: {},
+				action: {},
 			},
 		},
 	],
