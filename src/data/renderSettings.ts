@@ -118,9 +118,9 @@ for (const [name, value] of playerDoing) {
 	addRenderValue(value, `Player is ${name}`);
 }
 
-addRenderValue(`context == "FIRST_PERSON"`, "Rendering in First Person");
-addRenderValue(`context == "PAPERDOLL"`, "Rendering Paperdoll");
-addRenderValue(`context == "OTHER"`, "Rendering Other");
+addRenderValue(`context == "FIRST_PERSON"`, "Context is First Person");
+addRenderValue(`context == "PAPERDOLL"`, "Context is Paperdoll");
+addRenderValue(`context == "OTHER"`, "Context is Other");
 
 addRenderValue(`renderer:isFirstPerson()`, "Camera is First Person");
 addRenderValue(`renderer:isCameraBackwards()`, "Camera is Backwards");
