@@ -220,12 +220,13 @@ export type AnimationLayer = {
 	uuid: UUID;
 	name: string;
 	nodes: Record<UUID, AnimationNode>;
+	noneNode: UUID;
 };
 
 export type AnimationNode = {
 	uuid: UUID;
 	name: string;
-	animation: AnimationID;
+	animation: AnimationID | ""; // Empty string represents "None"
 	position: { x: number; y: number };
 	transitions: AnimationTransition[];
 };

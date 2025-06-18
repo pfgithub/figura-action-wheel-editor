@@ -27,6 +27,8 @@
     transition whose activation condition activates is used.
 - [ ] on transitions, add the ability for them to run an ActionEffect
 - [ ] remove animations from the conditional settings tab. don't worry about migrating existing projects.
+- [ ] rather than draggable nodes for the Animation Nodes view, have it be a list
+- [ ] add an option in animation transitions for "don't wait for animation to finish". the exact name can be changed.
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 

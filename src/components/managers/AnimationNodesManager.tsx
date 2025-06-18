@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AnimationLayerEditor } from "@/components/editors/AnimationLayerEditor";
 import { MasterDetailManager } from "@/components/layout/MasterDetailManager";
 import { useAvatarStore } from "@/store/avatarStore";
-import type { AnimationLayer, UUID } from "@/types";
+import type { AnimationLayer, AnimationNode, UUID } from "@/types";
 import { generateUUID } from "@/utils/uuid";
 import { Input } from "../ui/Input";
 
@@ -45,17 +45,28 @@ export function AnimationNodesManager() {
 	);
 
 	const handleAddLayer = () => {
-		const newUuid = generateUUID();
+		const layerUuid = generateUUID();
+		const noneNodeUuid = generateUUID();
+
+		const noneNode: AnimationNode = {
+			uuid: noneNodeUuid,
+			name: "None",
+			animation: "",
+			position: { x: 20, y: 20 },
+			transitions: [],
+		};
+
 		const newLayer: AnimationLayer = {
-			uuid: newUuid,
+			uuid: layerUuid,
 			name: `New Layer ${allLayers.length + 1}`,
-			nodes: {},
+			nodes: { [noneNodeUuid]: noneNode },
+			noneNode: noneNodeUuid,
 		};
 		updateAvatar((draft) => {
 			draft.animationLayers ??= {};
-			draft.animationLayers[newUuid] = newLayer;
+			draft.animationLayers[layerUuid] = newLayer;
 		});
-		setSelectedId(newUuid);
+		setSelectedId(layerUuid);
 	};
 
 	const handleDelete = (itemToDelete: AnimationLayer) => {

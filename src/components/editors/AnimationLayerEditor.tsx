@@ -58,6 +58,7 @@ function AnimationNodeDetailsEditor({
 	const otherNodes = Object.values(layer.nodes).filter(
 		(n) => n.uuid !== node.uuid,
 	);
+	const isNoneNode = node.uuid === layer.noneNode;
 
 	const onUpdate = (field: keyof AnimationNode, value: any) => {
 		onNodeChange({ ...node, [field]: value });
@@ -108,13 +109,16 @@ function AnimationNodeDetailsEditor({
 					<Input
 						value={node.name}
 						onChange={(e) => onUpdate("name", e.target.value)}
+						disabled={isNoneNode}
 					/>
 				</FormRow>
 				<FormRow label="Animation">
 					<Select
 						value={node.animation}
 						onChange={(e) => onUpdate("animation", e.target.value)}
+						disabled={isNoneNode}
 					>
+						<option value="">(None)</option>
 						{animations.map((anim) => (
 							<option key={anim} value={anim}>
 								{anim}
@@ -258,18 +262,27 @@ function TransitionEditor({
 // --- Draggable Node Component ---
 function DraggableNode({
 	node,
-	isDefault,
+	isNone,
 	isSelected,
 	onSelect,
 }: {
 	node: AnimationNode;
-	isDefault: boolean;
+	isNone: boolean;
 	isSelected: boolean;
 	onSelect: () => void;
 }) {
 	const { attributes, listeners, setNodeRef } = useDraggable({
 		id: node.uuid,
 	});
+
+	let className = `p-3 rounded-lg shadow-lg cursor-grab w-48 transition-colors duration-200 `;
+	if (isSelected) {
+		className += "bg-violet-600 ring-2 ring-violet-300";
+	} else if (isNone) {
+		className += "bg-slate-600 hover:bg-slate-500 ring-1 ring-slate-400";
+	} else {
+		className += "bg-slate-700 hover:bg-slate-600";
+	}
 
 	return (
 		<div
@@ -280,17 +293,19 @@ function DraggableNode({
 				top: node.position.y,
 				touchAction: "none",
 			}}
-			className={`p-3 rounded-lg shadow-lg cursor-grab w-48 ${
-				isSelected
-					? "bg-violet-600 ring-2 ring-violet-300"
-					: "bg-slate-700 hover:bg-slate-600"
-			}`}
+			className={className}
 			onClick={onSelect}
 			{...attributes}
 			{...listeners}
 		>
-			<h4 className="font-bold text-white truncate">{node.name}</h4>
-			<p className="text-xs text-slate-300 truncate">{node.animation}</p>
+			<div className="flex items-start gap-2">
+				<div className="flex-1">
+					<h4 className="font-bold text-white truncate">{node.name}</h4>
+					<p className="text-xs text-slate-300 truncate">
+						{node.animation || "(No animation)"}
+					</p>
+				</div>
+			</div>
 		</div>
 	);
 }
@@ -355,6 +370,7 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 	};
 
 	const handleDeleteNode = (nodeId: UUID) => {
+		if (nodeId === layer.noneNode) return;
 		updateAvatar((draft) => {
 			const l = draft.animationLayers?.[layer.uuid];
 			if (l) {
@@ -397,6 +413,16 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 							>
 								<polygon points="0 0, 10 3.5, 0 7" fill="#6b7280" />
 							</marker>
+							<marker
+								id="arrowhead-default"
+								markerWidth="10"
+								markerHeight="7"
+								refX="0"
+								refY="3.5"
+								orient="auto"
+							>
+								<polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b" />
+							</marker>
 						</defs>
 						{Object.values(layer.nodes).flatMap((node) =>
 							node.transitions.map((trans) => {
@@ -431,6 +457,7 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 							key={node.uuid}
 							node={node}
 							isSelected={selectedNodeId === node.uuid}
+							isNone={layer.noneNode === node.uuid}
 							onSelect={() => setSelectedNodeId(node.uuid)}
 						/>
 					))}
@@ -445,6 +472,7 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 							<h3 className="text-xl font-bold text-slate-100">Node Details</h3>
 							<Button
 								onClick={() => handleDeleteNode(selectedNode.uuid)}
+								disabled={selectedNode.uuid === layer.noneNode}
 								className="bg-rose-600 hover:bg-rose-500"
 							>
 								<TrashIcon className="w-5 h-5 sm:mr-2" />
