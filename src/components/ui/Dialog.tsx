@@ -7,16 +7,20 @@ export const Dialog = ({
 	open,
 	onClose,
 	className,
+	dismissable = true,
 }: {
 	children: React.ReactNode;
 	open: boolean;
 	onClose: () => void;
 	className?: string;
+	dismissable?: boolean;
 }) => {
 	useEffect(() => {
 		const handleEsc = (event: KeyboardEvent) => {
 			if (event.key === "Escape") {
-				onClose();
+				if (dismissable) {
+					onClose();
+				}
 			}
 		};
 		if (open) {
@@ -25,14 +29,14 @@ export const Dialog = ({
 		return () => {
 			window.removeEventListener("keydown", handleEsc);
 		};
-	}, [open, onClose]);
+	}, [open, onClose, dismissable]);
 
 	if (!open) return null;
 
 	return (
 		<div
 			className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4"
-			onClick={onClose}
+			onClick={dismissable ? onClose : undefined}
 			aria-modal="true"
 			role="dialog"
 		>

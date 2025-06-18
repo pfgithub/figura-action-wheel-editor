@@ -1,12 +1,24 @@
-import { useState } from "react";
+// src/components/dialogs/MetadataEditorDialog.tsx
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ColorPicker } from "@/components/ui/ColorPicker";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+} from "@/components/ui/Dialog";
 import { FormRow } from "@/components/ui/FormRow";
 import { Input } from "@/components/ui/Input";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
 import { Select } from "@/components/ui/Select";
 import { useAvatarStore } from "@/store/avatarStore";
-import type { AnimationRef, Customization, ModelPartRef } from "@/types";
+import type {
+	AnimationRef,
+	AvatarMetadata,
+	Customization,
+	ModelPartRef,
+} from "@/types";
 import { hexToRgb, rgbToHex } from "@/utils/color";
 
 const RENDER_TYPES = [
@@ -300,150 +312,250 @@ const CustomizationEditor = ({
 	);
 };
 
-export function MetadataManager() {
-	const { metadata, updateMetadata, modelElements } = useAvatarStore();
+export function MetadataEditorDialog({
+	isOpen,
+	onClose,
+}: {
+	isOpen: boolean;
+	onClose: () => void;
+}) {
+	const {
+		metadata: originalMetadata,
+		updateMetadata,
+		modelElements,
+        saveMetadata,
+	} = useAvatarStore();
+	const [localMetadata, setLocalMetadata] = useState<AvatarMetadata | null>(null);
 	const [partToAdd, setPartToAdd] = useState("");
 
-	if (!metadata) return null;
+	useEffect(() => {
+		if (isOpen) {
+			// Create a deep copy for local editing
+			setLocalMetadata(JSON.parse(JSON.stringify(originalMetadata ?? {})));
+		}
+	}, [isOpen, originalMetadata]);
 
-	const handleUpdate = <K extends keyof typeof metadata>(
+	if (!isOpen || !localMetadata) {
+		return null;
+	}
+
+	const handleUpdate = <K extends keyof AvatarMetadata>(
 		field: K,
-		value: (typeof metadata)[K],
+		value: AvatarMetadata[K],
 	) => {
-		updateMetadata((draft) => {
-			if (value === "" || (Array.isArray(value) && value.length === 0)) {
-				delete draft[field];
+		setLocalMetadata((prev) => {
+			if (!prev) return null;
+			const newMeta = { ...prev };
+			if (
+				value === "" ||
+				(Array.isArray(value) && value.length === 0) ||
+				value === undefined
+			) {
+				delete (newMeta as any)[field];
 			} else {
-				(draft as any)[field] = value;
+				(newMeta as any)[field] = value;
 			}
+			return newMeta;
 		});
 	};
 
 	const handleAddCustomization = () => {
 		if (!partToAdd) return;
-		updateMetadata((draft) => {
-			draft.customizations ??= {};
-			draft.customizations[partToAdd] = {};
+		setLocalMetadata((prev) => {
+			if (!prev) return null;
+			const newMeta = JSON.parse(JSON.stringify(prev));
+			newMeta.customizations ??= {};
+			newMeta.customizations[partToAdd] = {};
+			return newMeta;
 		});
 		setPartToAdd("");
 	};
 
+	const handleUpdateCustomization = (
+		partName: string,
+		newCust: Customization,
+	) => {
+		setLocalMetadata((prev) => {
+			if (!prev) return null;
+			const newMeta = JSON.parse(JSON.stringify(prev));
+			newMeta.customizations ??= {};
+			newMeta.customizations[partName] = newCust;
+			return newMeta;
+		});
+	};
+
+	const handleDeleteCustomization = (partName: string) => {
+		setLocalMetadata((prev) => {
+			if (!prev) return null;
+			const newMeta = JSON.parse(JSON.stringify(prev));
+			if (newMeta.customizations) {
+				delete newMeta.customizations[partName];
+				if (Object.keys(newMeta.customizations).length === 0) {
+					delete newMeta.customizations;
+				}
+			}
+			return newMeta;
+		});
+	};
+
+	const handleSave = () => {
+		updateMetadata((draft) => {
+			// Clear the old metadata object and assign the new one
+			Object.keys(draft).forEach(
+				(key) => delete draft[key as keyof AvatarMetadata],
+			);
+			Object.assign(draft, localMetadata);
+		});
+        // Download the file
+        saveMetadata();
+
+		onClose();
+	};
+
+	const handleDiscard = () => {
+		onClose();
+	};
+
 	const uncustomizedParts = modelElements.filter(
-		(p) => !metadata.customizations?.[modelPartRefToId(p)],
+		(p) => !localMetadata.customizations?.[modelPartRefToId(p)],
 	);
 
 	return (
-		<div className="space-y-6">
-			<Section title="General Information">
-				<FormRow label="Name">
-					<Input
-						value={metadata.name ?? ""}
-						onChange={(e) => handleUpdate("name", e.target.value || undefined)}
-						placeholder="e.g., Katt"
-					/>
-				</FormRow>
-				<FormRow label="Description">
-					<Input
-						value={metadata.description ?? ""}
-						onChange={(e) =>
-							handleUpdate("description", e.target.value || undefined)
-						}
-						placeholder="A brief summary of the avatar"
-					/>
-				</FormRow>
-				<FormRow label="Version">
-					<Input
-						value={metadata.version ?? ""}
-						onChange={(e) =>
-							handleUpdate("version", e.target.value || undefined)
-						}
-						placeholder="e.g., 0.1.0"
-					/>
-				</FormRow>
-				<FormRow label="Nameplate Color">
-					<ColorPicker
-						color={hexToRgb(metadata.color ?? "a155da") ?? [90, 170, 255]}
-						onChange={(rgb) => handleUpdate("color", rgbToHex(...rgb).slice(1))}
-					/>
-				</FormRow>
-			</Section>
+		<Dialog
+			open={isOpen}
+			onClose={handleDiscard}
+			dismissable={false}
+			className="max-w-4xl max-h-[90vh] flex flex-col"
+		>
+			<DialogHeader>Edit Avatar Metadata</DialogHeader>
+			<div className="flex-grow overflow-y-auto pr-4 -mr-4 space-y-6">
+				<Section title="General Information">
+					<FormRow label="Name">
+						<Input
+							value={localMetadata.name ?? ""}
+							onChange={(e) => handleUpdate("name", e.target.value || undefined)}
+							placeholder="e.g., Katt"
+						/>
+					</FormRow>
+					<FormRow label="Description">
+						<Input
+							value={localMetadata.description ?? ""}
+							onChange={(e) =>
+								handleUpdate("description", e.target.value || undefined)
+							}
+							placeholder="A brief summary of the avatar"
+						/>
+					</FormRow>
+					<FormRow label="Version">
+						<Input
+							value={localMetadata.version ?? ""}
+							onChange={(e) =>
+								handleUpdate("version", e.target.value || undefined)
+							}
+							placeholder="e.g., 0.1.0"
+						/>
+					</FormRow>
+					<FormRow label="Nameplate Color">
+						<ColorPicker
+							color={
+								hexToRgb(localMetadata.color ?? "a155da") ?? [90, 170, 255]
+							}
+							onChange={(rgb) =>
+								handleUpdate("color", rgbToHex(...rgb).slice(1))
+							}
+						/>
+					</FormRow>
+				</Section>
 
-			<Section title="Authors">
-				<StringArrayEditor
-					label="Avatar Authors"
-					values={metadata.authors ?? []}
-					onChange={(v) => handleUpdate("authors", v)}
-					placeholder="Author Name / Handle"
-				/>
-			</Section>
+				<Section title="Authors">
+					<StringArrayEditor
+						label="Avatar Authors"
+						values={localMetadata.authors ?? []}
+						onChange={(v) => handleUpdate("authors", v)}
+						placeholder="Author Name / Handle"
+					/>
+				</Section>
 
-			<Section title="Auto-Execution">
-				<StringArrayEditor
-					label="Auto Scripts"
-					values={metadata.autoScripts ?? []}
-					onChange={(v) => handleUpdate("autoScripts", v)}
-					placeholder="libs.RainbowNameplate"
-				/>
-				<AnimationRefArrayEditor
-					label="Auto Animations"
-					values={metadata.autoAnims ?? []}
-					onChange={(v) => handleUpdate("autoAnims", v)}
-				/>
-			</Section>
+				<Section title="Auto-Execution">
+					<StringArrayEditor
+						label="Auto Scripts"
+						values={localMetadata.autoScripts ?? []}
+						onChange={(v) => handleUpdate("autoScripts", v)}
+						placeholder="libs.RainbowNameplate"
+					/>
+					<AnimationRefArrayEditor
+						label="Auto Animations"
+						values={localMetadata.autoAnims ?? []}
+						onChange={(v) => handleUpdate("autoAnims", v)}
+					/>
+				</Section>
 
-			<Section title="Asset Management">
-				<StringArrayEditor
-					label="Ignored Textures"
-					values={metadata.ignoredTextures ?? []}
-					onChange={(v) => handleUpdate("ignoredTextures", v)}
-					placeholder="player.diamond_layer_1"
-				/>
-			</Section>
+				<Section title="Asset Management">
+					<StringArrayEditor
+						label="Ignored Textures"
+						values={localMetadata.ignoredTextures ?? []}
+						onChange={(v) => handleUpdate("ignoredTextures", v)}
+						placeholder="player.diamond_layer_1"
+					/>
+				</Section>
 
-			<Section title="Model Customizations">
-				<div className="space-y-3">
-					{Object.entries(metadata.customizations ?? {}).map(
-						([partName, customization]) => (
-							<CustomizationEditor
-								key={partName}
-								partName={partName}
-								customization={customization}
-								onUpdate={(newCust) =>
-									updateMetadata((d) => (d.customizations![partName] = newCust))
-								}
-								onDelete={() =>
-									updateMetadata((d) => delete d.customizations![partName])
-								}
-							/>
-						),
-					)}
-				</div>
-				<div className="flex gap-2 items-center mt-4">
-					<Select
-						value={partToAdd}
-						onChange={(e) => setPartToAdd(e.target.value)}
-						disabled={uncustomizedParts.length === 0}
-					>
-						<option value="">
-							{uncustomizedParts.length > 0
-								? "-- Select a part to customize --"
-								: "-- All parts customized --"}
-						</option>
-						{uncustomizedParts.map((p) => (
-							<option key={modelPartRefToId(p)} value={modelPartRefToId(p)}>
-								{displayModelPartRef(p)}
+				<Section title="Model Customizations">
+					<div className="space-y-3">
+						{Object.entries(localMetadata.customizations ?? {}).map(
+							([partName, customization]) => (
+								<CustomizationEditor
+									key={partName}
+									partName={partName}
+									customization={customization}
+									onUpdate={(newCust) =>
+										handleUpdateCustomization(partName, newCust)
+									}
+									onDelete={() => handleDeleteCustomization(partName)}
+								/>
+							),
+						)}
+					</div>
+					<div className="flex gap-2 items-center mt-4">
+						<Select
+							value={partToAdd}
+							onChange={(e) => setPartToAdd(e.target.value)}
+							disabled={uncustomizedParts.length === 0}
+						>
+							<option value="">
+								{uncustomizedParts.length > 0
+									? "-- Select a part to customize --"
+									: "-- All parts customized --"}
 							</option>
-						))}
-					</Select>
-					<Button
-						onClick={handleAddCustomization}
-						disabled={!partToAdd}
-						className="bg-violet-600 hover:bg-violet-500 flex-shrink-0"
-					>
-						<PlusIcon className="w-5 h-5 mr-2" /> Add
-					</Button>
-				</div>
-			</Section>
-		</div>
+							{uncustomizedParts.map((p) => (
+								<option key={modelPartRefToId(p)} value={modelPartRefToId(p)}>
+									{displayModelPartRef(p)}
+								</option>
+							))}
+						</Select>
+						<Button
+							onClick={handleAddCustomization}
+							disabled={!partToAdd}
+							className="bg-violet-600 hover:bg-violet-500 flex-shrink-0"
+						>
+							<PlusIcon className="w-5 h-5 mr-2" /> Add
+						</Button>
+					</div>
+				</Section>
+			</div>
+			<DialogFooter>
+				<Button
+					onClick={handleDiscard}
+					className="bg-slate-600 hover:bg-slate-500"
+				>
+					Discard
+				</Button>
+				<Button
+					onClick={handleSave}
+					className="bg-violet-600 hover:bg-violet-500"
+				>
+					Save
+				</Button>
+			</DialogFooter>
+		</Dialog>
 	);
 }

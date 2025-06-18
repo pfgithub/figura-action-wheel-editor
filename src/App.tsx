@@ -6,11 +6,11 @@ import { generateUUID } from "@/utils/uuid";
 import "./index.css";
 
 // Manager Components
+import { MetadataEditorDialog } from "@/components/dialogs/MetadataEditorDialog";
 import { ActionWheelsManager } from "@/components/managers/ActionWheelsManager";
 import { AnimationNodesManager } from "@/components/managers/AnimationNodesManager";
 import { AnimationSettingsManager } from "@/components/managers/AnimationSettingsManager";
 import { KeybindsManager } from "@/components/managers/KeybindsManager";
-import { MetadataManager } from "@/components/managers/MetadataManager";
 import { ScriptsManager } from "@/components/managers/ScriptsManager";
 // UI Components
 import { Button } from "@/components/ui/Button";
@@ -129,21 +129,20 @@ type EditorTab =
 	| "settings"
 	| "animation_nodes"
 	| "scripts"
-	| "keybinds"
-	| "metadata";
+	| "keybinds";
 
 export function App() {
 	const {
 		avatar,
 		isSaving,
 		saveAvatar,
-		saveMetadata,
 		updateAvatar,
 		loadAvatar,
 	} = useAvatarStore();
 	const [viewedWheelUuid, setViewedWheelUuid] = useState<UUID | null>(null);
 	const [activeTab, setActiveTab] = useState<EditorTab>("wheels");
 	const [fileLoadError, setFileLoadError] = useState<string | null>(null);
+	const [isMetadataEditorOpen, setMetadataEditorOpen] = useState(false);
 
 	// Get temporal state and actions for undo/redo
 	const { pastStates, futureStates, undo, redo } =
@@ -224,7 +223,6 @@ export function App() {
 		{ id: "animation_nodes", label: "Animation Nodes" },
 		{ id: "scripts", label: "Scripts" },
 		{ id: "keybinds", label: "Keybinds" },
-		{ id: "metadata", label: "Metadata" },
 	];
 
 	const renderActiveTab = () => {
@@ -245,8 +243,6 @@ export function App() {
 				return <ScriptsManager />;
 			case "keybinds":
 				return <KeybindsManager />;
-			case "metadata":
-				return <MetadataManager />;
 			default:
 				return null;
 		}
@@ -277,11 +273,10 @@ export function App() {
 						Redo
 					</Button>
 					<Button
-						onClick={saveMetadata}
-						disabled={isSaving}
-						className="bg-emerald-600 hover:bg-emerald-500 focus-visible:ring-emerald-400"
+						onClick={() => setMetadataEditorOpen(true)}
+						className="bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400"
 					>
-						{isSaving ? "Saving..." : "Save Metadata"}
+						Edit Metadata
 					</Button>
 					<Button
 						onClick={saveAvatar}
@@ -316,6 +311,13 @@ export function App() {
 					{renderActiveTab()}
 				</div>
 			</main>
+
+			{isMetadataEditorOpen && (
+				<MetadataEditorDialog
+					isOpen={isMetadataEditorOpen}
+					onClose={() => setMetadataEditorOpen(false)}
+				/>
+			)}
 		</div>
 	);
 }

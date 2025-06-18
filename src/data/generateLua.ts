@@ -334,7 +334,7 @@ end
 				"models" +
 					stringifyParts([setting.element.model, ...setting.element.partPath]),
 			);
-			renderContents += `    if ${elem} then ${elem}:setVisible(not (${cond})) end\n`;
+			renderContents += `    if ${elem} then ${elem}:setVisible(${cond}) end\n`;
 		} else {
 			alwaysWarnings += `print("TODO implement setting ${setting.kind}")\n`;
 		}
