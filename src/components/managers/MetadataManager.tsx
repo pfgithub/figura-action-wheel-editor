@@ -114,7 +114,12 @@ const AnimationRefArrayEditor = ({
 	const addValue = () => {
 		if (animations.length > 0) {
 			const firstAnim = animations[0];
-			if (!values.find((v) => v.model === firstAnim.model && v.animation === firstAnim.animation)) {
+			if (
+				!values.find(
+					(v) =>
+						v.model === firstAnim.model && v.animation === firstAnim.animation,
+				)
+			) {
 				onChange([...values, firstAnim]);
 			}
 		}
@@ -140,10 +145,7 @@ const AnimationRefArrayEditor = ({
 							className="flex-grow"
 						>
 							{animations.map((anim) => (
-								<option
-									key={JSON.stringify(anim)}
-									value={JSON.stringify(anim)}
-								>
+								<option key={JSON.stringify(anim)} value={JSON.stringify(anim)}>
 									{displayAnimationRef(anim)}
 								</option>
 							))}

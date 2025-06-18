@@ -7,7 +7,8 @@ interface AnimationConditionNodeProps {
 	handleUpdate: (updater: (draft: ConditionAnimation) => void) => void;
 }
 
-const displayAnimationRef = (ref: AnimationRef) => `${ref.model}.${ref.animation}`;
+const displayAnimationRef = (ref: AnimationRef) =>
+	`${ref.model}.${ref.animation}`;
 
 export function AnimationConditionNode({
 	condition,
@@ -23,7 +24,9 @@ export function AnimationConditionNode({
 				<span className="flex-shrink-0 pr-2">When animation</span>
 				<div className="flex-grow">
 					<Select
-						value={condition.animation ? JSON.stringify(condition.animation) : ""}
+						value={
+							condition.animation ? JSON.stringify(condition.animation) : ""
+						}
 						onChange={(e) =>
 							handleUpdate((draft) => {
 								draft.animation = e.target.value

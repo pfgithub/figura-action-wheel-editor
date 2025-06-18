@@ -16,7 +16,8 @@ interface ScriptParameterEditorProps {
 	onChange: (newValues: Record<string, any>) => void;
 }
 
-const displayAnimationRef = (ref: AnimationRef) => `${ref.model}.${ref.animation}`;
+const displayAnimationRef = (ref: AnimationRef) =>
+	`${ref.model}.${ref.animation}`;
 const displayModelPartRef = (ref: ModelPartRef) =>
 	`${ref.model}.${ref.partPath.join(".")}`;
 

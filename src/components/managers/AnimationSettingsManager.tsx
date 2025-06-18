@@ -105,7 +105,10 @@ function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
 						name.toLowerCase().includes(lowerFilter)
 					);
 				})
-				.map((ref) => ({ id: JSON.stringify(ref), name: displayModelPartRef(ref) }));
+				.map((ref) => ({
+					id: JSON.stringify(ref),
+					name: displayModelPartRef(ref),
+				}));
 		}
 		if (view === "render") {
 			const configured = new Set(

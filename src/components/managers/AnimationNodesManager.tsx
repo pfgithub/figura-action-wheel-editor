@@ -28,9 +28,7 @@ const EmptyState = () => (
 			<path d="M17.5 14.5V11" />
 		</svg>
 		<h3 className="text-lg font-semibold">Select an animation layer to edit</h3>
-		<p className="text-sm">
-			Choose a layer from the list, or add a new one.
-		</p>
+		<p className="text-sm">Choose a layer from the list, or add a new one.</p>
 	</div>
 );
 
@@ -112,7 +110,9 @@ export function AnimationNodesManager() {
 							: "bg-slate-800 hover:bg-slate-700"
 					}`}
 				>
-					<h3 className="font-semibold text-slate-100 truncate">{layer.name}</h3>
+					<h3 className="font-semibold text-slate-100 truncate">
+						{layer.name}
+					</h3>
 					<p className="text-sm text-slate-400">
 						{Object.keys(layer.nodes).length} nodes
 					</p>

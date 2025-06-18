@@ -1,9 +1,9 @@
 import type React from "react";
+import type { JSX, ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
 import type { UUID } from "@/types";
-import type { JSX, ReactNode } from "react";
 
 interface MasterDetailManagerProps<T extends { uuid: UUID }> {
 	// Data
@@ -93,9 +93,7 @@ export function MasterDetailManager<T extends { uuid: UUID }>({
 				{selectedItem ? (
 					<div>
 						<div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-700">
-							<h3
-								className="text-xl font-bold text-slate-100 truncate"
-							>
+							<h3 className="text-xl font-bold text-slate-100 truncate">
 								{editorTitle ? editorTitle(selectedItem) : "Edit Item"}
 							</h3>
 							{onDeleteItem && (

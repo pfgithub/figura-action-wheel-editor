@@ -22,15 +22,16 @@ import { EditIcon, PlusIcon, TrashIcon } from "@/components/ui/icons";
 import { Select } from "@/components/ui/Select";
 import { useAvatarStore } from "@/store/avatarStore";
 import type {
-	AnimationNode,
 	AnimationLayer,
+	AnimationNode,
 	AnimationRef,
 	AnimationTransition,
 	UUID,
 } from "@/types";
 import { generateUUID } from "@/utils/uuid";
 
-const displayAnimationRef = (ref: AnimationRef) => `${ref.model}.${ref.animation}`;
+const displayAnimationRef = (ref: AnimationRef) =>
+	`${ref.model}.${ref.animation}`;
 
 // --- Node Details Panel ---
 interface AnimationNodeDetailsEditorProps {
