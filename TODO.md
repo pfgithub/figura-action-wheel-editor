@@ -25,6 +25,7 @@
 - [x] add an option in animation transitions for "don't wait for animation to finish". the exact name can be changed.
 - [ ] add a preview of activation conditions to the conditional settings tab and on animation transitions
 - [x] there is a bug with animation node transitions. when you're editing a transition, none of the options change anything until you close the dialog and open it again.
+- try a four-column layout for animation layers
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
