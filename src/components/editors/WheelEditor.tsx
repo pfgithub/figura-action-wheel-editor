@@ -3,6 +3,7 @@ import { ActionEditor } from "@/components/editors/ActionEditor";
 import { ActionWheelVisualizer } from "@/components/ui/ActionWheelVisualizer";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { TrashIcon } from "@/components/ui/icons";
 import { useAvatarStore } from "@/store/avatarStore";
 import type { Action, ActionWheel, UUID } from "@/types";
 import { generateUUID } from "@/utils/uuid";
@@ -11,9 +12,35 @@ const MAX_ACTIONS_PER_WHEEL = 8;
 
 interface WheelEditorProps {
 	wheel: ActionWheel;
+	onDeleteWheel: () => void;
 }
 
-export function WheelEditor({ wheel }: WheelEditorProps) {
+const EditorEmptyState = () => (
+	<div className="flex flex-col items-center justify-center h-full bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700 min-h-[400px]">
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			className="w-12 h-12 mb-4 text-slate-600"
+		>
+			<path d="m21.1 16.3-4.2-4.2a2 2 0 0 0-2.8 0L3.7 22a2 2 0 0 1-2.8-2.8l10.4-10.4a2 2 0 0 0 0-2.8L7.1 1.7a2 2 0 0 1 2.8 0l11.2 11.2a2 2 0 0 1 0 2.8z" />
+			<path d="m22 22-2.5-2.5" />
+			<path d="m3.5 3.5 2.5 2.5" />
+		</svg>
+		<p className="font-medium">Select an action to edit</p>
+		<p className="text-sm text-center">
+			Click a slot on the wheel, or drag to reorder.
+		</p>
+	</div>
+);
+
+export function WheelEditor({ wheel, onDeleteWheel }: WheelEditorProps) {
 	const { avatar, updateAvatar } = useAvatarStore();
 	const [selectedActionIndex, setSelectedActionIndex] = useState<number | null>(
 		null,
@@ -35,15 +62,25 @@ export function WheelEditor({ wheel }: WheelEditorProps) {
 		});
 	};
 
+	const handleWheelDelete = () => {
+		if (
+			window.confirm(
+				`Are you sure you want to delete the wheel "${wheel.title}"? This cannot be undone.`,
+			)
+		) {
+			onDeleteWheel();
+		}
+	};
+
 	const addAction = (wheelUuid: UUID) => {
 		updateAvatar((draft) => {
 			const targetWheel = draft.actionWheels[wheelUuid];
 			if (targetWheel && targetWheel.actions.length < MAX_ACTIONS_PER_WHEEL) {
 				const newAction: Action = {
 					uuid: generateUUID(),
-					icon: { type: "item", id: "minecraft:air" },
+					icon: { type: "item", id: "minecraft:stone" },
 					label: `Action ${targetWheel.actions.length + 1}`,
-					color: [80, 80, 80],
+					color: [90, 90, 90],
 				};
 				targetWheel.actions.push(newAction);
 				setSelectedActionIndex(targetWheel.actions.length - 1);
@@ -129,7 +166,7 @@ export function WheelEditor({ wheel }: WheelEditorProps) {
 					aria-label="Wheel Title"
 					value={wheel.title}
 					onChange={(e) => updateWheelTitle(wheel.uuid, e.target.value)}
-					className="text-xl font-semibold bg-slate-700/80 border-slate-600"
+					className="text-2xl font-bold bg-transparent border-0 ring-1 ring-slate-700 p-2 focus:bg-slate-700/80 focus:ring-violet-500 focus:border-violet-500"
 				/>
 				<div className="flex gap-2 flex-shrink-0">
 					<Button
@@ -138,18 +175,29 @@ export function WheelEditor({ wheel }: WheelEditorProps) {
 								avatar.mainActionWheel === wheel.uuid ? undefined : wheel.uuid,
 							)
 						}
-						className="bg-amber-500 hover:bg-amber-400 focus-visible:ring-amber-300"
+						className={
+							avatar.mainActionWheel === wheel.uuid
+								? "bg-amber-500 focus-visible:ring-amber-300"
+								: "bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400"
+						}
 					>
 						{avatar.mainActionWheel !== wheel.uuid
 							? "Set as Main"
 							: "Unset Main"}
 					</Button>
+					<Button
+						onClick={handleWheelDelete}
+						className="bg-rose-600 text-rose-200"
+					>
+						<TrashIcon className="w-5 h-5 mr-2" />
+						Delete Wheel
+					</Button>
 				</div>
 			</div>
 
 			{/* Main Content */}
-			<div className="flex flex-col gap-8">
-				<div className="flex justify-center items-center py-4">
+			<div className="grid lg:grid-cols-2 gap-8 items-start">
+				<div className="flex justify-center items-center py-4 lg:sticky lg:top-6">
 					<ActionWheelVisualizer
 						key={wheel.uuid}
 						actions={wheel.actions}
@@ -174,28 +222,7 @@ export function WheelEditor({ wheel }: WheelEditorProps) {
 							onMoveAction={moveSelectedAction}
 						/>
 					) : (
-						<div className="flex flex-col items-center justify-center h-full bg-slate-800/50 rounded-lg p-8 text-slate-500 ring-1 ring-slate-700 min-h-[400px]">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								className="w-12 h-12 mb-4 text-slate-600"
-							>
-								<path d="m21.1 16.3-4.2-4.2a2 2 0 0 0-2.8 0L3.7 22a2 2 0 0 1-2.8-2.8l10.4-10.4a2 2 0 0 0 0-2.8L7.1 1.7a2 2 0 0 1 2.8 0l11.2 11.2a2 2 0 0 1 0 2.8z" />
-								<path d="m22 22-2.5-2.5" />
-								<path d="m3.5 3.5 2.5 2.5" />
-							</svg>
-							<p className="font-medium">Select an action to edit</p>
-							<p className="text-sm text-center">
-								Click a slot on the wheel, or drag to reorder.
-							</p>
-						</div>
+						<EditorEmptyState />
 					)}
 				</div>
 			</div>

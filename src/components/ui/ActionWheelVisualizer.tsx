@@ -55,7 +55,8 @@ const getActionAngles = (numActions: number): number[] => {
 	// 3 or more actions: distribute evenly, starting from top.
 	const angles: number[] = [];
 	const angleStep = (2 * Math.PI) / numActions;
-	const startAngle = -Math.PI / 2 + angleStep / 2; // Start from the top plus angleStep
+	// Start from the top
+	const startAngle = -Math.PI / 2;
 
 	for (let i = 0; i < numActions; i++) {
 		angles.push(startAngle + i * angleStep);
@@ -242,6 +243,7 @@ export function ActionWheelVisualizer({
 }: ActionWheelVisualizerProps) {
 	const numActions = actions.length;
 	const actionAngles = getActionAngles(numActions);
+
 	const [activeAction, setActiveAction] = useState<Action | null>(null);
 	const [preDragSelectedActionIndex, setPreDragSelectedActionIndex] = useState<
 		number | null
@@ -324,7 +326,7 @@ export function ActionWheelVisualizer({
 					return (
 						<div
 							key={action.uuid}
-							className="absolute"
+							className="absolute transition-transform"
 							style={{
 								width: `${BUTTON_SIZE}px`,
 								height: `${BUTTON_SIZE}px`,
@@ -345,22 +347,26 @@ export function ActionWheelVisualizer({
 
 				{/* Add Action Button in the next empty slot */}
 				{numActions < MAX_ACTIONS && (
-					<button
-						onClick={onAddAction}
-						className="absolute flex items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-4xl transition-all duration-200 ease-in-out transform focus:outline-none ring-2 ring-emerald-700/50 shadow-md"
+					<div
+						className="absolute"
 						style={{
-							width: `${BUTTON_SIZE}px`,
-							height: `${BUTTON_SIZE}px`,
-							top: `calc(50% - ${BUTTON_SIZE / 2}px)`,
-							left: `calc(50% - ${BUTTON_SIZE / 2}px)`,
-							transform: `translate(${-WHEEL_RADIUS}px, ${-WHEEL_RADIUS}px)`,
+							width: `${BUTTON_SIZE - 4}px`,
+							height: `${BUTTON_SIZE - 4}px`,
+							top: `calc(50% - ${(BUTTON_SIZE - 4) / 2}px)`,
+							left: `calc(50% - ${(BUTTON_SIZE - 4) / 2}px)`,
+							transform: `translate(${WHEEL_RADIUS}px, ${WHEEL_RADIUS}px)`,
 							opacity: activeAction ? 0.2 : 1,
 						}}
-						title="Add new action"
-						disabled={!!activeAction}
 					>
-						+
-					</button>
+						<button
+							onClick={onAddAction}
+							className="w-full h-full flex items-center justify-center rounded-full border-2 border-dashed border-slate-600 hover:border-violet-500 hover:bg-violet-900/50 text-slate-500 hover:text-white text-4xl font-light transition-all"
+							title="Add new action"
+							disabled={!!activeAction}
+						>
+							+
+						</button>
+					</div>
 				)}
 			</div>
 			<DragOverlay dropAnimation={null}>
