@@ -4,18 +4,21 @@ import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Select } from "@/components/ui/Select";
 import { useScriptInstancesWithDefine } from "@/hooks/useScriptData";
 import { useAvatarStore } from "@/store/avatarStore";
-import type { ActionEffect, UUID } from "@/types";
+import type { ActionEffect, AnimationRef, UUID } from "@/types";
 
 interface ActionEffectEditorProps {
 	effect?: ActionEffect;
 	updateEffect: (e: ActionEffect | undefined) => void;
 }
 
+const displayAnimationRef = (ref: AnimationRef) =>
+	`${ref.model}.${ref.animation}`;
+
 export function ActionEffectEditor({
 	effect,
 	updateEffect,
 }: ActionEffectEditorProps) {
-	const { avatar } = useAvatarStore();
+	const { avatar, animations } = useAvatarStore();
 	const allScriptInstances = useScriptInstancesWithDefine("action");
 
 	const handleKindChange = (kind: ActionEffect["kind"] | undefined) => {
@@ -25,6 +28,8 @@ export function ActionEffectEditor({
 			updateEffect({ kind: "switchPage" });
 		} else if (kind === "scriptAction") {
 			updateEffect({ kind: "scriptAction" });
+		} else if (kind === "toggleAnimation") {
+			updateEffect({ kind: "toggleAnimation" });
 		} else {
 			updateEffect(undefined);
 		}
@@ -59,6 +64,7 @@ export function ActionEffectEditor({
 						{ label: "Toggle Option", value: "toggle" },
 						{ label: "Switch Wheel", value: "switchPage" },
 						{ label: "Script Wheel", value: "scriptAction" },
+						{ label: "Toggle Animation", value: "toggleAnimation" },
 					]}
 				/>
 			</FormRow>
@@ -184,6 +190,34 @@ export function ActionEffectEditor({
 						</Select>
 					</FormRow>
 				</>
+			)}
+
+			{effect?.kind === "toggleAnimation" && (
+				<FormRow label="Animation">
+					<Select
+						value={effect.animation ? JSON.stringify(effect.animation) : ""}
+						onChange={(e) =>
+							updateEffect({
+								...effect,
+								animation: e.target.value
+									? (JSON.parse(e.target.value) as AnimationRef)
+									: undefined,
+							})
+						}
+						disabled={animations.length === 0}
+					>
+						<option value="">
+							{animations.length > 0
+								? "-- Select an animation --"
+								: "-- No animations found --"}
+						</option>
+						{animations.map((anim) => (
+							<option key={JSON.stringify(anim)} value={JSON.stringify(anim)}>
+								{displayAnimationRef(anim)}
+							</option>
+						))}
+					</Select>
+				</FormRow>
 			)}
 		</div>
 	);

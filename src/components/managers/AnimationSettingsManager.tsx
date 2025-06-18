@@ -172,7 +172,7 @@ function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
 					setFilter("");
 				}}
 				options={[
-					{ label: "Hide Element", value: "hide_element" },
+					{ label: "Element", value: "hide_element" },
 					{ label: "Render", value: "render" },
 					{ label: "Script", value: "script" },
 				]}

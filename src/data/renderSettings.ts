@@ -32,7 +32,7 @@ const playerPart = [
 for (const layer of playerPart) {
 	addRenderSetting(
 		`vanilla_model.${layer}.setVisible(%cond%)`,
-		`Hide vanilla_model.${layer} (Group)`,
+		`vanilla_model.${layer} (Group)`,
 	);
 }
 const playerParts = [
@@ -71,13 +71,13 @@ const playerParts = [
 for (const part of playerParts) {
 	addRenderSetting(
 		`vanilla_model.${part}.setVisible(%cond%)`,
-		`Hide vanilla_model.${part} (Part)`,
+		`vanilla_model.${part} (Part)`,
 	);
 }
 
 addRenderSetting("renderer:setForcePaperdoll(%cond%)", "Force Paperdoll");
-addRenderSetting("renderer:setRenderCrosshair(not (%cond%))", "Hide Crosshair");
-addRenderSetting("renderer:setRenderVehicle(not (%cond%))", "Hide Vehicle");
+addRenderSetting("renderer:setRenderCrosshair(not (%cond%))", "Show Crosshair");
+addRenderSetting("renderer:setRenderVehicle(not (%cond%))", "Show Vehicle");
 addRenderSetting("renderer:setUpsideDown(%cond%)", "Upside Down");
 
 export const renderValues: Map<RenderValueID, RenderValueData> = new Map();

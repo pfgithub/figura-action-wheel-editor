@@ -2,6 +2,9 @@
 
 - how will we allow lua files to define their ui settings? what will it look like for the lua file?
 - check what happens with external image files in blockbench
+- animation nodes actually suck. to play the fly anim on creative flight you have to have
+  none -> fly (when creative flight), fly -> none (when not creative flight) and imagine if you
+  had a few different ones. sucks so much. maybe we can use ezanims for that use case.
 
 # todo
 

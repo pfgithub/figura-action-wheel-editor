@@ -105,6 +105,10 @@ export type ActionEffect =
 			kind: "scriptAction";
 			scriptInstance?: UUID;
 			scriptAction?: UUID;
+	  }
+	| {
+			kind: "toggleAnimation";
+			animation?: AnimationRef;
 	  };
 
 export type ToggleGroupOption = {
