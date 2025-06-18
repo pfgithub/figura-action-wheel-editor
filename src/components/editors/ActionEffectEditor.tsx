@@ -3,14 +3,9 @@ import { ToggleGroupControls } from "@/components/shared/ToggleGroupControls";
 import { FormRow } from "@/components/ui/FormRow";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Select } from "@/components/ui/Select";
+import { useScriptInstancesWithDefine } from "@/hooks/useScriptData";
 import { useAvatarStore } from "@/store/avatarStore";
-import type {
-	ActionEffect,
-	Script,
-	ScriptDataInstanceType,
-	ScriptInstance,
-	UUID,
-} from "@/types";
+import type { ActionEffect, UUID } from "@/types";
 
 interface ActionEffectEditorProps {
 	effect?: ActionEffect;
@@ -22,6 +17,7 @@ export function ActionEffectEditor({
 	updateEffect,
 }: ActionEffectEditorProps) {
 	const { avatar } = useAvatarStore();
+	const allScriptInstances = useScriptInstancesWithDefine("action");
 
 	const handleKindChange = (kind: ActionEffect["kind"] | undefined) => {
 		if (kind === "toggle") {
@@ -37,29 +33,6 @@ export function ActionEffectEditor({
 
 	const allToggleGroups = Object.values(avatar?.toggleGroups ?? {});
 	const allActionWheels = Object.values(avatar?.actionWheels ?? {});
-	const allScripts = avatar?.scripts ?? {};
-
-	const allScriptInstances = React.useMemo(() => {
-		const instances: {
-			instance: ScriptInstance;
-			script: Script;
-			type: ScriptDataInstanceType;
-		}[] = [];
-		Object.values(allScripts).forEach((script) => {
-			Object.entries(script.instances).forEach(([typeUuid, insts]) => {
-				const type = script.data.instanceTypes[typeUuid as UUID];
-				if (
-					type?.defines?.action &&
-					Object.keys(type.defines.action).length > 0
-				) {
-					insts.forEach((instance) =>
-						instances.push({ instance, script, type }),
-					);
-				}
-			});
-		});
-		return instances;
-	}, [allScripts]);
 
 	if (!avatar) return null;
 

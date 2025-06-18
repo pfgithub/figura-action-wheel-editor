@@ -12,6 +12,10 @@ import { Input } from "@/components/ui/Input";
 import { PlusIcon, TrashIcon, WarningIcon } from "@/components/ui/icons";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { renderSettings } from "@/data/renderSettings";
+import {
+	useScriptInstanceMap,
+	useScriptInstancesWithDefine,
+} from "@/hooks/useScriptData";
 import { useAvatarStore } from "@/store/avatarStore";
 import type {
 	AnimationID,
@@ -21,9 +25,6 @@ import type {
 	PlayAnimationSetting,
 	RenderSetting,
 	RenderSettingID,
-	Script,
-	ScriptDataInstanceType,
-	ScriptInstance,
 	ScriptSetting,
 	UUID,
 } from "@/types";
@@ -62,6 +63,7 @@ interface AddSettingDialogContentProps {
 
 function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
 	const { avatar, animations, modelElements } = useAvatarStore();
+	const scriptInstancesWithSettings = useScriptInstancesWithDefine("settings");
 	const [view, setView] = useState<SettingView>("play_animation");
 	const [filter, setFilter] = useState("");
 
@@ -70,7 +72,6 @@ function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
 	const unconfiguredItems = useMemo(() => {
 		if (!avatar) return [];
 		const allSettings = Object.values(avatar.conditionalSettings);
-		const allScripts = avatar.scripts;
 
 		if (view === "play_animation") {
 			const configuredAnims = new Set(
@@ -121,20 +122,13 @@ function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
 					.map((s) => `${s.scriptInstance}:${s.setting}`),
 			);
 			const available: { id: string; name: string }[] = [];
-			Object.values(allScripts).forEach((script) => {
-				Object.entries(script.instances).forEach(([typeUuid, instances]) => {
-					const type = script.data.instanceTypes[typeUuid as UUID];
-					if (type?.defines?.settings) {
-						instances.forEach((instance) => {
-							Object.values(type.defines.settings).forEach((settingDef) => {
-								const compositeId = `${instance.uuid}:${settingDef.uuid}`;
-								if (!configuredScriptSettings.has(compositeId)) {
-									available.push({
-										id: compositeId,
-										name: `${script.name} - ${instance.name}: ${settingDef.name}`,
-									});
-								}
-							});
+			scriptInstancesWithSettings.forEach(({ instance, script, type }) => {
+				Object.values(type.defines.settings).forEach((settingDef) => {
+					const compositeId = `${instance.uuid}:${settingDef.uuid}`;
+					if (!configuredScriptSettings.has(compositeId)) {
+						available.push({
+							id: compositeId,
+							name: `${script.name} - ${instance.name}: ${settingDef.name}`,
 						});
 					}
 				});
@@ -144,7 +138,14 @@ function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
 			);
 		}
 		return [];
-	}, [view, avatar, animations, modelElements, lowerFilter]);
+	}, [
+		view,
+		avatar,
+		animations,
+		modelElements,
+		lowerFilter,
+		scriptInstancesWithSettings,
+	]);
 
 	const viewConfig = {
 		play_animation: {
@@ -224,29 +225,11 @@ export function AnimationSettingsManager() {
 	const [selectedId, setSelectedId] = useState<UUID | null>(null);
 	const [deletingId, setDeletingId] = useState<UUID | null>(null);
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+	const allScriptInstances = useScriptInstanceMap();
 
-	const { conditionalSettings, scripts: allScripts } = avatar ?? {
+	const { conditionalSettings } = avatar ?? {
 		conditionalSettings: {} as Record<UUID, ConditionalSetting>,
-		scripts: {} as Record<UUID, Script>,
 	};
-
-	const allScriptInstances = useMemo(() => {
-		const instances: Map<
-			UUID,
-			{ instance: ScriptInstance; script: Script; type: ScriptDataInstanceType }
-		> = new Map();
-		Object.values(allScripts).forEach((script) => {
-			Object.entries(script.instances).forEach(([typeUuid, insts]) => {
-				const type = script.data.instanceTypes[typeUuid as UUID];
-				if (type) {
-					insts.forEach((instance) =>
-						instances.set(instance.uuid, { instance, script, type }),
-					);
-				}
-			});
-		});
-		return instances;
-	}, [allScripts]);
 
 	const getSettingInfo = useCallback(
 		(
@@ -291,7 +274,7 @@ export function AnimationSettingsManager() {
 			}
 			return { title, warning };
 		},
-		[allScriptInstances.get, animations.includes, modelElements.includes],
+		[allScriptInstances, animations, modelElements],
 	);
 
 	const allConfiguredSettings = useMemo(() => {

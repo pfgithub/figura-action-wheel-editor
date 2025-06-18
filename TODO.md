@@ -93,6 +93,7 @@
 - [ ] add multi-action support
 - [ ] add sound action (need to look at ogg files)
 - [ ] (repeatable) Determine what part of the code is most in need of refactoring and refactor it.
+- [ ] because the application has undo/redo, "confirm delete" dialogs are not needed. remove all confirm delete dialogs.
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 

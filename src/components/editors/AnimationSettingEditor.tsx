@@ -1,15 +1,12 @@
-import { useMemo } from "react";
 import { FormRow } from "@/components/ui/FormRow";
 import { Select } from "@/components/ui/Select";
 import { renderSettings } from "@/data/renderSettings";
+import { useScriptInstancesWithDefine } from "@/hooks/useScriptData";
 import { useAvatarStore } from "@/store/avatarStore";
 import type {
 	AnimationID,
 	ConditionalSetting,
 	RenderSettingID,
-	Script,
-	ScriptDataInstanceType,
-	ScriptInstance,
 	UUID,
 } from "@/types";
 import { AnimationConditionEditor } from "./AnimationConditionEditor";
@@ -23,32 +20,8 @@ export function AnimationSettingEditor({
 	setting,
 	updateSetting,
 }: AnimationSettingEditorProps) {
-	const { avatar, animations, modelElements } = useAvatarStore();
-
-	const allScripts = avatar?.scripts ?? {};
-
-	const allScriptInstancesWithSettings = useMemo(() => {
-		const instances: {
-			instance: ScriptInstance;
-			script: Script;
-			type: ScriptDataInstanceType;
-		}[] = [];
-		if (!avatar) return instances;
-		Object.values(allScripts).forEach((script) => {
-			Object.entries(script.instances).forEach(([typeUuid, insts]) => {
-				const type = script.data.instanceTypes[typeUuid as UUID];
-				if (
-					type?.defines?.settings &&
-					Object.keys(type.defines.settings).length > 0
-				) {
-					insts.forEach((instance) =>
-						instances.push({ instance, script, type }),
-					);
-				}
-			});
-		});
-		return instances;
-	}, [avatar, allScripts]);
+	const { animations, modelElements } = useAvatarStore();
+	const allScriptInstancesWithSettings = useScriptInstancesWithDefine("settings");
 
 	const handleUpdate = <K extends keyof ConditionalSetting>(
 		key: K,

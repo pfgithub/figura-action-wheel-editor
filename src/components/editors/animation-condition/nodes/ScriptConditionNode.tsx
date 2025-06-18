@@ -1,13 +1,7 @@
 import { useMemo } from "react";
 import { Select } from "@/components/ui/Select";
-import { useAvatarStore } from "@/store/avatarStore";
-import type {
-	ConditionScript,
-	Script,
-	ScriptDataInstanceType,
-	ScriptInstance,
-	UUID,
-} from "@/types";
+import { useScriptInstancesWithDefine } from "@/hooks/useScriptData";
+import type { ConditionScript, UUID } from "@/types";
 
 interface ScriptConditionNodeProps {
 	condition: ConditionScript;
@@ -18,35 +12,16 @@ export function ScriptConditionNode({
 	condition,
 	handleUpdate,
 }: ScriptConditionNodeProps) {
-	const { avatar } = useAvatarStore();
-	const allScripts = avatar?.scripts ?? {};
+	const allScriptInstances = useScriptInstancesWithDefine("conditions");
 
-	const allScriptInstances = useMemo(() => {
-		const instances: {
-			instance: ScriptInstance;
-			script: Script;
-			type: ScriptDataInstanceType;
-		}[] = [];
-		if (!avatar) return instances;
-		Object.values(allScripts).forEach((script) => {
-			Object.entries(script.instances).forEach(([typeUuid, insts]) => {
-				const type = script.data.instanceTypes[typeUuid as UUID];
-				if (
-					type?.defines?.conditions &&
-					Object.keys(type.defines.conditions).length > 0
-				) {
-					insts.forEach((instance) =>
-						instances.push({ instance, script, type }),
-					);
-				}
-			});
-		});
-		return instances;
-	}, [avatar, allScripts]);
-
-	const selectedInstanceData = allScriptInstances.find(
-		(i) => i.instance.uuid === condition.scriptInstance,
+	const selectedInstanceData = useMemo(
+		() =>
+			allScriptInstances.find(
+				(i) => i.instance.uuid === condition.scriptInstance,
+			),
+		[allScriptInstances, condition.scriptInstance],
 	);
+
 	const availableConditions = selectedInstanceData
 		? Object.values(selectedInstanceData.type.defines.conditions)
 		: [];
