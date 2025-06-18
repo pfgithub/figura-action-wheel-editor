@@ -14,7 +14,7 @@
 - [ ] Add an info button next to toggle groups that describes what toggle groups are
 - [ ] make avatar non-optional in useAvatarStore
 - [ ] switch the action wheels page to have tabs for the action wheels, wheel on the left, and edit on the right. alt: "redesign the action wheels page"
-- [ ] add 'play animation' action but only for animations which are run_once. loop and hold animations go through the settings system.
+- [ ] add 'play animation' action should only be for animations which are run_once
 - [ ] add 'always' and 'never' in the conditions
 - [ ] add multi-action support
 - [ ] add sound action (need to look at ogg files)

@@ -389,6 +389,19 @@ end
 	src += renderContents;
 	src += `end\n`;
 
+	// animation state machine
+	for(const state of Object.values(avatar.animationLayers ?? {})) {
+		const varname = ctx.addNextIdent(state.name);
+		predeclare.push(`local ${varname} = ${ctx.uuidToNumber(state.noneNode)}`);
+		// we can consider supporting saving animation states
+
+		for(const node of Object.values(state.nodes)) {
+			const num = ctx.uuidToNumber(node.uuid);
+
+			// now for each condition we add it under (if animation state == this one) check condition
+		}
+	}
+
 	return fns.flat(Infinity as 1).join("") + mainVars + src + alwaysWarnings;
 }
 
