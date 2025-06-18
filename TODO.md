@@ -24,7 +24,7 @@
 - [x] rather than draggable nodes for the Animation Nodes view, have it be a list
 - [ ] add an option in animation transitions for "don't wait for animation to finish". the exact name can be changed.
 - [ ] add a preview of activation conditions to the conditional settings tab and on animation transitions
-- [ ] there is a bug with animationnodes. when you're editing a transition, none of the options change anything until you close the dialog and open it again.
+- [x] there is a bug with animation node transitions. when you're editing a transition, none of the options change anything until you close the dialog and open it again.
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 

@@ -46,8 +46,15 @@ function AnimationNodeDetailsEditor({
 	onNodeChange,
 }: AnimationNodeDetailsEditorProps) {
 	const { animations } = useAvatarStore();
-	const [editingTransition, setEditingTransition] =
-		useState<AnimationTransition | null>(null);
+	// Only store the ID of the transition being edited.
+	// The full object will be derived from props, preventing stale state.
+	const [editingTransitionId, setEditingTransitionId] = useState<UUID | null>(
+		null,
+	);
+
+	// Find the transition object from the node's transitions array.
+	const editingTransition =
+		node.transitions.find((t) => t.uuid === editingTransitionId) ?? null;
 
 	const otherNodes = Object.values(layer.nodes).filter(
 		(n) => n.uuid !== node.uuid,
@@ -141,7 +148,7 @@ function AnimationNodeDetailsEditor({
 									otherNodes={otherNodes}
 									onUpdate={updateTransition}
 									onDelete={() => removeTransition(t.uuid)}
-									onEditTransition={() => setEditingTransition(t)}
+									onEditTransition={() => setEditingTransitionId(t.uuid)}
 								/>
 							))}
 						</div>
@@ -159,7 +166,7 @@ function AnimationNodeDetailsEditor({
 			{editingTransition && (
 				<Dialog
 					open
-					onClose={() => setEditingTransition(null)}
+					onClose={() => setEditingTransitionId(null)}
 					className="max-w-3xl"
 				>
 					<DialogHeader>Edit Transition</DialogHeader>
@@ -227,7 +234,7 @@ function AnimationNodeDetailsEditor({
 					</DialogContent>
 					<DialogFooter>
 						<Button
-							onClick={() => setEditingTransition(null)}
+							onClick={() => setEditingTransitionId(null)}
 							className="bg-slate-600 hover:bg-slate-500"
 						>
 							Done
