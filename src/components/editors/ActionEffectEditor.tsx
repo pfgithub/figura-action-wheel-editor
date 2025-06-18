@@ -1,4 +1,3 @@
-import React from "react";
 import { ToggleGroupControls } from "@/components/shared/ToggleGroupControls";
 import { FormRow } from "@/components/ui/FormRow";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
