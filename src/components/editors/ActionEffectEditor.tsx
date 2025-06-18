@@ -1,4 +1,9 @@
 import React from "react";
+import { ToggleGroupControls } from "@/components/shared/ToggleGroupControls";
+import { FormRow } from "@/components/ui/FormRow";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { Select } from "@/components/ui/Select";
+import { useAvatarStore } from "@/store/avatarStore";
 import type {
 	ActionEffect,
 	Script,
@@ -6,11 +11,6 @@ import type {
 	ScriptInstance,
 	UUID,
 } from "@/types";
-import { useAvatarStore } from "@/store/avatarStore";
-import { FormRow } from "@/components/ui/FormRow";
-import { Select } from "@/components/ui/Select";
-import { SegmentedControl } from "@/components/ui/SegmentedControl";
-import { ToggleGroupControls } from "@/components/shared/ToggleGroupControls";
 
 interface ActionEffectEditorProps {
 	effect?: ActionEffect;
@@ -60,7 +60,7 @@ export function ActionEffectEditor({
 		});
 		return instances;
 	}, [allScripts]);
-	
+
 	if (!avatar) return null;
 
 	const selectedToggleGroup = allToggleGroups.find(

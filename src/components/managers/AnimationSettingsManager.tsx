@@ -1,33 +1,33 @@
-import { useState, useMemo } from "react";
-import type {
-	UUID,
-	ConditionalSetting,
-	PlayAnimationSetting,
-	HideElementSetting,
-	RenderSetting,
-	RenderSettingID,
-	AnimationID,
-	Script,
-	ScriptSetting,
-	ScriptInstance,
-	ScriptDataInstanceType,
-	Condition,
-} from "@/types";
-import { useAvatarStore } from "@/store/avatarStore";
+import { useMemo, useState } from "react";
 import { AnimationSettingEditor } from "@/components/editors/AnimationSettingEditor";
-import { PlusIcon, TrashIcon, WarningIcon } from "@/components/ui/icons";
-import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { generateUUID } from "@/utils/uuid";
-import { SegmentedControl } from "@/components/ui/SegmentedControl";
-import { renderSettings } from "@/data/renderSettings";
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import {
 	Dialog,
-	DialogHeader,
 	DialogContent,
 	DialogFooter,
+	DialogHeader,
 } from "@/components/ui/Dialog";
+import { Input } from "@/components/ui/Input";
+import { PlusIcon, TrashIcon, WarningIcon } from "@/components/ui/icons";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { renderSettings } from "@/data/renderSettings";
+import { useAvatarStore } from "@/store/avatarStore";
+import type {
+	AnimationID,
+	Condition,
+	ConditionalSetting,
+	HideElementSetting,
+	PlayAnimationSetting,
+	RenderSetting,
+	RenderSettingID,
+	Script,
+	ScriptDataInstanceType,
+	ScriptInstance,
+	ScriptSetting,
+	UUID,
+} from "@/types";
+import { generateUUID } from "@/utils/uuid";
 
 type SettingView = "play_animation" | "hide_element" | "render" | "script";
 
@@ -273,7 +273,8 @@ export function AnimationSettingsManager() {
 			case "script": {
 				const instanceData = allScriptInstances.get(setting.scriptInstance);
 				if (instanceData) {
-					const settingDef = instanceData.type.defines.settings[setting.setting];
+					const settingDef =
+						instanceData.type.defines.settings[setting.setting];
 					if (settingDef) {
 						title = `${instanceData.script.name} - ${instanceData.instance.name}: ${settingDef.name}`;
 					} else {
@@ -329,7 +330,7 @@ export function AnimationSettingsManager() {
 			case "render":
 				newSetting = { uuid: newUuid, kind, render: id as RenderSettingID };
 				break;
-			case "script":
+			case "script": {
 				const [instanceUuid, settingUuid] = id.split(":");
 				newSetting = {
 					uuid: newUuid,
@@ -338,6 +339,7 @@ export function AnimationSettingsManager() {
 					setting: settingUuid as UUID,
 				};
 				break;
+			}
 		}
 		updateAvatar((draft) => {
 			draft.conditionalSettings[newUuid] = newSetting;
@@ -464,9 +466,7 @@ export function AnimationSettingsManager() {
 							<path d="M12 16h2" />
 							<path d="M18 2l-3.4 3.4a1 1 0 0 0 0 1.4l2.1 2.1a1 1 0 0 0 1.4 0L22 5.4Z" />
 						</svg>
-						<h3 className="text-lg font-semibold">
-							Select a setting to edit
-						</h3>
+						<h3 className="text-lg font-semibold">Select a setting to edit</h3>
 						<p className="text-sm">
 							Choose a setting from the list, or add a new one.
 						</p>

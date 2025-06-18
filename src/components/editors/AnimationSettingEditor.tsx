@@ -1,18 +1,18 @@
-import type {
-	ConditionalSetting,
-	AnimationID,
-	RenderSettingID,
-	UUID,
-	Script,
-	ScriptInstance,
-	ScriptDataInstanceType,
-} from "@/types";
 import { useMemo } from "react";
-import { useAvatarStore } from "@/store/avatarStore";
-import { AnimationConditionEditor } from "./AnimationConditionEditor";
 import { FormRow } from "@/components/ui/FormRow";
 import { Select } from "@/components/ui/Select";
 import { renderSettings } from "@/data/renderSettings";
+import { useAvatarStore } from "@/store/avatarStore";
+import type {
+	AnimationID,
+	ConditionalSetting,
+	RenderSettingID,
+	Script,
+	ScriptDataInstanceType,
+	ScriptInstance,
+	UUID,
+} from "@/types";
+import { AnimationConditionEditor } from "./AnimationConditionEditor";
 
 interface AnimationSettingEditorProps {
 	setting: ConditionalSetting;
@@ -132,19 +132,19 @@ export function AnimationSettingEditor({
 								}}
 							>
 								<option value="">-- Select an instance --</option>
-								{allScriptInstancesWithSettings.map(
-									({ instance, script }) => (
-										<option key={instance.uuid} value={instance.uuid}>
-											{script.name} - {instance.name}
-										</option>
-									),
-								)}
+								{allScriptInstancesWithSettings.map(({ instance, script }) => (
+									<option key={instance.uuid} value={instance.uuid}>
+										{script.name} - {instance.name}
+									</option>
+								))}
 							</Select>
 						</FormRow>
 						<FormRow label="Setting">
 							<Select
 								value={setting.setting ?? ""}
-								onChange={(e) => handleUpdate("setting", e.target.value as UUID)}
+								onChange={(e) =>
+									handleUpdate("setting", e.target.value as UUID)
+								}
 								disabled={!setting.scriptInstance}
 							>
 								<option value="">

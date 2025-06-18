@@ -1,8 +1,8 @@
-import { create } from "zustand";
-import { temporal } from "zundo";
 import { produce, type WritableDraft } from "immer";
-import type { Avatar, AnimationID, TextureAsset } from "@/types";
+import { temporal } from "zundo";
+import { create } from "zustand";
 import { generateLua } from "@/data/generateLua";
+import type { AnimationID, Avatar, TextureAsset } from "@/types";
 
 export type AvatarUpdater = (draft: WritableDraft<Avatar>) => void;
 

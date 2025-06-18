@@ -1,16 +1,16 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
+import { Input } from "@/components/ui/Input";
+import { PlusIcon, TrashIcon } from "@/components/ui/icons";
+import { useAvatarStore } from "@/store/avatarStore";
 import type {
 	Script,
 	ScriptDataInstanceType,
 	ScriptInstance,
 	UUID,
 } from "@/types";
-import { useAvatarStore } from "@/store/avatarStore";
 import { generateUUID } from "@/utils/uuid";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
-import { PlusIcon, TrashIcon } from "@/components/ui/icons";
 import { ScriptParameterEditor } from "./ScriptParameterEditor";
 
 interface ScriptEditorProps {
@@ -153,8 +153,7 @@ export function ScriptEditor({ script }: ScriptEditorProps) {
 												.join(", ")}
 										</li>
 									)}
-									{Object.keys(instanceType.defines.action).length >
-										0 && (
+									{Object.keys(instanceType.defines.action).length > 0 && (
 										<li>
 											<strong>Action Wheels:</strong>{" "}
 											{Object.values(instanceType.defines.action)

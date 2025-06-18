@@ -1,13 +1,13 @@
-import { useState, useMemo, useEffect } from "react";
-import { useMinecraftItems } from "@/hooks/useMinecraftItems";
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/Button";
 import {
 	Dialog,
-	DialogHeader,
 	DialogContent,
 	DialogFooter,
+	DialogHeader,
 } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
+import { useMinecraftItems } from "@/hooks/useMinecraftItems";
 
 interface MinecraftItemPickerDialogProps {
 	open: boolean;

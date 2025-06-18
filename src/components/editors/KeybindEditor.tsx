@@ -1,10 +1,9 @@
-
-import type { Keybind } from "@/types";
 import { FormRow } from "@/components/ui/FormRow";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { ActionEffectEditor } from "./ActionEffectEditor";
 import { useKeybindsList } from "@/hooks/useKeybindsList";
+import type { Keybind } from "@/types";
+import { ActionEffectEditor } from "./ActionEffectEditor";
 
 interface KeybindEditorProps {
 	keybind: Keybind;

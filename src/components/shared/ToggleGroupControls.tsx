@@ -1,10 +1,10 @@
 import { useState } from "react";
-import type { ToggleGroup, UUID } from "@/types";
-import { useAvatarStore } from "@/store/avatarStore";
-import { Select } from "@/components/ui/Select";
-import { Button } from "@/components/ui/Button";
 import { ToggleGroupDialog } from "@/components/dialogs/ToggleGroupDialog";
+import { Button } from "@/components/ui/Button";
 import { EditIcon, PlusIcon } from "@/components/ui/icons";
+import { Select } from "@/components/ui/Select";
+import { useAvatarStore } from "@/store/avatarStore";
+import type { ToggleGroup, UUID } from "@/types";
 
 interface ToggleGroupControlsProps {
 	selectedGroupUUID: UUID | undefined;

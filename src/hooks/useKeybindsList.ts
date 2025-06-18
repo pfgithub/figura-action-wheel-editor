@@ -1,5 +1,5 @@
+import { useEffect, useState } from "react";
 import type { KeybindListItem } from "@/types";
-import { useState, useEffect } from "react";
 
 export type KeybindsListData = KeybindListItem[];
 

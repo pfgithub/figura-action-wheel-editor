@@ -12,4 +12,5 @@ dev:
 - files outside of src/ or in src/data/ are hidden. if it adds new stuff you'll
   have to add the lua implementation manually in src/data/generateLua.ts
 - add anything you think of in TODO.md
-- `bunx --bun biome lint --write --unsafe && bunx --bun tsc`
+- `bunx biome check --fix && bunx --bun tsc`
+- `bunx biome check --fix --unsafe`

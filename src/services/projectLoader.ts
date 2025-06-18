@@ -1,11 +1,6 @@
-import type {
-	UUID,
-	Avatar,
-	AnimationID,
-	TextureAsset,
-} from "@/types";
 import type { BBModel, BBModelElement, BBModelOutliner } from "@/bbmodel";
 import { isValidLuaIdent, parseLua } from "@/data/generateLua";
+import type { AnimationID, Avatar, TextureAsset, UUID } from "@/types";
 
 // --- Path Utilities (specific to project loading) ---
 

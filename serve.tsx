@@ -1,6 +1,6 @@
 import { serve } from "bun";
-import index from "@/index.html";
 import { genViewerPrompt } from "prompt";
+import index from "@/index.html";
 
 const server = serve({
 	routes: {

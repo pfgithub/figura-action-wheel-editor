@@ -1,19 +1,19 @@
-import { useMemo } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { produce } from "immer";
-import type {
-	Condition,
-	UUID,
-	AnimationID,
-	Script,
-	ScriptInstance,
-	ScriptDataInstanceType,
-} from "@/types";
-import { useAvatarStore } from "@/store/avatarStore";
-import { Select } from "@/components/ui/Select";
-import { Input } from "@/components/ui/Input";
+import { useMemo } from "react";
 import { ToggleGroupControls } from "@/components/shared/ToggleGroupControls";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { renderValues } from "@/data/renderSettings";
+import { useAvatarStore } from "@/store/avatarStore";
+import type {
+	AnimationID,
+	Condition,
+	Script,
+	ScriptDataInstanceType,
+	ScriptInstance,
+	UUID,
+} from "@/types";
 import { kindStyles } from "./helpers";
 import { DropZone, GripVerticalIcon, Trash2Icon } from "./ui";
 

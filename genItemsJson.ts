@@ -1,7 +1,7 @@
 // https://minecraftallimages.jemsire.com/
 
-import type { Image, MinecraftItem } from "@/types";
 import { readdirSync } from "node:fs";
+import type { Image, MinecraftItem } from "@/types";
 
 const version = "1.21.5";
 const folder = `${import.meta.dir}/data/all-items-${version}`;
@@ -22,7 +22,4 @@ for (const file of readdirSync(folder)) {
 	const json = (await resp.json()) as Image;
 	res[ns] = { id: ns, name: nameOnly, image: json };
 }
-await Bun.write(
-	`src/data/items/${version}.json`,
-	JSON.stringify(res, null, 2),
-);
+await Bun.write(`src/data/items/${version}.json`, JSON.stringify(res, null, 2));

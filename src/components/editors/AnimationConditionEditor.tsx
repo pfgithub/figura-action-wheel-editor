@@ -1,26 +1,27 @@
 // src/components/editors/AnimationConditionEditor.tsx
-import { useState, useMemo } from "react";
+
 import {
 	DndContext,
-	DragOverlay,
-	pointerWithin,
 	type DragEndEvent,
+	DragOverlay,
 	type DragStartEvent,
+	pointerWithin,
 } from "@dnd-kit/core";
 import { produce, type WritableDraft } from "immer";
+import { useMemo, useState } from "react";
 import type {
 	Condition,
-	ConditionNot,
 	ConditionAnd,
+	ConditionNot,
 	ConditionOr,
 } from "@/types";
 
 import { ConditionNode } from "./animation-condition/ConditionNode";
 import { ConditionPalette } from "./animation-condition/ConditionPalette";
 import {
+	createNewConditionNode,
 	getIn,
 	getParentAndFinalKey,
-	createNewConditionNode,
 	kindStyles,
 	type PaletteItemKind,
 } from "./animation-condition/helpers";

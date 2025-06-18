@@ -1,17 +1,17 @@
 import { useState } from "react";
-import type { Script, UUID } from "@/types";
-import { useAvatarStore } from "@/store/avatarStore";
-import { scripts as availableScripts } from "@/data/scripts";
+import { ScriptEditor } from "@/components/editors/ScriptEditor";
 import { Button } from "@/components/ui/Button";
-import { PlusIcon, TrashIcon } from "@/components/ui/icons";
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import {
 	Dialog,
-	DialogHeader,
 	DialogContent,
 	DialogFooter,
+	DialogHeader,
 } from "@/components/ui/Dialog";
-import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
-import { ScriptEditor } from "@/components/editors/ScriptEditor";
+import { PlusIcon, TrashIcon } from "@/components/ui/icons";
+import { scripts as availableScripts } from "@/data/scripts";
+import { useAvatarStore } from "@/store/avatarStore";
+import type { Script, UUID } from "@/types";
 
 export function ScriptsManager() {
 	const { avatar, updateAvatar } = useAvatarStore();

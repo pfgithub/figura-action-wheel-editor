@@ -1,5 +1,5 @@
+import { useEffect, useState } from "react";
 import type { MinecraftItem } from "@/types";
-import { useState, useEffect } from "react";
 
 export type MinecraftItemsData = Record<string, MinecraftItem>;
 

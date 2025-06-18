@@ -1,25 +1,19 @@
 // src/components/dialogs/ToggleGroupDialog.tsx
-import { useState, useEffect } from "react";
-import type {
-	ToggleGroup,
-	ToggleGroupOption,
-	UUID,
-} from "@/types";
-import { useAvatarStore } from "@/store/avatarStore";
-import { generateUUID } from "@/utils/uuid";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import {
 	Dialog,
-	DialogHeader,
 	DialogContent,
 	DialogFooter,
+	DialogHeader,
 } from "@/components/ui/Dialog";
 import { FormRow } from "@/components/ui/FormRow";
-import {
-	ConfirmationDialog,
-} from "@/components/ui/ConfirmationDialog";
-import { TrashIcon, PlusIcon } from "@/components/ui/icons";
+import { Input } from "@/components/ui/Input";
+import { PlusIcon, TrashIcon } from "@/components/ui/icons";
+import { useAvatarStore } from "@/store/avatarStore";
+import type { ToggleGroup, ToggleGroupOption, UUID } from "@/types";
+import { generateUUID } from "@/utils/uuid";
 
 interface ToggleGroupDialogProps {
 	groupToEdit: ToggleGroup | null;
@@ -37,9 +31,9 @@ export function ToggleGroupDialog({
 	const [options, setOptions] = useState<{ uuid: UUID; name: string }[]>([]);
 	const [nameError, setNameError] = useState("");
 	const [optionsError, setOptionsError] = useState("");
-	const [dialogState, setDialogState] = useState<
-		"idle" | "confirmingDelete"
-	>("idle");
+	const [dialogState, setDialogState] = useState<"idle" | "confirmingDelete">(
+		"idle",
+	);
 
 	useEffect(() => {
 		if (groupToEdit) {

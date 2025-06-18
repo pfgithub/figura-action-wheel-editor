@@ -1,13 +1,13 @@
 // src/components/managers/KeybindsManager.tsx
 import React, { useState } from "react";
-import type { UUID, Keybind } from "@/types";
-import { useAvatarStore } from "@/store/avatarStore";
-import { useKeybindsList } from "@/hooks/useKeybindsList";
-import { Button } from "@/components/ui/Button";
-import { PlusIcon, TrashIcon } from "@/components/ui/icons";
-import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
-import { generateUUID } from "@/utils/uuid";
 import { KeybindEditor } from "@/components/editors/KeybindEditor";
+import { Button } from "@/components/ui/Button";
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
+import { PlusIcon, TrashIcon } from "@/components/ui/icons";
+import { useKeybindsList } from "@/hooks/useKeybindsList";
+import { useAvatarStore } from "@/store/avatarStore";
+import type { Keybind, UUID } from "@/types";
+import { generateUUID } from "@/utils/uuid";
 
 export function KeybindsManager() {
 	const { avatar, updateAvatar } = useAvatarStore();

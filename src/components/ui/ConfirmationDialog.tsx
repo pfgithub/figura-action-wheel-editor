@@ -1,7 +1,7 @@
 // src/components/ui/ConfirmationDialog.tsx
 import type React from "react";
-import { Dialog, DialogHeader, DialogContent, DialogFooter } from "./Dialog";
 import { Button } from "./Button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "./Dialog";
 import { WarningIcon } from "./icons";
 
 interface ConfirmationDialogProps {

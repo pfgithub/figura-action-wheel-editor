@@ -1,10 +1,9 @@
-
-import type { ScriptDataInstanceParameter, UUID } from "@/types";
-import { useAvatarStore } from "@/store/avatarStore";
 import { FormRow } from "@/components/ui/FormRow";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { MinecraftItemPicker } from "@/components/ui/MinecraftItemPicker";
+import { Select } from "@/components/ui/Select";
+import { useAvatarStore } from "@/store/avatarStore";
+import type { ScriptDataInstanceParameter, UUID } from "@/types";
 
 interface ScriptParameterEditorProps {
 	parameters: ScriptDataInstanceParameter[];

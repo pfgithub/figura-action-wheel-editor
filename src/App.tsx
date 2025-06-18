@@ -1,22 +1,21 @@
 import type React from "react";
-import { useState, useEffect, useRef } from "react";
-import type { UUID, ActionWheel, Avatar } from "@/types";
+import { useEffect, useRef, useState } from "react";
 import { useAvatarStore } from "@/store/avatarStore";
+import type { ActionWheel, Avatar, UUID } from "@/types";
 import { generateUUID } from "@/utils/uuid";
 import "./index.css";
-import {
-	loadProjectFromFiles,
-	type LoadedProjectData,
-} from "@/services/projectLoader";
-
-// UI Components
-import { Button } from "@/components/ui/Button";
 
 // Manager Components
 import { ActionWheelsManager } from "@/components/managers/ActionWheelsManager";
 import { AnimationSettingsManager } from "@/components/managers/AnimationSettingsManager";
-import { ScriptsManager } from "@/components/managers/ScriptsManager";
 import { KeybindsManager } from "@/components/managers/KeybindsManager";
+import { ScriptsManager } from "@/components/managers/ScriptsManager";
+// UI Components
+import { Button } from "@/components/ui/Button";
+import {
+	type LoadedProjectData,
+	loadProjectFromFiles,
+} from "@/services/projectLoader";
 
 // A component for the file drop area
 function FileDropzone({
@@ -170,7 +169,12 @@ export function App() {
 	};
 
 	const handleProjectLoad = (data: LoadedProjectData) => {
-		loadAvatar(data.project, data.animations, data.modelElements, data.textures);
+		loadAvatar(
+			data.project,
+			data.animations,
+			data.modelElements,
+			data.textures,
+		);
 	};
 
 	// If no project is loaded, show the dropzone.

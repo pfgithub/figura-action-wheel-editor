@@ -1,18 +1,18 @@
-import { useEffect, useRef, useState } from "react";
-import type { Action, IconItem, IconTexture } from "@/types";
-import { useMinecraftItems } from "@/hooks/useMinecraftItems";
-import { useAvatarStore } from "@/store/avatarStore";
 import {
 	DndContext,
+	type DragEndEvent,
 	DragOverlay,
+	type DragStartEvent,
 	PointerSensor,
 	useDraggable,
 	useDroppable,
 	useSensor,
 	useSensors,
-	type DragEndEvent,
-	type DragStartEvent,
 } from "@dnd-kit/core";
+import { useEffect, useRef, useState } from "react";
+import { useMinecraftItems } from "@/hooks/useMinecraftItems";
+import { useAvatarStore } from "@/store/avatarStore";
+import type { Action, IconItem, IconTexture } from "@/types";
 
 interface ActionWheelVisualizerProps {
 	actions: Action[];

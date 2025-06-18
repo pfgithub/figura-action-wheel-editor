@@ -1,4 +1,3 @@
-
 import { useDraggable } from "@dnd-kit/core";
 import { kindStyles, type PaletteItemKind } from "./helpers";
 import { GripVerticalIcon } from "./ui";

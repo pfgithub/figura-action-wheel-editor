@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
-import type { UUID, Action } from "@/types";
-import { useAvatarStore } from "@/store/avatarStore";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { useEffect, useState } from "react";
 import { ActionEditor } from "@/components/editors/ActionEditor";
 import { ActionWheelVisualizer } from "@/components/ui/ActionWheelVisualizer";
-import { generateUUID } from "@/utils/uuid";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { PlusIcon } from "@/components/ui/icons";
+import { useAvatarStore } from "@/store/avatarStore";
+import type { Action, UUID } from "@/types";
+import { generateUUID } from "@/utils/uuid";
 
 interface ActionWheelsManagerProps {
 	addActionWheel: () => void;
@@ -137,7 +137,11 @@ export function ActionWheelsManager({
 
 	const moveSelectedAction = (targetWheelUuid: UUID) => {
 		if (!selectedActionData) return;
-		const { action, wheelUuid: sourceWheelUuid, actionIndex } = selectedActionData;
+		const {
+			action,
+			wheelUuid: sourceWheelUuid,
+			actionIndex,
+		} = selectedActionData;
 		const targetWheel = avatar.actionWheels[targetWheelUuid];
 		if (targetWheel && targetWheel.actions.length >= MAX_ACTIONS_PER_WHEEL) {
 			alert(`Cannot move action. Wheel "${targetWheel.title}" is full.`);
