@@ -3,8 +3,6 @@ import { extname } from "node:path";
 
 export function genViewerPrompt(): string {
 	let allFiles: string = "";
-	allFiles +=
-		"Output the affected files. Do not output diffs. You can add, modify, and delete files.\n\n";
 	allFiles += "# All files\n\n";
 	let res: string = "";
 	const all = readdirSync(`${import.meta.dir}/src`, { recursive: true })
@@ -29,5 +27,5 @@ export function genViewerPrompt(): string {
 	}
 	sort.sort((a, b) => a.length - b.length);
 	console.log(sort.map((l) => `${l.length}: ${l.name}`).join("\n"));
-	return `${allFiles}\n${res}`;
+	return `${allFiles}\n${res}\n\n# Output Format\n\nOutput the affected files. Do not output diffs. You can add, modify, and delete files.`;
 }
