@@ -22,7 +22,7 @@
 - [x] on transitions, add the ability for them to run an ActionEffect
 - [x] remove animations from the conditional settings tab. don't worry about migrating existing projects.
 - [x] rather than draggable nodes for the Animation Nodes view, have it be a list
-- [ ] add an option in animation transitions for "don't wait for animation to finish". the exact name can be changed.
+- [x] add an option in animation transitions for "don't wait for animation to finish". the exact name can be changed.
 - [ ] add a preview of activation conditions to the conditional settings tab and on animation transitions
 - [x] there is a bug with animation node transitions. when you're editing a transition, none of the options change anything until you close the dialog and open it again.
 
