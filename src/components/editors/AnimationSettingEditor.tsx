@@ -21,7 +21,8 @@ export function AnimationSettingEditor({
 	updateSetting,
 }: AnimationSettingEditorProps) {
 	const { animations, modelElements } = useAvatarStore();
-	const allScriptInstancesWithSettings = useScriptInstancesWithDefine("settings");
+	const allScriptInstancesWithSettings =
+		useScriptInstancesWithDefine("settings");
 
 	const handleUpdate = <K extends keyof ConditionalSetting>(
 		key: K,
