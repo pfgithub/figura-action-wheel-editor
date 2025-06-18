@@ -27,7 +27,7 @@
 - [x] there is a bug with animation node transitions. when you're editing a transition, none of the options change anything until you close the dialog and open it again.
 - try a four-column layout for animation layers
 - [ ] add error boundaries
-- [ ] show the edit transition dialog when you add a transition and move the target dropdown into the edit transition dialog
+- [x] show the edit transition dialog when you add a transition and move the target dropdown into the edit transition dialog
 - [ ] add an ActionEffect type "Toggle Animation"
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).

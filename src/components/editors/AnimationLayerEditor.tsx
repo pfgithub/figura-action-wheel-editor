@@ -5,7 +5,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActionEffectEditor } from "@/components/editors/ActionEffectEditor";
 import { AnimationConditionEditor } from "@/components/editors/AnimationConditionEditor";
 import { MasterDetailManager } from "@/components/layout/MasterDetailManager";
@@ -46,15 +46,22 @@ function AnimationNodeDetailsEditor({
 	onNodeChange,
 }: AnimationNodeDetailsEditorProps) {
 	const { animations } = useAvatarStore();
-	// Only store the ID of the transition being edited.
-	// The full object will be derived from props, preventing stale state.
-	const [editingTransitionId, setEditingTransitionId] = useState<UUID | null>(
-		null,
-	);
+	// This state holds the transition object to open the dialog for.
+	// It can be an existing one from `node.transitions` or a brand new one.
+	const [transitionForDialog, setTransitionForDialog] =
+		useState<AnimationTransition | null>(null);
 
-	// Find the transition object from the node's transitions array.
-	const editingTransition =
-		node.transitions.find((t) => t.uuid === editingTransitionId) ?? null;
+	// This state holds the temporary, editable copy of the transition within the dialog.
+	const [localTransitionState, setLocalTransitionState] =
+		useState<AnimationTransition | null>(null);
+
+	// When transitionForDialog changes, we open the dialog and populate the local state.
+	useEffect(() => {
+		if (transitionForDialog) {
+			// Deep copy to avoid mutating the original object until save
+			setLocalTransitionState(JSON.parse(JSON.stringify(transitionForDialog)));
+		}
+	}, [transitionForDialog]);
 
 	const otherNodes = Object.values(layer.nodes).filter(
 		(n) => n.uuid !== node.uuid,
@@ -71,19 +78,28 @@ function AnimationNodeDetailsEditor({
 			targetNode: otherNodes[0]?.uuid,
 			waitForFinish: true,
 		};
-		onNodeChange({
-			...node,
-			transitions: [...node.transitions, newTransition],
-		});
+		setTransitionForDialog(newTransition);
 	};
 
-	const updateTransition = (updated: AnimationTransition) => {
+	const handleSaveTransition = () => {
+		if (!localTransitionState) return;
+
+		const isNew = !node.transitions.some(
+			(t) => t.uuid === localTransitionState.uuid,
+		);
+
 		onNodeChange({
 			...node,
-			transitions: node.transitions.map((t) =>
-				t.uuid === updated.uuid ? updated : t,
-			),
+			transitions: isNew
+				? [...node.transitions, localTransitionState]
+				: node.transitions.map((t) =>
+						t.uuid === localTransitionState.uuid
+							? localTransitionState
+							: t,
+					),
 		});
+
+		setTransitionForDialog(null);
 	};
 
 	const removeTransition = (uuid: UUID) => {
@@ -146,9 +162,8 @@ function AnimationNodeDetailsEditor({
 									key={t.uuid}
 									transition={t}
 									otherNodes={otherNodes}
-									onUpdate={updateTransition}
 									onDelete={() => removeTransition(t.uuid)}
-									onEditTransition={() => setEditingTransitionId(t.uuid)}
+									onEditTransition={() => setTransitionForDialog(t)}
 								/>
 							))}
 						</div>
@@ -163,27 +178,50 @@ function AnimationNodeDetailsEditor({
 					<PlusIcon className="mr-2 h-5 w-5" /> Add Transition
 				</Button>
 			</div>
-			{editingTransition && (
+			{transitionForDialog && localTransitionState && (
 				<Dialog
 					open
-					onClose={() => setEditingTransitionId(null)}
+					onClose={() => setTransitionForDialog(null)}
 					className="max-w-3xl"
 				>
-					<DialogHeader>Edit Transition</DialogHeader>
+					<DialogHeader>
+						{node.transitions.some((t) => t.uuid === transitionForDialog.uuid)
+							? "Edit Transition"
+							: "Add Transition"}
+					</DialogHeader>
 					<DialogContent>
 						<div className="space-y-6">
 							<div>
 								<h4 className="text-lg font-semibold text-slate-300 border-b border-slate-700 pb-2 mb-4">
 									Settings
 								</h4>
+								<FormRow label="Target Node">
+									<Select
+										value={localTransitionState.targetNode ?? ""}
+										onChange={(e) =>
+											setLocalTransitionState({
+												...localTransitionState,
+												targetNode: e.target.value as UUID,
+											})
+										}
+										disabled={otherNodes.length === 0}
+									>
+										<option value="">-- Select a node --</option>
+										{otherNodes.map((n) => (
+											<option key={n.uuid} value={n.uuid}>
+												{n.name}
+											</option>
+										))}
+									</Select>
+								</FormRow>
 								<FormRow label="Wait for animation to finish">
 									<label className="flex gap-4 items-center">
 										<input
 											type="checkbox"
-											checked={editingTransition.waitForFinish ?? true}
+											checked={localTransitionState.waitForFinish ?? true}
 											onChange={(e) =>
-												updateTransition({
-													...editingTransition,
+												setLocalTransitionState({
+													...localTransitionState,
 													waitForFinish: e.target.checked,
 												})
 											}
@@ -206,9 +244,12 @@ function AnimationNodeDetailsEditor({
 								</p>
 								<div className="bg-slate-900/50 p-4 rounded-lg ring-1 ring-slate-700">
 									<ActionEffectEditor
-										effect={editingTransition.effect}
+										effect={localTransitionState.effect}
 										updateEffect={(effect) =>
-											updateTransition({ ...editingTransition, effect })
+											setLocalTransitionState({
+												...localTransitionState,
+												effect,
+											})
 										}
 									/>
 								</div>
@@ -220,10 +261,10 @@ function AnimationNodeDetailsEditor({
 								</h4>
 								<div className="bg-slate-900/50 p-4 rounded-lg ring-1 ring-slate-700">
 									<AnimationConditionEditor
-										condition={editingTransition.activationCondition}
+										condition={localTransitionState.activationCondition}
 										updateCondition={(c) =>
-											updateTransition({
-												...editingTransition,
+											setLocalTransitionState({
+												...localTransitionState,
 												activationCondition: c,
 											})
 										}
@@ -234,10 +275,16 @@ function AnimationNodeDetailsEditor({
 					</DialogContent>
 					<DialogFooter>
 						<Button
-							onClick={() => setEditingTransitionId(null)}
+							onClick={() => setTransitionForDialog(null)}
 							className="bg-slate-600 hover:bg-slate-500"
 						>
-							Done
+							Cancel
+						</Button>
+						<Button
+							onClick={handleSaveTransition}
+							className="bg-violet-600 hover:bg-violet-500"
+						>
+							Save
 						</Button>
 					</DialogFooter>
 				</Dialog>
@@ -249,13 +296,11 @@ function AnimationNodeDetailsEditor({
 function TransitionEditor({
 	transition,
 	otherNodes,
-	onUpdate,
 	onDelete,
 	onEditTransition,
 }: {
 	transition: AnimationTransition;
 	otherNodes: AnimationNode[];
-	onUpdate: (t: AnimationTransition) => void;
 	onDelete: () => void;
 	onEditTransition: () => void;
 }) {
@@ -271,6 +316,9 @@ function TransitionEditor({
 		transition: cssTrans,
 	};
 	const hasCondition = !!transition.activationCondition;
+	const targetNodeName = otherNodes.find(
+		(n) => n.uuid === transition.targetNode,
+	)?.name;
 
 	return (
 		<div
@@ -286,36 +334,29 @@ function TransitionEditor({
 						</svg>
 					</button>
 					<span className="text-slate-400 text-sm">Target:</span>
+					{targetNodeName ? (
+						<span className="font-semibold text-slate-200">
+							{targetNodeName}
+						</span>
+					) : (
+						<span className="font-semibold text-rose-400">Invalid Target</span>
+					)}
 				</div>
 				<Button onClick={onDelete} className="!p-1 h-7 w-7 bg-rose-800/50">
 					<TrashIcon className="w-4 h-4" />
 				</Button>
 			</div>
-			<div className="flex items-center gap-2 pl-2">
-				<Select
-					value={transition.targetNode ?? ""}
-					onChange={(e) =>
-						onUpdate({ ...transition, targetNode: e.target.value as UUID })
-					}
-					className="flex-grow"
-				>
-					{otherNodes.length === 0 && <option>-- No other nodes --</option>}
-					{otherNodes.map((n) => (
-						<option key={n.uuid} value={n.uuid}>
-							{n.name}
-						</option>
-					))}
-				</Select>
+			<div className="flex items-center gap-2 pl-9">
+				<p className="text-xs text-slate-400 flex-grow">
+					{hasCondition ? "Has activation condition" : "No condition"}
+				</p>
 				<Button
 					onClick={onEditTransition}
-					title={hasCondition ? "Condition is set" : "No condition set"}
-					className={`!p-1 h-8 w-8 flex-shrink-0 transition-colors ${
-						hasCondition
-							? "bg-violet-700 hover:bg-violet-600"
-							: "bg-slate-700 hover:bg-slate-600"
-					}`}
+					title={hasCondition ? "Edit transition..." : "Edit transition..."}
+					className="bg-slate-700 hover:bg-slate-600 flex-shrink-0"
 				>
-					<EditIcon className="w-4 h-4" />
+					<EditIcon className="w-4 h-4 mr-2" />
+					Edit
 				</Button>
 			</div>
 		</div>
