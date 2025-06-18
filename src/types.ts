@@ -157,11 +157,6 @@ export type ConditionScript = {
 	scriptInstance?: UUID;
 	condition?: UUID;
 };
-export type ConditionCustom = {
-	id: UUID;
-	kind: "custom";
-	expression?: string;
-};
 
 export type Condition =
 	| ConditionOr
@@ -170,8 +165,7 @@ export type Condition =
 	| ConditionToggleGroup
 	| ConditionRender
 	| ConditionAnimation
-	| ConditionScript
-	| ConditionCustom;
+	| ConditionScript;
 
 export type RenderSettingData = {
 	id: RenderSettingID;

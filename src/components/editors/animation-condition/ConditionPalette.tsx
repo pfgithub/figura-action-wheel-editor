@@ -34,7 +34,6 @@ export function ConditionPalette() {
 		"render",
 		"animation",
 		"script",
-		"custom",
 	];
 	return (
 		<div className="w-64 flex-shrink-0 p-3 bg-slate-900/50 rounded-lg space-y-2 self-start">

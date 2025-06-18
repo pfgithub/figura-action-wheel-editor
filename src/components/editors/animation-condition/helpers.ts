@@ -117,7 +117,5 @@ export const createNewConditionNode = (kind: PaletteItemKind): Condition => {
 			return { id, kind: "animation", mode: "PLAYING" };
 		case "script":
 			return { id, kind: "script" };
-		case "custom":
-			return { id, kind: "custom", expression: "" };
 	}
 };

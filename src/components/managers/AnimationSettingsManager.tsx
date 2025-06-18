@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AnimationSettingEditor } from "@/components/editors/AnimationSettingEditor";
 import { Button } from "@/components/ui/Button";
 import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
@@ -291,6 +291,7 @@ export function AnimationSettingsManager() {
 			}
 			return { title, warning };
 		},
+		[]
 	);
 
 	const allConfiguredSettings = useMemo(() => {

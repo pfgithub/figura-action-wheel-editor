@@ -350,23 +350,6 @@ export function ConditionNode({
 					</div>
 				);
 			}
-			case "custom":
-				return (
-					<div className="p-3">
-						<Input
-							type="text"
-							placeholder="e.g., player:getEyeY() > 60"
-							value={condition.expression ?? ""}
-							onChange={(e) =>
-								handleUpdate((draft) => {
-									if (draft.kind === "custom")
-										draft.expression = e.target.value;
-								})
-							}
-							className="w-full bg-slate-800/80 font-mono text-sm"
-						/>
-					</div>
-				);
 			default:
 				return null;
 		}
