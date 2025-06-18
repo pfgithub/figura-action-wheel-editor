@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
 import type { UUID } from "@/types";
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 
 interface MasterDetailManagerProps<T extends { uuid: UUID }> {
 	// Data
@@ -31,7 +31,7 @@ interface MasterDetailManagerProps<T extends { uuid: UUID }> {
 	onFilterTextChange?: (text: string) => void;
 
 	// Header slot
-	editorTitle?: (item: T) => JSX.Element;
+	editorTitle?: (item: T) => ReactNode;
 }
 
 export function MasterDetailManager<T extends { uuid: UUID }>({

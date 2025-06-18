@@ -4,7 +4,6 @@ import { renderSettings } from "@/data/renderSettings";
 import { useScriptInstancesWithDefine } from "@/hooks/useScriptData";
 import { useAvatarStore } from "@/store/avatarStore";
 import type {
-	AnimationID,
 	ConditionalSetting,
 	RenderSettingID,
 	UUID,
@@ -20,7 +19,7 @@ export function AnimationSettingEditor({
 	setting,
 	updateSetting,
 }: AnimationSettingEditorProps) {
-	const { animations, modelElements } = useAvatarStore();
+	const { modelElements } = useAvatarStore();
 	const allScriptInstancesWithSettings =
 		useScriptInstancesWithDefine("settings");
 
@@ -33,23 +32,6 @@ export function AnimationSettingEditor({
 
 	const renderKindSpecificEditor = () => {
 		switch (setting.kind) {
-			case "play_animation":
-				return (
-					<FormRow label="Animation">
-						<Select
-							value={setting.animation}
-							onChange={(e) =>
-								handleUpdate("animation", e.target.value as AnimationID)
-							}
-						>
-							{animations.map((animId) => (
-								<option key={animId} value={animId}>
-									{animId}
-								</option>
-							))}
-						</Select>
-					</FormRow>
-				);
 			case "hide_element":
 				return (
 					<FormRow label="Element">

@@ -21,10 +21,11 @@
 - [ ] rather than storing animations with id "animations.model.fly" or `animations.model["some string"]`, store them as {model: string, animation: string}.
 - [ ] rather than storing model parts with id "models.model.part1.part2.part3", store them as {model: string, partPath: string[]}
 - [ ] on transitions, add the ability for them to run an ActionEffect
-- [ ] remove animations from the conditional settings tab. don't worry about migrating existing projects.
+- [x] remove animations from the conditional settings tab. don't worry about migrating existing projects.
 - [x] rather than draggable nodes for the Animation Nodes view, have it be a list
 - [ ] add an option in animation transitions for "don't wait for animation to finish". the exact name can be changed.
 - [ ] add a preview of activation conditions to the conditional settings tab and on animation transitions
+- [ ] there is a bug with animationnodes. when you're editing a transition, none of the options change anything until you close the dialog and open it again.
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 

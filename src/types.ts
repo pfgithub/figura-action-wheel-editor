@@ -109,13 +109,6 @@ export type ToggleGroup = {
 	saved?: boolean;
 };
 
-export type PlayAnimationSetting = {
-	uuid: UUID;
-	kind: "play_animation";
-	animation: AnimationID;
-	activationCondition?: Condition;
-};
-
 export type HideElementSetting = {
 	uuid: UUID;
 	kind: "hide_element";
@@ -139,7 +132,6 @@ export type ScriptSetting = {
 };
 
 export type ConditionalSetting =
-	| PlayAnimationSetting
 	| HideElementSetting
 	| RenderSetting
 	| ScriptSetting;
@@ -170,12 +162,6 @@ export type ConditionRender = {
 	kind: "render";
 	render?: RenderValueID;
 };
-export type ConditionAnimation = {
-	id: UUID;
-	kind: "animation";
-	animation?: AnimationID;
-	mode?: "STOPPED" | "PAUSED" | "PLAYING";
-};
 export type ConditionScript = {
 	id: UUID;
 	kind: "script";
@@ -189,7 +175,6 @@ export type Condition =
 	| ConditionNot
 	| ConditionToggleGroup
 	| ConditionRender
-	| ConditionAnimation
 	| ConditionScript;
 
 export type RenderSettingData = {

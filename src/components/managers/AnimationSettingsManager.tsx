@@ -18,11 +18,9 @@ import {
 } from "@/hooks/useScriptData";
 import { useAvatarStore } from "@/store/avatarStore";
 import type {
-	AnimationID,
 	Condition,
 	ConditionalSetting,
 	HideElementSetting,
-	PlayAnimationSetting,
 	RenderSetting,
 	RenderSettingID,
 	ScriptSetting,
@@ -30,7 +28,7 @@ import type {
 } from "@/types";
 import { generateUUID } from "@/utils/uuid";
 
-type SettingView = "play_animation" | "hide_element" | "render" | "script";
+type SettingView = "hide_element" | "render" | "script";
 
 const summarizeCondition = (condition?: Condition): string => {
 	if (!condition) return "Always active";
@@ -80,27 +78,15 @@ interface AddSettingDialogContentProps {
 	onAdd: (id: string, kind: SettingView) => void;
 }
 function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
-	const { avatar, animations, modelElements } = useAvatarStore();
+	const { avatar, modelElements } = useAvatarStore();
 	const scriptInstancesWithSettings = useScriptInstancesWithDefine("settings");
-	const [view, setView] = useState<SettingView>("play_animation");
+	const [view, setView] = useState<SettingView>("hide_element");
 	const [filter, setFilter] = useState("");
 	const lowerFilter = filter.toLowerCase();
 
 	const unconfiguredItems = useMemo(() => {
 		if (!avatar) return [];
 		const allSettings = Object.values(avatar.conditionalSettings);
-		if (view === "play_animation") {
-			const configured = new Set(
-				allSettings
-					.filter((s): s is PlayAnimationSetting => s.kind === "play_animation")
-					.map((s) => s.animation),
-			);
-			return animations
-				.filter(
-					(id) => !configured.has(id) && id.toLowerCase().includes(lowerFilter),
-				)
-				.map((id) => ({ id, name: id }));
-		}
 		if (view === "hide_element") {
 			const configured = new Set(
 				allSettings
@@ -149,20 +135,9 @@ function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
 			);
 		}
 		return [];
-	}, [
-		view,
-		avatar,
-		animations,
-		modelElements,
-		lowerFilter,
-		scriptInstancesWithSettings,
-	]);
+	}, [view, avatar, modelElements, lowerFilter, scriptInstancesWithSettings]);
 
 	const viewConfig = {
-		play_animation: {
-			placeholder: `Search ${animations.length} animations...`,
-			emptyText: "No unconfigured animations found.",
-		},
 		hide_element: {
 			placeholder: `Search ${modelElements.length} elements...`,
 			emptyText: "No unconfigured elements found.",
@@ -186,7 +161,6 @@ function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
 					setFilter("");
 				}}
 				options={[
-					{ label: "Play Animation", value: "play_animation" },
 					{ label: "Hide Element", value: "hide_element" },
 					{ label: "Render", value: "render" },
 					{ label: "Script", value: "script" },
@@ -232,7 +206,7 @@ function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
 }
 
 export function AnimationSettingsManager() {
-	const { avatar, animations, modelElements, updateAvatar } = useAvatarStore();
+	const { avatar, modelElements, updateAvatar } = useAvatarStore();
 	const [filter, setFilter] = useState("");
 	const [selectedId, setSelectedId] = useState<UUID | null>(null);
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -247,11 +221,6 @@ export function AnimationSettingsManager() {
 			let title: string,
 				warning: string | null = null;
 			switch (s.kind) {
-				case "play_animation":
-					title = s.animation;
-					if (!animations.includes(s.animation))
-						warning = "Animation not found.";
-					break;
 				case "hide_element":
 					title = s.element;
 					if (!modelElements.includes(s.element))
@@ -276,10 +245,13 @@ export function AnimationSettingsManager() {
 					}
 					break;
 				}
+				default:
+					title = (s as ConditionalSetting).kind;
+					warning = "Unknown conditional setting type";
 			}
 			return { title, warning };
 		},
-		[allScriptInstances, animations, modelElements],
+		[allScriptInstances, modelElements],
 	);
 
 	const allConfiguredSettings = useMemo(
@@ -304,9 +276,6 @@ export function AnimationSettingsManager() {
 		const uuid = generateUUID();
 		let newSetting: ConditionalSetting;
 		switch (kind) {
-			case "play_animation":
-				newSetting = { uuid, kind, animation: id as AnimationID };
-				break;
 			case "hide_element":
 				newSetting = { uuid, kind, element: id };
 				break;
