@@ -291,7 +291,7 @@ export function AnimationSettingsManager() {
 			}
 			return { title, warning };
 		},
-		[]
+		[allScriptInstances.get, animations.includes, modelElements.includes],
 	);
 
 	const allConfiguredSettings = useMemo(() => {
