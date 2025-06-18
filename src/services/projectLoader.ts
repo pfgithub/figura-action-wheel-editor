@@ -1,25 +1,15 @@
 import type { BBModel, BBModelElement, BBModelOutliner } from "@/bbmodel";
-import { isValidLuaIdent, parseLua } from "@/data/generateLua";
+import { parseLua } from "@/data/generateLua";
 import type {
-	AnimationID,
+	AnimationRef,
 	Avatar,
 	AvatarMetadata,
+	ModelPartRef,
 	TextureAsset,
 	UUID,
 } from "@/types";
 
 // --- Path Utilities (specific to project loading) ---
-
-const stringifyPart = (part: string) => {
-	if (!isValidLuaIdent(part)) {
-		return `[${JSON.stringify(part)}]`;
-	}
-	return `.${part}`;
-};
-
-function stringifyParts(parts: string[]): string {
-	return parts.map(stringifyPart).join("");
-}
 
 function withoutExtension(str: string): string {
 	const s = str.split(".");
@@ -60,8 +50,8 @@ const readImage = (name: string, imageURL: string): Promise<TextureAsset> => {
 export interface LoadedProjectData {
 	project: Avatar;
 	metadata: AvatarMetadata;
-	animations: AnimationID[];
-	modelElements: string[];
+	animations: AnimationRef[];
+	modelElements: ModelPartRef[];
 	textures: TextureAsset[];
 }
 
@@ -143,8 +133,8 @@ export async function loadProjectFromFiles(
 	}
 
 	// --- Parse bbmodels and extract animations and textures ---
-	const allAnimations: AnimationID[] = [];
-	const allModelElements: string[] = [];
+	const allAnimations: AnimationRef[] = [];
+	const allModelElements: ModelPartRef[] = [];
 	const allImagesPromises: Promise<TextureAsset>[] = [];
 
 	for (let i = 0; i < bbmodelFiles.length; i++) {
@@ -167,9 +157,7 @@ export async function loadProjectFromFiles(
 		if (Array.isArray(model.animations)) {
 			for (const anim of model.animations) {
 				if (anim.name) {
-					const animationId =
-						`animations${stringifyParts([modelName, anim.name])}` as AnimationID;
-					allAnimations.push(animationId);
+					allAnimations.push({ model: modelName, animation: anim.name });
 				}
 			}
 		}
@@ -184,25 +172,25 @@ export async function loadProjectFromFiles(
 		if (Array.isArray(model.outliner)) {
 			const traverseOutliner = (
 				items: (BBModelOutliner | UUID)[],
-				parts: string[],
+				path: string[],
 			) => {
 				for (const item of items) {
 					if (typeof item === "string") {
 						const element = elements.get(item);
 						if (element) {
-							const newParts = [...parts, element.name];
-							allModelElements.push(`models${stringifyParts(newParts)}`);
+							const newPath = [...path, element.name];
+							allModelElements.push({ model: modelName, partPath: newPath });
 						}
 					} else {
-						const newParts = [...parts, item.name];
-						allModelElements.push(`models${stringifyParts(newParts)}`);
+						const newPath = [...path, item.name];
+						allModelElements.push({ model: modelName, partPath: newPath });
 						if (item.children?.length) {
-							traverseOutliner(item.children, newParts);
+							traverseOutliner(item.children, newPath);
 						}
 					}
 				}
 			};
-			traverseOutliner(model.outliner, [modelName]);
+			traverseOutliner(model.outliner, []);
 		}
 
 		if (Array.isArray(model.textures)) {

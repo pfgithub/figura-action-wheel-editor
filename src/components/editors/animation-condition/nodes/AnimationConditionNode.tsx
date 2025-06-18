@@ -1,11 +1,13 @@
 import { Select } from "@/components/ui/Select";
 import { useAvatarStore } from "@/store/avatarStore";
-import type { AnimationID, ConditionAnimation } from "@/types";
+import type { AnimationRef, ConditionAnimation } from "@/types";
 
 interface AnimationConditionNodeProps {
 	condition: ConditionAnimation;
 	handleUpdate: (updater: (draft: ConditionAnimation) => void) => void;
 }
+
+const displayAnimationRef = (ref: AnimationRef) => `${ref.model}.${ref.animation}`;
 
 export function AnimationConditionNode({
 	condition,
@@ -21,20 +23,20 @@ export function AnimationConditionNode({
 				<span className="flex-shrink-0 pr-2">When animation</span>
 				<div className="flex-grow">
 					<Select
-						value={condition.animation ?? ""}
+						value={condition.animation ? JSON.stringify(condition.animation) : ""}
 						onChange={(e) =>
 							handleUpdate((draft) => {
 								draft.animation = e.target.value
-									? (e.target.value as AnimationID)
+									? JSON.parse(e.target.value)
 									: undefined;
 							})
 						}
 						className="w-auto flex-grow bg-slate-800/80"
 					>
 						<option value="">-- Select an animation --</option>
-						{allAnimations.map((animId) => (
-							<option key={animId} value={animId}>
-								{animId}
+						{allAnimations.map((anim) => (
+							<option key={JSON.stringify(anim)} value={JSON.stringify(anim)}>
+								{displayAnimationRef(anim)}
 							</option>
 						))}
 					</Select>

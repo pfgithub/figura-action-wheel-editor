@@ -51,7 +51,7 @@ export function AnimationNodesManager() {
 		const noneNode: AnimationNode = {
 			uuid: noneNodeUuid,
 			name: "None",
-			animation: "",
+			animation: undefined,
 			transitions: [],
 		};
 

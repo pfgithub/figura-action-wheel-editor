@@ -3,9 +3,10 @@ import { temporal } from "zundo";
 import { create } from "zustand";
 import { generateLua } from "@/data/generateLua";
 import type {
-	AnimationID,
+	AnimationRef,
 	Avatar,
 	AvatarMetadata,
+	ModelPartRef,
 	TextureAsset,
 } from "@/types";
 
@@ -15,14 +16,14 @@ export type MetadataUpdater = (draft: WritableDraft<AvatarMetadata>) => void;
 interface AvatarState {
 	avatar: Avatar | null;
 	metadata: AvatarMetadata | null;
-	animations: AnimationID[];
-	modelElements: string[];
+	animations: AnimationRef[];
+	modelElements: ModelPartRef[];
 	textures: TextureAsset[];
 	isSaving: boolean;
 	loadAvatar: (
 		data: Avatar,
-		animations: AnimationID[],
-		modelElements: string[],
+		animations: AnimationRef[],
+		modelElements: ModelPartRef[],
 		textures: TextureAsset[],
 		metadata: AvatarMetadata,
 	) => void;

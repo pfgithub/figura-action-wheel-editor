@@ -22,13 +22,15 @@ import { EditIcon, PlusIcon, TrashIcon } from "@/components/ui/icons";
 import { Select } from "@/components/ui/Select";
 import { useAvatarStore } from "@/store/avatarStore";
 import type {
-	AnimationID,
-	AnimationLayer,
 	AnimationNode,
+	AnimationLayer,
+	AnimationRef,
 	AnimationTransition,
 	UUID,
 } from "@/types";
 import { generateUUID } from "@/utils/uuid";
+
+const displayAnimationRef = (ref: AnimationRef) => `${ref.model}.${ref.animation}`;
 
 // --- Node Details Panel ---
 interface AnimationNodeDetailsEditorProps {
@@ -99,14 +101,19 @@ function AnimationNodeDetailsEditor({
 			<div className="space-y-4">
 				<FormRow label="Animation">
 					<Select
-						value={node.animation}
-						onChange={(e) => onUpdate("animation", e.target.value)}
+						value={node.animation ? JSON.stringify(node.animation) : ""}
+						onChange={(e) =>
+							onUpdate(
+								"animation",
+								e.target.value ? JSON.parse(e.target.value) : undefined,
+							)
+						}
 						disabled={isNoneNode}
 					>
 						<option value="">(None)</option>
 						{animations.map((anim) => (
-							<option key={anim} value={anim}>
-								{anim}
+							<option key={JSON.stringify(anim)} value={JSON.stringify(anim)}>
+								{displayAnimationRef(anim)}
 							</option>
 						))}
 					</Select>
@@ -339,7 +346,9 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 	const { updateAvatar, animations } = useAvatarStore();
 	const [selectedNodeId, setSelectedNodeId] = useState<UUID | null>(null);
 	const [isAddNodeOpen, setAddNodeOpen] = useState(false);
-	const [newNodeAnim, setNewNodeAnim] = useState<AnimationID | "">("");
+	const [newNodeAnim, setNewNodeAnim] = useState<AnimationRef | undefined>(
+		undefined,
+	);
 
 	const updateNode = (updatedNode: AnimationNode) => {
 		updateAvatar((draft) => {
@@ -352,7 +361,7 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 		if (!newNodeAnim) return;
 		const uuid = generateUUID();
 		const newName =
-			newNodeAnim.split(".").pop() || `Node ${Object.keys(layer.nodes).length}`;
+			newNodeAnim.animation || `Node ${Object.keys(layer.nodes).length}`;
 
 		const newNode: AnimationNode = {
 			uuid,
@@ -368,7 +377,7 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 			}
 		});
 		setAddNodeOpen(false);
-		setNewNodeAnim("");
+		setNewNodeAnim(undefined);
 		setSelectedNodeId(uuid);
 	};
 
@@ -441,7 +450,9 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 								{node.name}
 							</h3>
 							<p className="text-sm text-slate-400 truncate">
-								{node.animation || "(No animation)"}
+								{node.animation
+									? displayAnimationRef(node.animation)
+									: "(No animation)"}
 							</p>
 						</div>
 					</button>
@@ -463,13 +474,17 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 				<DialogContent>
 					<FormRow label="Animation">
 						<Select
-							value={newNodeAnim}
-							onChange={(e) => setNewNodeAnim(e.target.value as AnimationID)}
+							value={newNodeAnim ? JSON.stringify(newNodeAnim) : ""}
+							onChange={(e) =>
+								setNewNodeAnim(
+									e.target.value ? JSON.parse(e.target.value) : undefined,
+								)
+							}
 						>
 							<option value="">-- Select an animation --</option>
 							{animations.map((anim) => (
-								<option key={anim} value={anim}>
-									{anim}
+								<option key={JSON.stringify(anim)} value={JSON.stringify(anim)}>
+									{displayAnimationRef(anim)}
 								</option>
 							))}
 						</Select>

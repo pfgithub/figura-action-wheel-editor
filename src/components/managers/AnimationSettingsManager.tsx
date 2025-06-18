@@ -21,6 +21,7 @@ import type {
 	Condition,
 	ConditionalSetting,
 	HideElementSetting,
+	ModelPartRef,
 	RenderSetting,
 	RenderSettingID,
 	ScriptSetting,
@@ -29,6 +30,9 @@ import type {
 import { generateUUID } from "@/utils/uuid";
 
 type SettingView = "hide_element" | "render" | "script";
+
+const displayModelPartRef = (ref: ModelPartRef) =>
+	`${ref.model}.${ref.partPath.join(".")}`;
 
 const summarizeCondition = (condition?: Condition): string => {
 	if (!condition) return "Always active";
@@ -91,13 +95,17 @@ function AddSettingDialogContent({ onAdd }: AddSettingDialogContentProps) {
 			const configured = new Set(
 				allSettings
 					.filter((s): s is HideElementSetting => s.kind === "hide_element")
-					.map((s) => s.element),
+					.map((s) => JSON.stringify(s.element)),
 			);
 			return modelElements
-				.filter(
-					(id) => !configured.has(id) && id.toLowerCase().includes(lowerFilter),
-				)
-				.map((id) => ({ id, name: id }));
+				.filter((ref) => {
+					const name = displayModelPartRef(ref);
+					return (
+						!configured.has(JSON.stringify(ref)) &&
+						name.toLowerCase().includes(lowerFilter)
+					);
+				})
+				.map((ref) => ({ id: JSON.stringify(ref), name: displayModelPartRef(ref) }));
 		}
 		if (view === "render") {
 			const configured = new Set(
@@ -216,15 +224,20 @@ export function AnimationSettingsManager() {
 		conditionalSettings: {} as Record<UUID, ConditionalSetting>,
 	};
 
+	const modelElementSet = useMemo(
+		() => new Set(modelElements.map((el) => JSON.stringify(el))),
+		[modelElements],
+	);
+
 	const getSettingInfo = useCallback(
 		(s: ConditionalSetting): { title: string; warning: string | null } => {
 			let title: string,
 				warning: string | null = null;
 			switch (s.kind) {
 				case "hide_element":
-					title = s.element;
-					if (!modelElements.includes(s.element))
-						warning = "Element not found.";
+					title = displayModelPartRef(s.element);
+					if (!modelElementSet.has(JSON.stringify(s.element)))
+						warning = "Element not found in any loaded model.";
 					break;
 				case "render":
 					title = renderSettings.get(s.render)?.name ?? s.render;
@@ -251,7 +264,7 @@ export function AnimationSettingsManager() {
 			}
 			return { title, warning };
 		},
-		[allScriptInstances, modelElements],
+		[allScriptInstances, modelElementSet],
 	);
 
 	const allConfiguredSettings = useMemo(
@@ -277,7 +290,7 @@ export function AnimationSettingsManager() {
 		let newSetting: ConditionalSetting;
 		switch (kind) {
 			case "hide_element":
-				newSetting = { uuid, kind, element: id };
+				newSetting = { uuid, kind, element: JSON.parse(id) };
 				break;
 			case "render":
 				newSetting = { uuid, kind, render: id as RenderSettingID };

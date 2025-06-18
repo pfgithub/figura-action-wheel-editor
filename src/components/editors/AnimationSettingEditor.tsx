@@ -5,6 +5,7 @@ import { useScriptInstancesWithDefine } from "@/hooks/useScriptData";
 import { useAvatarStore } from "@/store/avatarStore";
 import type {
 	ConditionalSetting,
+	ModelPartRef,
 	RenderSettingID,
 	UUID,
 } from "@/types";
@@ -14,6 +15,9 @@ interface AnimationSettingEditorProps {
 	setting: ConditionalSetting;
 	updateSetting: (s: ConditionalSetting) => void;
 }
+
+const displayModelPartRef = (ref: ModelPartRef) =>
+	`${ref.model}.${ref.partPath.join(".")}`;
 
 export function AnimationSettingEditor({
 	setting,
@@ -36,12 +40,17 @@ export function AnimationSettingEditor({
 				return (
 					<FormRow label="Element">
 						<Select
-							value={setting.element}
-							onChange={(e) => handleUpdate("element", e.target.value)}
+							value={setting.element ? JSON.stringify(setting.element) : ""}
+							onChange={(e) =>
+								handleUpdate("element", JSON.parse(e.target.value))
+							}
 						>
-							{modelElements.map((elemId) => (
-								<option key={elemId} value={elemId}>
-									{elemId}
+							{modelElements.map((elemRef) => (
+								<option
+									key={JSON.stringify(elemRef)}
+									value={JSON.stringify(elemRef)}
+								>
+									{displayModelPartRef(elemRef)}
 								</option>
 							))}
 						</Select>

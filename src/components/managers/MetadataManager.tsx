@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
 import { Select } from "@/components/ui/Select";
 import { useAvatarStore } from "@/store/avatarStore";
-import type { Customization } from "@/types";
+import type { AnimationRef, Customization, ModelPartRef } from "@/types";
 import { hexToRgb, rgbToHex } from "@/utils/color";
 
 const RENDER_TYPES = [
@@ -26,6 +26,13 @@ const PARENT_TYPES = [
 	"LeftLeg",
 	"RightLeg",
 ];
+
+const modelPartRefToId = (ref: ModelPartRef) =>
+	`models.${ref.model}.${ref.partPath.join(".")}`;
+const displayModelPartRef = (ref: ModelPartRef) =>
+	`${ref.model}.${ref.partPath.join(".")}`;
+const displayAnimationRef = (ref: AnimationRef) =>
+	`${ref.model}.${ref.animation}`;
 
 const Section = ({
 	title,
@@ -84,6 +91,75 @@ const StringArrayEditor = ({
 				<Button
 					onClick={addValue}
 					className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 w-full mt-2"
+				>
+					<PlusIcon className="w-5 h-5 mr-2" />
+					Add
+				</Button>
+			</div>
+		</div>
+	);
+};
+
+const AnimationRefArrayEditor = ({
+	label,
+	values,
+	onChange,
+}: {
+	label: string;
+	values: AnimationRef[];
+	onChange: (newValues: AnimationRef[]) => void;
+}) => {
+	const { animations } = useAvatarStore();
+
+	const addValue = () => {
+		if (animations.length > 0) {
+			const firstAnim = animations[0];
+			if (!values.find((v) => v.model === firstAnim.model && v.animation === firstAnim.animation)) {
+				onChange([...values, firstAnim]);
+			}
+		}
+	};
+	const removeValue = (index: number) =>
+		onChange(values.filter((_, i) => i !== index));
+
+	const updateValue = (index: number, value: string) => {
+		const newValues = [...values];
+		newValues[index] = JSON.parse(value);
+		onChange(newValues);
+	};
+
+	return (
+		<div>
+			<label className="text-slate-400 text-sm font-medium">{label}</label>
+			<div className="mt-2 space-y-2">
+				{values.map((value, index) => (
+					<div key={index} className="flex gap-2 items-center">
+						<Select
+							value={JSON.stringify(value)}
+							onChange={(e) => updateValue(index, e.target.value)}
+							className="flex-grow"
+						>
+							{animations.map((anim) => (
+								<option
+									key={JSON.stringify(anim)}
+									value={JSON.stringify(anim)}
+								>
+									{displayAnimationRef(anim)}
+								</option>
+							))}
+						</Select>
+						<Button
+							onClick={() => removeValue(index)}
+							className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 w-9 h-9 p-0 flex-shrink-0"
+						>
+							<TrashIcon className="w-5 h-5" />
+						</Button>
+					</div>
+				))}
+				<Button
+					onClick={addValue}
+					className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 w-full mt-2"
+					disabled={animations.length === 0}
 				>
 					<PlusIcon className="w-5 h-5 mr-2" />
 					Add
@@ -175,13 +251,20 @@ const CustomizationEditor = ({
 				</FormRow>
 				<FormRow label="Move To">
 					<Select
-						value={customization.moveTo ?? ""}
-						onChange={(e) => handleFieldChange("moveTo", e.target.value)}
+						value={
+							customization.moveTo ? JSON.stringify(customization.moveTo) : ""
+						}
+						onChange={(e) =>
+							handleFieldChange(
+								"moveTo",
+								e.target.value ? JSON.parse(e.target.value) : undefined,
+							)
+						}
 					>
 						<option value="">(None)</option>
 						{modelElements.map((p) => (
-							<option key={p} value={p}>
-								{p}
+							<option key={JSON.stringify(p)} value={JSON.stringify(p)}>
+								{displayModelPartRef(p)}
 							</option>
 						))}
 					</Select>
@@ -244,7 +327,7 @@ export function MetadataManager() {
 	};
 
 	const uncustomizedParts = modelElements.filter(
-		(p) => !metadata.customizations?.[p],
+		(p) => !metadata.customizations?.[modelPartRefToId(p)],
 	);
 
 	return (
@@ -299,11 +382,10 @@ export function MetadataManager() {
 					onChange={(v) => handleUpdate("autoScripts", v)}
 					placeholder="libs.RainbowNameplate"
 				/>
-				<StringArrayEditor
+				<AnimationRefArrayEditor
 					label="Auto Animations"
 					values={metadata.autoAnims ?? []}
 					onChange={(v) => handleUpdate("autoAnims", v)}
-					placeholder="player.idle"
 				/>
 			</Section>
 
@@ -346,8 +428,8 @@ export function MetadataManager() {
 								: "-- All parts customized --"}
 						</option>
 						{uncustomizedParts.map((p) => (
-							<option key={p} value={p}>
-								{p}
+							<option key={modelPartRefToId(p)} value={modelPartRefToId(p)}>
+								{displayModelPartRef(p)}
 							</option>
 						))}
 					</Select>

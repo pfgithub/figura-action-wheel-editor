@@ -1,7 +1,16 @@
 export type UUID = string & { __is_uuid: true };
-export type AnimationID = string & { __is_animation_id: true };
 export type RenderSettingID = string & { __is_render_setting_id: true };
 export type RenderValueID = string & { __is_render_value_id: true };
+
+export type AnimationRef = {
+	model: string;
+	animation: string;
+};
+
+export type ModelPartRef = {
+	model: string;
+	partPath: string[];
+};
 
 export type TextureAsset = {
 	name: string;
@@ -18,7 +27,7 @@ export type AvatarMetadata = {
 	version?: string;
 	color?: string; // hex string without #
 	autoScripts?: string[];
-	autoAnims?: string[];
+	autoAnims?: AnimationRef[];
 	ignoredTextures?: string[];
 	customizations?: Record<string, Customization>;
 };
@@ -27,7 +36,7 @@ export type Customization = {
 	primaryRenderType?: string;
 	secondaryRenderType?: string;
 	parentType?: string;
-	moveTo?: string;
+	moveTo?: ModelPartRef;
 	visible?: boolean;
 	remove?: boolean;
 	smooth?: boolean;
@@ -112,7 +121,7 @@ export type ToggleGroup = {
 export type HideElementSetting = {
 	uuid: UUID;
 	kind: "hide_element";
-	element: string;
+	element: ModelPartRef;
 	activationCondition?: Condition;
 };
 
@@ -162,6 +171,12 @@ export type ConditionRender = {
 	kind: "render";
 	render?: RenderValueID;
 };
+export type ConditionAnimation = {
+	id: UUID;
+	kind: "animation";
+	animation?: AnimationRef;
+	mode: "PLAYING" | "PAUSED" | "STOPPED";
+};
 export type ConditionScript = {
 	id: UUID;
 	kind: "script";
@@ -175,6 +190,7 @@ export type Condition =
 	| ConditionNot
 	| ConditionToggleGroup
 	| ConditionRender
+	| ConditionAnimation
 	| ConditionScript;
 
 export type RenderSettingData = {
@@ -211,7 +227,7 @@ export type AnimationLayer = {
 export type AnimationNode = {
 	uuid: UUID;
 	name: string;
-	animation: AnimationID | ""; // Empty string represents "None"
+	animation?: AnimationRef; // Empty string represents "None"
 	transitions: AnimationTransition[];
 };
 

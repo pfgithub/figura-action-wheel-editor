@@ -129,6 +129,17 @@ function luaString(str: string): string {
 	return JSON.stringify(str);
 }
 
+const stringifyPart = (part: string) => {
+	if (!isValidLuaIdent(part)) {
+		return `[${JSON.stringify(part)}]`;
+	}
+	return `.${part}`;
+};
+
+function stringifyParts(parts: string[]): string {
+	return parts.map(stringifyPart).join("");
+}
+
 export function generateLua(avatar: Avatar) {
 	const header = getHeader(avatar);
 	try {
@@ -318,11 +329,8 @@ end
 		if (!setting.activationCondition) continue;
 
 		const cond = addCondition(setting.activationCondition);
-		if (setting.kind === "play_animation") {
-			const anim = getAnimation(setting.animation);
-			renderContents += `    if ${anim} then ${anim}:setPlaying(${cond}) end\n`;
-		} else if (setting.kind === "hide_element") {
-			const elem = getModelPart(setting.element);
+		if (setting.kind === "hide_element") {
+			const elem = getModelPart("models" + stringifyParts([setting.element.model, ...setting.element.partPath]));
 			renderContents += `    if ${elem} then ${elem}:setVisible(not (${cond})) end\n`;
 		} else {
 			alwaysWarnings += `print("TODO implement setting ${setting.kind}")\n`;

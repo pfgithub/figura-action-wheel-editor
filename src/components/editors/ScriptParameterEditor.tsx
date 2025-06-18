@@ -3,13 +3,22 @@ import { Input } from "@/components/ui/Input";
 import { MinecraftItemPicker } from "@/components/ui/MinecraftItemPicker";
 import { Select } from "@/components/ui/Select";
 import { useAvatarStore } from "@/store/avatarStore";
-import type { ScriptDataInstanceParameter, UUID } from "@/types";
+import type {
+	AnimationRef,
+	ModelPartRef,
+	ScriptDataInstanceParameter,
+	UUID,
+} from "@/types";
 
 interface ScriptParameterEditorProps {
 	parameters: ScriptDataInstanceParameter[];
 	values: Record<string, any>;
 	onChange: (newValues: Record<string, any>) => void;
 }
+
+const displayAnimationRef = (ref: AnimationRef) => `${ref.model}.${ref.animation}`;
+const displayModelPartRef = (ref: ModelPartRef) =>
+	`${ref.model}.${ref.partPath.join(".")}`;
 
 export function ScriptParameterEditor({
 	parameters,
@@ -75,15 +84,18 @@ export function ScriptParameterEditor({
 			case "ModelPart":
 				return (
 					<Select
-						value={value ?? ""}
+						value={value ? JSON.stringify(value) : ""}
 						onChange={(e) =>
-							handleValueChange(param.name, e.target.value || undefined)
+							handleValueChange(
+								param.name,
+								e.target.value ? JSON.parse(e.target.value) : undefined,
+							)
 						}
 					>
 						<option value="">-- Select a part --</option>
 						{modelElements.map((part) => (
-							<option key={part} value={part}>
-								{part}
+							<option key={JSON.stringify(part)} value={JSON.stringify(part)}>
+								{displayModelPartRef(part)}
 							</option>
 						))}
 					</Select>
@@ -92,15 +104,18 @@ export function ScriptParameterEditor({
 			case "Animation":
 				return (
 					<Select
-						value={value ?? ""}
+						value={value ? JSON.stringify(value) : ""}
 						onChange={(e) =>
-							handleValueChange(param.name, e.target.value || undefined)
+							handleValueChange(
+								param.name,
+								e.target.value ? JSON.parse(e.target.value) : undefined,
+							)
 						}
 					>
 						<option value="">-- Select an animation --</option>
 						{animations.map((anim) => (
-							<option key={anim} value={anim}>
-								{anim}
+							<option key={JSON.stringify(anim)} value={JSON.stringify(anim)}>
+								{displayAnimationRef(anim)}
 							</option>
 						))}
 					</Select>
