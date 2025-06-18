@@ -1,5 +1,5 @@
 import type React from "react";
-import type { JSX, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";

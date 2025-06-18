@@ -181,7 +181,7 @@ export function generateLuaInner(avatar: Avatar) {
 		return val;
 	};
 	const animationVars = new Map<string, string>();
-	const getAnimation = (animation: string): string => {
+	const _getAnimation = (animation: string): string => {
 		if (animationVars.has(animation)) return animationVars.get(animation)!;
 		const val = ctx.addNextIdent(animation);
 		mainVars += `local ${val} = tryOrNil(function() return ${animation} end, ${luaString(animation)})\n`;
