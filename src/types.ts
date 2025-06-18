@@ -233,6 +233,8 @@ export type AnimationNode = {
 export type AnimationTransition = {
 	uuid: UUID;
 	targetNode: UUID;
+	waitForFinish?: boolean;
+	effect?: ActionEffect;
 	activationCondition?: Condition;
 };
 

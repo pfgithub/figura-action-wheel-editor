@@ -24,6 +24,7 @@
 - [ ] remove animations from the conditional settings tab. don't worry about migrating existing projects.
 - [x] rather than draggable nodes for the Animation Nodes view, have it be a list
 - [ ] add an option in animation transitions for "don't wait for animation to finish". the exact name can be changed.
+- [ ] add a preview of activation conditions to the conditional settings tab and on animation transitions
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 

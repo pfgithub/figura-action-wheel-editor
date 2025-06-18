@@ -1,7 +1,4 @@
-import {
-	DndContext,
-	type DragEndEvent,
-} from "@dnd-kit/core";
+import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import {
 	SortableContext,
 	useSortable,
@@ -9,6 +6,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
+import { ActionEffectEditor } from "@/components/editors/ActionEffectEditor";
 import { AnimationConditionEditor } from "@/components/editors/AnimationConditionEditor";
 import { MasterDetailManager } from "@/components/layout/MasterDetailManager";
 import { Button } from "@/components/ui/Button";
@@ -61,6 +59,7 @@ function AnimationNodeDetailsEditor({
 		const newTransition: AnimationTransition = {
 			uuid: generateUUID(),
 			targetNode: otherNodes[0]?.uuid,
+			waitForFinish: true,
 		};
 		onNodeChange({
 			...node,
@@ -134,7 +133,7 @@ function AnimationNodeDetailsEditor({
 									otherNodes={otherNodes}
 									onUpdate={updateTransition}
 									onDelete={() => removeTransition(t.uuid)}
-									onEditCondition={() => setEditingTransition(t)}
+									onEditTransition={() => setEditingTransition(t)}
 								/>
 							))}
 						</div>
@@ -155,15 +154,67 @@ function AnimationNodeDetailsEditor({
 					onClose={() => setEditingTransition(null)}
 					className="max-w-3xl"
 				>
-					<DialogHeader>Edit Transition Condition</DialogHeader>
+					<DialogHeader>Edit Transition</DialogHeader>
 					<DialogContent>
-						<div className="bg-slate-900/50 p-4 rounded-lg ring-1 ring-slate-700">
-							<AnimationConditionEditor
-								condition={editingTransition.activationCondition}
-								updateCondition={(c) =>
-									updateTransition({ ...editingTransition, activationCondition: c })
-								}
-							/>
+						<div className="space-y-6">
+							<div>
+								<h4 className="text-lg font-semibold text-slate-300 border-b border-slate-700 pb-2 mb-4">
+									Settings
+								</h4>
+								<FormRow label="Wait for animation to finish">
+									<label className="flex gap-4 items-center">
+										<input
+											type="checkbox"
+											checked={editingTransition.waitForFinish ?? true}
+											onChange={(e) =>
+												updateTransition({
+													...editingTransition,
+													waitForFinish: e.target.checked,
+												})
+											}
+											className="w-5 h-5 rounded bg-slate-700 border-slate-600 text-violet-500 focus:ring-violet-500"
+										/>
+										<p className="text-xs text-slate-400 flex-1">
+											If checked, this transition can only occur after the
+											current animation has finished playing.
+										</p>
+									</label>
+								</FormRow>
+							</div>
+
+							<div>
+								<h4 className="text-lg font-semibold text-slate-300 border-b border-slate-700 pb-2 mb-4">
+									Transition Effect
+								</h4>
+								<p className="text-xs text-slate-400 -mt-3 mb-3">
+									Optionally run an action when this transition occurs.
+								</p>
+								<div className="bg-slate-900/50 p-4 rounded-lg ring-1 ring-slate-700">
+									<ActionEffectEditor
+										effect={editingTransition.effect}
+										updateEffect={(effect) =>
+											updateTransition({ ...editingTransition, effect })
+										}
+									/>
+								</div>
+							</div>
+
+							<div>
+								<h4 className="text-lg font-semibold text-slate-300 border-b border-slate-700 pb-2 mb-4">
+									Activation Condition
+								</h4>
+								<div className="bg-slate-900/50 p-4 rounded-lg ring-1 ring-slate-700">
+									<AnimationConditionEditor
+										condition={editingTransition.activationCondition}
+										updateCondition={(c) =>
+											updateTransition({
+												...editingTransition,
+												activationCondition: c,
+											})
+										}
+									/>
+								</div>
+							</div>
 						</div>
 					</DialogContent>
 					<DialogFooter>
@@ -185,20 +236,27 @@ function TransitionEditor({
 	otherNodes,
 	onUpdate,
 	onDelete,
-	onEditCondition,
+	onEditTransition,
 }: {
 	transition: AnimationTransition;
 	otherNodes: AnimationNode[];
 	onUpdate: (t: AnimationTransition) => void;
 	onDelete: () => void;
-	onEditCondition: () => void;
+	onEditTransition: () => void;
 }) {
-	const { attributes, listeners, setNodeRef, transform, transition: cssTrans } =
-		useSortable({ id: transition.uuid });
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
+		transition: cssTrans,
+	} = useSortable({ id: transition.uuid });
 	const style = {
 		transform: CSS.Transform.toString(transform),
 		transition: cssTrans,
 	};
+	const hasCondition = !!transition.activationCondition;
+
 	return (
 		<div
 			ref={setNodeRef}
@@ -234,8 +292,13 @@ function TransitionEditor({
 					))}
 				</Select>
 				<Button
-					onClick={onEditCondition}
-					className="!p-1 h-8 w-8 bg-slate-700 hover:bg-slate-600 flex-shrink-0"
+					onClick={onEditTransition}
+					title={hasCondition ? "Condition is set" : "No condition set"}
+					className={`!p-1 h-8 w-8 flex-shrink-0 transition-colors ${
+						hasCondition
+							? "bg-violet-700 hover:bg-violet-600"
+							: "bg-slate-700 hover:bg-slate-600"
+					}`}
 				>
 					<EditIcon className="w-4 h-4" />
 				</Button>
