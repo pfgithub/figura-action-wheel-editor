@@ -105,6 +105,7 @@ export type ToggleGroup = {
 	uuid: UUID;
 	name: string;
 	options: Record<UUID, ToggleGroupOption>;
+	saved?: boolean;
 };
 
 export type PlayAnimationSetting = {

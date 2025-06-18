@@ -94,8 +94,10 @@
 - [ ] add sound action (need to look at ogg files)
 - [ ] (repeatable) Determine what part of the code is most in need of refactoring and refactor it.
 - [x] because the application has undo/redo, "confirm delete" dialogs are not needed. remove all confirm delete dialogs.
-- [ ] add the ability to mark toggle groups as "saved"
+- [x] Add the ability to mark toggle groups as "saved". Default new toggle groups to being saved.
 - [ ] split types into one file for types of data that is edited and another file for types of data that is loaded
+- [ ] remove the Save Metadata button unless metadata was edited
+- [ ] put metadata into a modal that you can't close unless you save or discard
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 

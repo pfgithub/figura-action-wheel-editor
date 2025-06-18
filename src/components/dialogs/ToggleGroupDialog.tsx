@@ -28,6 +28,7 @@ export function ToggleGroupDialog({
 	const { updateAvatar } = useAvatarStore();
 	const [name, setName] = useState("");
 	const [options, setOptions] = useState<{ uuid: UUID; name: string }[]>([]);
+	const [saved, setSaved] = useState(true);
 	const [nameError, setNameError] = useState("");
 	const [optionsError, setOptionsError] = useState("");
 
@@ -40,9 +41,11 @@ export function ToggleGroupDialog({
 					name: option.name,
 				})),
 			);
+			setSaved(groupToEdit.saved ?? true);
 		} else {
 			setName("New Toggle Group");
 			setOptions([{ uuid: generateUUID(), name: "Option 1" }]);
+			setSaved(true);
 		}
 		setNameError("");
 		setOptionsError("");
@@ -104,6 +107,7 @@ export function ToggleGroupDialog({
 			uuid: newUUID,
 			name: name.trim(),
 			options: optionsRecord,
+			saved,
 		};
 
 		updateAvatar((draft) => {
@@ -135,6 +139,19 @@ export function ToggleGroupDialog({
 							<p className="text-red-500 text-xs mt-1">{nameError}</p>
 						)}
 					</div>
+				</FormRow>
+				<FormRow label="Saved">
+					<label className="flex gap-4 items-center">
+						<input
+							type="checkbox"
+							checked={saved}
+							onChange={(e) => setSaved(e.target.checked)}
+							className="w-5 h-5 rounded bg-slate-700 border-slate-600 text-violet-500 focus:ring-violet-500"
+						/>
+						<p className="text-xs text-slate-400 mt-1.5 flex-1">
+							Saved groups persist their value when the world is reloaded.
+						</p>
+					</label>
 				</FormRow>
 				<FormRow label="Options">
 					<div />
