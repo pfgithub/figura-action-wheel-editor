@@ -248,54 +248,56 @@ export function AnimationSettingsManager() {
 		return instances;
 	}, [allScripts]);
 
-	const getSettingInfo = (
-		setting: ConditionalSetting,
-	): { title: string; warning: string | null } => {
-		let title: string,
-			warning: string | null = null;
-		switch (setting.kind) {
-			case "play_animation":
-				title = setting.animation;
-				if (!animations.includes(setting.animation))
-					warning = "Animation not found in loaded .bbmodel files.";
-				break;
-			case "hide_element":
-				title = setting.element;
-				if (!modelElements.includes(setting.element))
-					warning = "Element not found in loaded .bbmodel files.";
-				break;
-			case "render": {
-				const renderSetting = renderSettings.get(setting.render);
-				if (!renderSetting) warning = "Invalid render setting";
-				title = renderSetting?.name ?? setting.render;
-				break;
-			}
-			case "script": {
-				const instanceData = allScriptInstances.get(setting.scriptInstance);
-				if (instanceData) {
-					const settingDef =
-						instanceData.type.defines.settings[setting.setting];
-					if (settingDef) {
-						title = `${instanceData.script.name} - ${instanceData.instance.name}: ${settingDef.name}`;
+	const getSettingInfo = useCallback(
+		(
+			setting: ConditionalSetting,
+		): { title: string; warning: string | null } => {
+			let title: string,
+				warning: string | null = null;
+			switch (setting.kind) {
+				case "play_animation":
+					title = setting.animation;
+					if (!animations.includes(setting.animation))
+						warning = "Animation not found in loaded .bbmodel files.";
+					break;
+				case "hide_element":
+					title = setting.element;
+					if (!modelElements.includes(setting.element))
+						warning = "Element not found in loaded .bbmodel files.";
+					break;
+				case "render": {
+					const renderSetting = renderSettings.get(setting.render);
+					if (!renderSetting) warning = "Invalid render setting";
+					title = renderSetting?.name ?? setting.render;
+					break;
+				}
+				case "script": {
+					const instanceData = allScriptInstances.get(setting.scriptInstance);
+					if (instanceData) {
+						const settingDef =
+							instanceData.type.defines.settings[setting.setting];
+						if (settingDef) {
+							title = `${instanceData.script.name} - ${instanceData.instance.name}: ${settingDef.name}`;
+						} else {
+							title = "Unknown Script Setting";
+							warning = "Setting definition not found in script.";
+						}
 					} else {
 						title = "Unknown Script Setting";
-						warning = "Setting definition not found in script.";
+						warning = "Script instance not found.";
 					}
-				} else {
-					title = "Unknown Script Setting";
-					warning = "Script instance not found.";
+					break;
 				}
-				break;
 			}
-		}
-		return { title, warning };
-	};
+			return { title, warning };
+		},
+	);
 
 	const allConfiguredSettings = useMemo(() => {
 		return Object.values(conditionalSettings).sort((a, b) => {
 			return getSettingInfo(a).title.localeCompare(getSettingInfo(b).title);
 		});
-	}, [conditionalSettings, allScriptInstances, animations, modelElements]);
+	}, [conditionalSettings, getSettingInfo]);
 
 	const lowerFilter = filter.toLowerCase();
 	const filteredSettings = useMemo(() => {
@@ -304,7 +306,7 @@ export function AnimationSettingsManager() {
 			const { title } = getSettingInfo(setting);
 			return title.toLowerCase().includes(lowerFilter);
 		});
-	}, [allConfiguredSettings, lowerFilter]);
+	}, [allConfiguredSettings, lowerFilter, getSettingInfo]);
 
 	const selectedSetting = useMemo(
 		() => (selectedId ? conditionalSettings[selectedId] : null),
