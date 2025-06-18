@@ -2,7 +2,7 @@ import { WheelEditor } from "@/components/editors/WheelEditor";
 import { Button } from "@/components/ui/Button";
 import { PlusIcon } from "@/components/ui/icons";
 import { useAvatarStore } from "@/store/avatarStore";
-import type { ActionWheel, UUID } from "@/types";
+import type { UUID } from "@/types";
 
 interface ActionWheelsManagerProps {
 	addActionWheel: () => void;

@@ -2,12 +2,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ColorPicker } from "@/components/ui/ColorPicker";
-import {
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-} from "@/components/ui/Dialog";
+import { Dialog, DialogFooter, DialogHeader } from "@/components/ui/Dialog";
 import { FormRow } from "@/components/ui/FormRow";
 import { Input } from "@/components/ui/Input";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
