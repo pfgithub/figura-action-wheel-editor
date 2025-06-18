@@ -227,7 +227,6 @@ export type AnimationNode = {
 	uuid: UUID;
 	name: string;
 	animation: AnimationID | ""; // Empty string represents "None"
-	position: { x: number; y: number };
 	transitions: AnimationTransition[];
 };
 

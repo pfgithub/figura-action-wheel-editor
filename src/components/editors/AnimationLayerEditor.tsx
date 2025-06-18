@@ -295,7 +295,6 @@ export function AnimationLayerEditor({ layer }: AnimationLayerEditorProps) {
 			uuid,
 			name: newName,
 			animation: newNodeAnim,
-			position: { x: 50, y: 50 }, // Position is unused, but kept for schema
 			transitions: [],
 		};
 

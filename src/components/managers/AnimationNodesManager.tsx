@@ -52,7 +52,6 @@ export function AnimationNodesManager() {
 			uuid: noneNodeUuid,
 			name: "None",
 			animation: "",
-			position: { x: 20, y: 20 },
 			transitions: [],
 		};
 
