@@ -20,7 +20,7 @@
 - [ ] add sound action (need to look at ogg files)
 - [ ] (repeatable) Determine what part of the code is most in need of refactoring and refactor it.
 - [ ] split types into one file for types of data that is edited and another file for types of data that is loaded
-- [ ] move metadata configuration into a modal that you can't close unless you choose to save or discard
+- [x] move metadata configuration into a modal that you can't close unless you choose to save or discard
 - [x] rather than storing animations with id "animations.model.fly" or `animations.model["some string"]`, store them as {model: string, animation: string}. also, rather than storing model parts with id "models.model.part1.part2.part3", store them as {model: string, partPath: string[]}
 - [x] on transitions, add the ability for them to run an ActionEffect
 - [x] remove animations from the conditional settings tab. don't worry about migrating existing projects.
