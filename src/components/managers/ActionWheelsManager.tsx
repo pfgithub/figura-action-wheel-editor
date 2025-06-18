@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { WheelEditor } from "@/components/editors/WheelEditor";
 import { MasterDetailManager } from "@/components/layout/MasterDetailManager";
-import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import { useAvatarStore } from "@/store/avatarStore";
 import type { ActionWheel, UUID } from "@/types";
 
@@ -39,15 +37,13 @@ export function ActionWheelsManager({
 	setViewedWheelUuid,
 }: ActionWheelsManagerProps) {
 	const { avatar, updateAvatar } = useAvatarStore();
-	const [deletingItem, setDeletingItem] = useState<ActionWheel | null>(null);
 
 	if (!avatar) return null;
 
 	const allActionWheels = Object.values(avatar.actionWheels);
 
-	const handleDeleteConfirm = () => {
-		if (!deletingItem) return;
-		const uuid = deletingItem.uuid;
+	const handleDelete = (itemToDelete: ActionWheel) => {
+		const uuid = itemToDelete.uuid;
 
 		updateAvatar((draft) => {
 			delete draft.actionWheels[uuid];
@@ -81,55 +77,36 @@ export function ActionWheelsManager({
 			(w) => w.uuid !== uuid,
 		);
 		setViewedWheelUuid(remainingWheels[0]?.uuid ?? null);
-		setDeletingItem(null);
 	};
 
 	return (
-		<>
-			<MasterDetailManager<ActionWheel>
-				items={allActionWheels}
-				selectedId={viewedWheelUuid}
-				onSelectId={setViewedWheelUuid}
-				title="Action Wheels"
-				onAddItem={addActionWheel}
-				onDeleteItem={setDeletingItem}
-				deleteText="Delete Wheel"
-				renderListItem={(wheel, isSelected) => (
-					<button
-						className={`w-full text-left p-3 rounded-lg transition-colors duration-150 flex items-center gap-2 ${isSelected ? "bg-violet-500/20 ring-2 ring-violet-500" : "bg-slate-800 hover:bg-slate-700"}`}
-					>
-						{avatar.mainActionWheel === wheel.uuid && (
-							<span className="text-amber-400" title="Main Wheel">
-								★
-							</span>
-						)}
-						<span className="font-semibold text-slate-100 truncate flex-grow">
-							{wheel.title}
+		<MasterDetailManager<ActionWheel>
+			items={allActionWheels}
+			selectedId={viewedWheelUuid}
+			onSelectId={setViewedWheelUuid}
+			title="Action Wheels"
+			onAddItem={addActionWheel}
+			onDeleteItem={handleDelete}
+			deleteText="Delete Wheel"
+			renderListItem={(wheel, isSelected) => (
+				<button
+					className={`w-full text-left p-3 rounded-lg transition-colors duration-150 flex items-center gap-2 ${isSelected ? "bg-violet-500/20 ring-2 ring-violet-500" : "bg-slate-800 hover:bg-slate-700"}`}
+				>
+					{avatar.mainActionWheel === wheel.uuid && (
+						<span className="text-amber-400" title="Main Wheel">
+							★
 						</span>
-						<span className="text-xs text-slate-400 bg-slate-700 rounded-full px-2 py-0.5">
-							{wheel.actions.length}
-						</span>
-					</button>
-				)}
-				renderEditor={(wheel) => <WheelEditor key={wheel.uuid} wheel={wheel} />}
-				renderEmptyState={EmptyState}
-			/>
-			<ConfirmationDialog
-				open={!!deletingItem}
-				onCancel={() => setDeletingItem(null)}
-				onConfirm={handleDeleteConfirm}
-				title="Delete Action Wheel?"
-				message={
-					<>
-						Are you sure you want to delete the wheel{" "}
-						<strong>"{deletingItem?.title}"</strong>? This will also clear any
-						references to it from other actions or keybinds. This action is
-						permanent.
-					</>
-				}
-				variant="danger"
-				confirmText="Delete"
-			/>
-		</>
+					)}
+					<span className="font-semibold text-slate-100 truncate flex-grow">
+						{wheel.title}
+					</span>
+					<span className="text-xs text-slate-400 bg-slate-700 rounded-full px-2 py-0.5">
+						{wheel.actions.length}
+					</span>
+				</button>
+			)}
+			renderEditor={(wheel) => <WheelEditor key={wheel.uuid} wheel={wheel} />}
+			renderEmptyState={EmptyState}
+		/>
 	);
 }

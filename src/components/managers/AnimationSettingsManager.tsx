@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from "react";
 import { AnimationSettingEditor } from "@/components/editors/AnimationSettingEditor";
 import { MasterDetailManager } from "@/components/layout/MasterDetailManager";
 import { Button } from "@/components/ui/Button";
-import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import {
 	Dialog,
 	DialogContent,
@@ -236,9 +235,6 @@ export function AnimationSettingsManager() {
 	const { avatar, animations, modelElements, updateAvatar } = useAvatarStore();
 	const [filter, setFilter] = useState("");
 	const [selectedId, setSelectedId] = useState<UUID | null>(null);
-	const [deletingItem, setDeletingItem] = useState<ConditionalSetting | null>(
-		null,
-	);
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 	const allScriptInstances = useScriptInstanceMap();
 
@@ -335,13 +331,12 @@ export function AnimationSettingsManager() {
 		setSelectedId(uuid);
 	};
 
-	const handleDeleteConfirm = () => {
-		if (!deletingItem) return;
+	const handleDelete = (settingToDelete: ConditionalSetting) => {
+		if (!settingToDelete) return;
 		updateAvatar((d) => {
-			delete d.conditionalSettings[deletingItem.uuid];
+			delete d.conditionalSettings[settingToDelete.uuid];
 		});
-		if (selectedId === deletingItem.uuid) setSelectedId(null);
-		setDeletingItem(null);
+		if (selectedId === settingToDelete.uuid) setSelectedId(null);
 	};
 
 	const updateSetting = (s: ConditionalSetting) => {
@@ -361,7 +356,7 @@ export function AnimationSettingsManager() {
 				filterText={filter}
 				onFilterTextChange={setFilter}
 				onAddItem={() => setIsAddDialogOpen(true)}
-				onDeleteItem={setDeletingItem}
+				onDeleteItem={handleDelete}
 				editorTitle={(setting) => getSettingInfo(setting).title}
 				renderListItem={(setting, isSelected) => {
 					const { title, warning } = getSettingInfo(setting);
@@ -398,21 +393,6 @@ export function AnimationSettingsManager() {
 				renderEmptyState={EmptyState}
 			/>
 
-			{/* Dialogs */}
-			<ConfirmationDialog
-				open={!!deletingItem}
-				onCancel={() => setDeletingItem(null)}
-				onConfirm={handleDeleteConfirm}
-				title="Delete Setting?"
-				message={
-					<>
-						Are you sure you want to delete this setting? This action cannot be
-						undone.
-					</>
-				}
-				variant="danger"
-				confirmText="Delete"
-			/>
 			<Dialog
 				open={isAddDialogOpen}
 				onClose={() => setIsAddDialogOpen(false)}

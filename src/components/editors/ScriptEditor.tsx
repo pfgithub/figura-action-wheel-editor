@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import { Input } from "@/components/ui/Input";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
 import { useAvatarStore } from "@/store/avatarStore";
@@ -42,10 +41,6 @@ function getDefaultValueForType(type: any): any {
 export function ScriptEditor({ script }: ScriptEditorProps) {
 	const { updateAvatar } = useAvatarStore();
 	const [expandedInstance, setExpandedInstance] = useState<UUID | null>(null);
-	const [deletingInstance, setDeletingInstance] = useState<{
-		typeUuid: UUID;
-		instanceUuid: UUID;
-	} | null>(null);
 
 	const handleAddInstance = (instanceType: ScriptDataInstanceType) => {
 		updateAvatar((draft) => {
@@ -72,9 +67,7 @@ export function ScriptEditor({ script }: ScriptEditorProps) {
 		});
 	};
 
-	const handleDeleteInstance = () => {
-		if (!deletingInstance) return;
-		const { typeUuid, instanceUuid } = deletingInstance;
+	const handleDeleteInstance = (typeUuid: UUID, instanceUuid: UUID) => {
 		updateAvatar((draft) => {
 			const scriptToUpdate = draft.scripts[script.uuid];
 			const instancesForType = scriptToUpdate?.instances[typeUuid] ?? [];
@@ -82,8 +75,9 @@ export function ScriptEditor({ script }: ScriptEditorProps) {
 				(inst) => inst.uuid !== instanceUuid,
 			);
 		});
-		setExpandedInstance(null);
-		setDeletingInstance(null);
+		if (expandedInstance === instanceUuid) {
+			setExpandedInstance(null);
+		}
 	};
 
 	const updateInstance = (typeUuid: UUID, updatedInstance: ScriptInstance) => {
@@ -195,10 +189,10 @@ export function ScriptEditor({ script }: ScriptEditorProps) {
 												<Button
 													onClick={(e) => {
 														e.stopPropagation();
-														setDeletingInstance({
-															typeUuid: instanceType.uuid,
-															instanceUuid: instance.uuid,
-														});
+														handleDeleteInstance(
+															instanceType.uuid,
+															instance.uuid,
+														);
 													}}
 													className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 w-8 h-8 p-0 flex-shrink-0"
 												>
@@ -247,20 +241,6 @@ export function ScriptEditor({ script }: ScriptEditorProps) {
 					</div>
 				);
 			})}
-			<ConfirmationDialog
-				open={!!deletingInstance}
-				onCancel={() => setDeletingInstance(null)}
-				onConfirm={handleDeleteInstance}
-				title="Delete Instance?"
-				message={
-					<>
-						Are you sure you want to delete this instance? This action cannot be
-						undone.
-					</>
-				}
-				variant="danger"
-				confirmText="Delete"
-			/>
 		</div>
 	);
 }

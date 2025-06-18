@@ -2,7 +2,6 @@ import { useState } from "react";
 import { ScriptEditor } from "@/components/editors/ScriptEditor";
 import { MasterDetailManager } from "@/components/layout/MasterDetailManager";
 import { Button } from "@/components/ui/Button";
-import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import {
 	Dialog,
 	DialogContent,
@@ -43,7 +42,6 @@ export function ScriptsManager() {
 	const { avatar, updateAvatar } = useAvatarStore();
 	const [isAddDialogOpen, setAddDialogOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<UUID | null>(null);
-	const [deletingItem, setDeletingItem] = useState<Script | null>(null);
 
 	if (!avatar) return null;
 
@@ -67,15 +65,14 @@ export function ScriptsManager() {
 		setSelectedId(newScript.uuid);
 	};
 
-	const handleDeleteConfirm = () => {
-		if (!deletingItem) return;
+	const handleDelete = (itemToDelete: Script) => {
+		if (!itemToDelete) return;
 		updateAvatar((draft) => {
-			delete draft.scripts[deletingItem.uuid];
+			delete draft.scripts[itemToDelete.uuid];
 		});
-		if (selectedId === deletingItem.uuid) {
+		if (selectedId === itemToDelete.uuid) {
 			setSelectedId(null);
 		}
-		setDeletingItem(null);
 	};
 
 	return (
@@ -88,7 +85,7 @@ export function ScriptsManager() {
 				addText="Add Script"
 				deleteText="Delete Script"
 				onAddItem={() => setAddDialogOpen(true)}
-				onDeleteItem={setDeletingItem}
+				onDeleteItem={handleDelete}
 				editorTitle={(script) => script.name}
 				renderListItem={(script, isSelected) => (
 					<button
@@ -144,22 +141,6 @@ export function ScriptsManager() {
 					</Button>
 				</DialogFooter>
 			</Dialog>
-
-			<ConfirmationDialog
-				open={!!deletingItem}
-				onCancel={() => setDeletingItem(null)}
-				onConfirm={handleDeleteConfirm}
-				title="Delete Script?"
-				message={
-					<>
-						Are you sure you want to delete the{" "}
-						<strong>"{deletingItem?.name}"</strong> script and all its
-						instances? This action is permanent.
-					</>
-				}
-				variant="danger"
-				confirmText="Delete"
-			/>
 		</>
 	);
 }

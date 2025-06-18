@@ -1,7 +1,6 @@
 // src/components/dialogs/ToggleGroupDialog.tsx
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import {
 	Dialog,
 	DialogContent,
@@ -26,14 +25,11 @@ export function ToggleGroupDialog({
 	onClose,
 	onSave,
 }: ToggleGroupDialogProps) {
-	const { avatar, updateAvatar } = useAvatarStore();
+	const { updateAvatar } = useAvatarStore();
 	const [name, setName] = useState("");
 	const [options, setOptions] = useState<{ uuid: UUID; name: string }[]>([]);
 	const [nameError, setNameError] = useState("");
 	const [optionsError, setOptionsError] = useState("");
-	const [dialogState, setDialogState] = useState<"idle" | "confirmingDelete">(
-		"idle",
-	);
 
 	useEffect(() => {
 		if (groupToEdit) {
@@ -118,102 +114,78 @@ export function ToggleGroupDialog({
 		onClose();
 	};
 
-	const handleDeleteRequest = () => {
-		if (!groupToEdit || !avatar) return;
-		setDialogState("confirmingDelete");
-	};
-
-	const confirmDelete = () => {
+	const handleDelete = () => {
 		if (!groupToEdit) return;
 		updateAvatar((draft) => {
 			delete draft.toggleGroups[groupToEdit.uuid];
 		});
-		setDialogState("idle");
 		onClose();
 	};
 
 	return (
-		<>
-			<Dialog open={dialogState === "idle"} onClose={onClose}>
-				<DialogHeader>
-					{groupToEdit ? "Edit Toggle Group" : "Create Toggle Group"}
-				</DialogHeader>
-				<DialogContent>
-					<FormRow label="Group Name">
-						<div>
-							<Input value={name} onChange={(e) => setName(e.target.value)} />
-							{nameError && (
-								<p className="text-red-500 text-xs mt-1">{nameError}</p>
-							)}
-						</div>
-					</FormRow>
-					<FormRow label="Options">
-						<div />
-					</FormRow>
-					<div className="space-y-2 max-h-60 overflow-y-auto pr-2 -mt-2">
-						{options.map((option, i) => (
-							<div key={option.uuid} className="flex gap-2 items-center">
-								<Input
-									value={option.name}
-									onChange={(e) => handleOptionChange(i, e.target.value)}
-								/>
-								<Button
-									onClick={() => removeOption(i)}
-									disabled={options.length <= 1}
-									className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 w-9 h-9 p-0 flex-shrink-0"
-								>
-									<TrashIcon className="w-5 h-5" />
-								</Button>
-							</div>
-						))}
+		<Dialog open onClose={onClose}>
+			<DialogHeader>
+				{groupToEdit ? "Edit Toggle Group" : "Create Toggle Group"}
+			</DialogHeader>
+			<DialogContent>
+				<FormRow label="Group Name">
+					<div>
+						<Input value={name} onChange={(e) => setName(e.target.value)} />
+						{nameError && (
+							<p className="text-red-500 text-xs mt-1">{nameError}</p>
+						)}
 					</div>
-					{optionsError && (
-						<p className="text-red-500 text-xs mt-1">{optionsError}</p>
-					)}
+				</FormRow>
+				<FormRow label="Options">
+					<div />
+				</FormRow>
+				<div className="space-y-2 max-h-60 overflow-y-auto pr-2 -mt-2">
+					{options.map((option, i) => (
+						<div key={option.uuid} className="flex gap-2 items-center">
+							<Input
+								value={option.name}
+								onChange={(e) => handleOptionChange(i, e.target.value)}
+							/>
+							<Button
+								onClick={() => removeOption(i)}
+								disabled={options.length <= 1}
+								className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 w-9 h-9 p-0 flex-shrink-0"
+							>
+								<TrashIcon className="w-5 h-5" />
+							</Button>
+						</div>
+					))}
+				</div>
+				{optionsError && (
+					<p className="text-red-500 text-xs mt-1">{optionsError}</p>
+				)}
+				<Button
+					onClick={addOption}
+					className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 w-full mt-2"
+				>
+					<PlusIcon className="w-5 h-5 mr-2" />
+					Add Option
+				</Button>
+			</DialogContent>
+			<DialogFooter>
+				{groupToEdit && (
 					<Button
-						onClick={addOption}
-						className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 w-full mt-2"
+						onClick={handleDelete}
+						className="bg-rose-600 hover:bg-rose-500 mr-auto"
 					>
-						<PlusIcon className="w-5 h-5 mr-2" />
-						Add Option
+						Delete Group
 					</Button>
-				</DialogContent>
-				<DialogFooter>
-					{groupToEdit && (
-						<Button
-							onClick={handleDeleteRequest}
-							className="bg-rose-600 hover:bg-rose-500 mr-auto"
-						>
-							Delete Group
-						</Button>
-					)}
-					<Button onClick={onClose} className="bg-slate-600 hover:bg-slate-500">
-						Cancel
-					</Button>
-					<Button
-						onClick={handleSave}
-						className="bg-violet-600 hover:bg-violet-500"
-					>
-						Save Group
-					</Button>
-				</DialogFooter>
-			</Dialog>
-
-			<ConfirmationDialog
-				open={dialogState === "confirmingDelete"}
-				onCancel={() => setDialogState("idle")}
-				onConfirm={confirmDelete}
-				title="Delete Toggle Group?"
-				message={
-					<>
-						Are you sure you want to delete the{" "}
-						<strong>"{groupToEdit?.name}"</strong> group? This action is
-						permanent.
-					</>
-				}
-				variant="danger"
-				confirmText="Delete"
-			/>
-		</>
+				)}
+				<Button onClick={onClose} className="bg-slate-600 hover:bg-slate-500">
+					Cancel
+				</Button>
+				<Button
+					onClick={handleSave}
+					className="bg-violet-600 hover:bg-violet-500"
+				>
+					Save Group
+				</Button>
+			</DialogFooter>
+		</Dialog>
 	);
 }

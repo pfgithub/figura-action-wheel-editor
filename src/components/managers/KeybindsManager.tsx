@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { KeybindEditor } from "@/components/editors/KeybindEditor";
 import { MasterDetailManager } from "@/components/layout/MasterDetailManager";
-import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import { useKeybindsList } from "@/hooks/useKeybindsList";
 import { useAvatarStore } from "@/store/avatarStore";
 import type { Keybind, UUID } from "@/types";
@@ -34,7 +33,6 @@ export function KeybindsManager() {
 	const { avatar, updateAvatar } = useAvatarStore();
 	const { keybinds: keybindsList } = useKeybindsList();
 	const [selectedId, setSelectedId] = useState<UUID | null>(null);
-	const [deletingItem, setDeletingItem] = useState<Keybind | null>(null);
 
 	const keyIdToNameMap = React.useMemo(() => {
 		const map = new Map<string, string>();
@@ -66,17 +64,16 @@ export function KeybindsManager() {
 		setSelectedId(newUuid);
 	};
 
-	const handleDeleteConfirm = () => {
-		if (!deletingItem) return;
+	const handleDelete = (itemToDelete: Keybind) => {
+		if (!itemToDelete) return;
 		updateAvatar((draft) => {
 			if (draft.keybinds) {
-				delete draft.keybinds[deletingItem.uuid];
+				delete draft.keybinds[itemToDelete.uuid];
 			}
 		});
-		if (selectedId === deletingItem.uuid) {
+		if (selectedId === itemToDelete.uuid) {
 			setSelectedId(null);
 		}
-		setDeletingItem(null);
 	};
 
 	const updateKeybind = (updatedKeybind: Keybind) => {
@@ -88,57 +85,40 @@ export function KeybindsManager() {
 	};
 
 	return (
-		<>
-			<MasterDetailManager<Keybind>
-				items={allKeybinds}
-				selectedId={selectedId}
-				onSelectId={setSelectedId}
-				title="Keybinds"
-				onAddItem={handleAddKeybind}
-				onDeleteItem={setDeletingItem}
-				editorTitle={(keybind) => keybind.name}
-				renderListItem={(keybind, isSelected) => (
-					<button
-						className={`w-full text-left p-3 rounded-lg transition-colors duration-150 ${
-							isSelected
-								? "bg-violet-500/20 ring-2 ring-violet-500"
-								: "bg-slate-800 hover:bg-slate-700"
-						}`}
-					>
-						<h3 className="font-semibold text-slate-100 truncate">
-							{keybind.name}
-						</h3>
-						<p className="text-sm text-slate-400 truncate">
-							{keyIdToNameMap.get(keybind.keyId) ||
-								keybind.keyId ||
-								"No key set"}
-						</p>
-					</button>
-				)}
-				renderEditor={(keybind) => (
-					<KeybindEditor
-						key={keybind.uuid}
-						keybind={keybind}
-						updateKeybind={updateKeybind}
-					/>
-				)}
-				renderEmptyState={() => <EmptyState />}
-			/>
-			<ConfirmationDialog
-				open={!!deletingItem}
-				onCancel={() => setDeletingItem(null)}
-				onConfirm={handleDeleteConfirm}
-				title="Delete Keybind?"
-				message={
-					<>
-						Are you sure you want to delete the{" "}
-						<strong>"{deletingItem?.name}"</strong> keybind? This action is
-						permanent.
-					</>
-				}
-				variant="danger"
-				confirmText="Delete"
-			/>
-		</>
+		<MasterDetailManager<Keybind>
+			items={allKeybinds}
+			selectedId={selectedId}
+			onSelectId={setSelectedId}
+			title="Keybinds"
+			onAddItem={handleAddKeybind}
+			onDeleteItem={handleDelete}
+			editorTitle={(keybind) => keybind.name}
+			renderListItem={(keybind, isSelected) => (
+				<button
+					className={`w-full text-left p-3 rounded-lg transition-colors duration-150 ${
+						isSelected
+							? "bg-violet-500/20 ring-2 ring-violet-500"
+							: "bg-slate-800 hover:bg-slate-700"
+					}`}
+				>
+					<h3 className="font-semibold text-slate-100 truncate">
+						{keybind.name}
+					</h3>
+					<p className="text-sm text-slate-400 truncate">
+						{keyIdToNameMap.get(keybind.keyId) ||
+							keybind.keyId ||
+							"No key set"}
+					</p>
+				</button>
+			)}
+			renderEditor={(keybind) => (
+				<KeybindEditor
+					key={keybind.uuid}
+					keybind={keybind}
+					updateKeybind={updateKeybind}
+				/>
+			)}
+			renderEmptyState={() => <EmptyState />}
+		/>
 	);
 }
