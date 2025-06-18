@@ -1,13 +1,13 @@
 import { produce } from "immer";
 import { useState } from "react";
-import { useAvatarStore } from "@/store/avatarStore";
-import type { Customization, UUID } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { ColorPicker } from "@/components/ui/ColorPicker";
 import { FormRow } from "@/components/ui/FormRow";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
+import { Select } from "@/components/ui/Select";
+import { useAvatarStore } from "@/store/avatarStore";
+import type { Customization, UUID } from "@/types";
 import { hexToRgb, rgbToHex } from "@/utils/color";
 
 const RENDER_TYPES = [
@@ -31,7 +31,10 @@ const PARENT_TYPES = [
 const Section = ({
 	title,
 	children,
-}: { title: string; children: React.ReactNode }) => (
+}: {
+	title: string;
+	children: React.ReactNode;
+}) => (
 	<div className="bg-slate-800/50 p-4 md:p-6 rounded-lg ring-1 ring-slate-700">
 		<h2 className="text-xl font-bold text-slate-100 mb-6 pb-3 border-b border-slate-700">
 			{title}
@@ -65,7 +68,7 @@ const StringArrayEditor = ({
 			<label className="text-slate-400 text-sm font-medium">{label}</label>
 			<div className="mt-2 space-y-2">
 				{values.map((value, index) => (
-					<div key={(index)} className="flex gap-2 items-center">
+					<div key={index} className="flex gap-2 items-center">
 						<Input
 							value={value}
 							onChange={(e) => updateValue(index, e.target.value)}
@@ -105,7 +108,10 @@ const CustomizationEditor = ({
 	const { modelElements } = useAvatarStore();
 
 	const handleFieldChange = (field: keyof Customization, value: any) => {
-		const newCustomization: Customization = { ...customization, [field]: value };
+		const newCustomization: Customization = {
+			...customization,
+			[field]: value,
+		};
 		// Remove field if it's empty or false, to keep JSON clean
 		if (value === "" || value === false || value === undefined) {
 			delete (newCustomization as any)[field];
@@ -211,11 +217,7 @@ const CustomizationEditor = ({
 };
 
 export function MetadataManager() {
-	const {
-		metadata,
-		updateMetadata,
-		modelElements,
-	} = useAvatarStore();
+	const { metadata, updateMetadata, modelElements } = useAvatarStore();
 	const [partToAdd, setPartToAdd] = useState("");
 
 	if (!metadata) return null;
@@ -259,14 +261,18 @@ export function MetadataManager() {
 				<FormRow label="Description">
 					<Input
 						value={metadata.description ?? ""}
-						onChange={(e) => handleUpdate("description", e.target.value || undefined)}
+						onChange={(e) =>
+							handleUpdate("description", e.target.value || undefined)
+						}
 						placeholder="A brief summary of the avatar"
 					/>
 				</FormRow>
 				<FormRow label="Version">
 					<Input
 						value={metadata.version ?? ""}
-						onChange={(e) => handleUpdate("version", e.target.value || undefined)}
+						onChange={(e) =>
+							handleUpdate("version", e.target.value || undefined)
+						}
 						placeholder="e.g., 0.1.0"
 					/>
 				</FormRow>
@@ -320,9 +326,7 @@ export function MetadataManager() {
 								partName={partName}
 								customization={customization}
 								onUpdate={(newCust) =>
-									updateMetadata(
-										(d) => (d.customizations![partName] = newCust),
-									)
+									updateMetadata((d) => (d.customizations![partName] = newCust))
 								}
 								onDelete={() =>
 									updateMetadata((d) => delete d.customizations![partName])

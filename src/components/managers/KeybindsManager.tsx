@@ -105,9 +105,7 @@ export function KeybindsManager() {
 						{keybind.name}
 					</h3>
 					<p className="text-sm text-slate-400 truncate">
-						{keyIdToNameMap.get(keybind.keyId) ||
-							keybind.keyId ||
-							"No key set"}
+						{keyIdToNameMap.get(keybind.keyId) || keybind.keyId || "No key set"}
 					</p>
 				</button>
 			)}
