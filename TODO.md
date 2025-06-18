@@ -84,6 +84,14 @@
 - [ ] make avatar non-optional in useAvatarStore
 - [ ] make a component for each condition node
 - [ ] modify the action wheels and conditional settings tabs to be like scripts and keybinds with the list on the left and the editor on the right
+- [ ] switch the action wheels page to have tabs for the action wheels, wheel on the left, and edit on the right
+- [ ] add an avatar metadata editor (needs a seperate save :/)
+- [ ] check what happens with external image files in blockbench
+- [ ] replace 'script action wheel' with 'script action'
+- [ ] add 'play animation' action but only for animations which are run_once. loop and hold animations go through the settings system.
+- [ ] add 'always' and 'never' in the 
+- [ ] add multi-action support
+- [ ] add sound action (need to look at ogg files)
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
