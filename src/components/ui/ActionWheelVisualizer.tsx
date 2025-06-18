@@ -55,8 +55,8 @@ const getActionAngles = (numActions: number): number[] => {
 	// 3 or more actions: distribute evenly, starting from top.
 	const angles: number[] = [];
 	const angleStep = (2 * Math.PI) / numActions;
-	// Start from the top
-	const startAngle = -Math.PI / 2;
+	// Start from the top plus half an angle step
+	const startAngle = -Math.PI / 2 + angleStep / 2;
 
 	for (let i = 0; i < numActions; i++) {
 		angles.push(startAngle + i * angleStep);
