@@ -1,11 +1,5 @@
 # consider
 
-- how will we support animations transitioning between states
-  - ie by default you are standing. if you sit, it should transition from standing to sitting. if you lie, it should transition from sitting to lying. if you stand it should transition from lying to standing.
-  - maybe we can make a stupid graph like unity
-  - so there are layers and in the layers there are animations with transitions
-  - the transitions are based on like toggle group state and such
-  - ok this isn't the worst thing in the world. we can make it better than unity.
 - how will we allow lua files to define their ui settings? what will it look like for the lua file?
 - check what happens with external image files in blockbench
 
@@ -26,7 +20,13 @@
 - [ ] move metadata configuration into a modal that you can't close unless you choose to save or discard
 - [ ] rather than storing animations with id "animations.model.fly" or `animations.model["some string"]`, store them as {model: string, animation: string}.
 - [ ] rather than storing model parts with id "models.model.part1.part2.part3", store them as {model: string, partPath: string[]}
-- [ ] conditional settings should only be for animations with loop set to "hold" or "loop".
+- [ ] add a new tab 'Animation Nodes'.
+  - it contains a list of animation layers and each layer has a node editor. there is a default
+    node and any animation can be added as a node. on a node, you can define transitions.
+    transitions have an activation condition and a target node. transitions are ordered, the first
+    transition whose activation condition activates is used.
+- [ ] on transitions, add the ability for them to run an ActionEffect
+- [ ] remove animations from the conditional settings tab. don't worry about migrating existing projects.
 
 Output the list of created/modified/deleted files with the full updated content for each file (or if it's deleted, just the filename).
 
