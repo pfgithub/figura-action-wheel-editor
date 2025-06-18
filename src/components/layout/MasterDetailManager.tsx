@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
 import type { UUID } from "@/types";
+import type { JSX } from "react";
 
 interface MasterDetailManagerProps<T extends { uuid: UUID }> {
 	// Data
@@ -30,7 +31,7 @@ interface MasterDetailManagerProps<T extends { uuid: UUID }> {
 	onFilterTextChange?: (text: string) => void;
 
 	// Header slot
-	editorTitle?: (item: T) => string;
+	editorTitle?: (item: T) => JSX.Element;
 }
 
 export function MasterDetailManager<T extends { uuid: UUID }>({
@@ -94,7 +95,6 @@ export function MasterDetailManager<T extends { uuid: UUID }>({
 						<div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-700">
 							<h3
 								className="text-xl font-bold text-slate-100 truncate"
-								title={editorTitle?.(selectedItem)}
 							>
 								{editorTitle ? editorTitle(selectedItem) : "Edit Item"}
 							</h3>

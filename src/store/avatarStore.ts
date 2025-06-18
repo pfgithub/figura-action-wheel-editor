@@ -46,6 +46,7 @@ export const useAvatarStore = create<AvatarState>()(
 
 			// --- Actions ---
 			loadAvatar: (data, animations, modelElements, textures, metadata) => {
+				data.animationLayers ??= {};
 				set({ avatar: data, animations, modelElements, textures, metadata });
 				// After loading a new project, clear the undo/redo history.
 				useAvatarStore.temporal.getState().clear();

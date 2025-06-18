@@ -40,6 +40,7 @@ export type Avatar = {
 	conditionalSettings: Record<UUID, ConditionalSetting>;
 	scripts: Record<UUID, Script>;
 	keybinds: Record<UUID, Keybind>;
+	animationLayers?: Record<UUID, AnimationLayer>;
 };
 
 export type Keybind = {
@@ -211,6 +212,28 @@ export type Image = {
 	width: number;
 	height: number;
 	thumbhash: string;
+};
+
+// --- Animation Nodes ---
+
+export type AnimationLayer = {
+	uuid: UUID;
+	name: string;
+	nodes: Record<UUID, AnimationNode>;
+};
+
+export type AnimationNode = {
+	uuid: UUID;
+	name: string;
+	animation: AnimationID;
+	position: { x: number; y: number };
+	transitions: AnimationTransition[];
+};
+
+export type AnimationTransition = {
+	uuid: UUID;
+	targetNode: UUID;
+	activationCondition?: Condition;
 };
 
 // --- Scripts ---
