@@ -133,7 +133,7 @@ export async function loadProjectFromFiles(
 	if (metadataFileContent) {
 		try {
 			metadata = JSON.parse(metadataFileContent);
-		} catch (e) {
+		} catch (_e) {
 			throw new Error(
 				"Failed to parse avatar.json. Please ensure it's valid JSON.",
 			);

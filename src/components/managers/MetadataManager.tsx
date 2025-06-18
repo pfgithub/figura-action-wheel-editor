@@ -1,4 +1,3 @@
-import { produce } from "immer";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ColorPicker } from "@/components/ui/ColorPicker";
@@ -7,7 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
 import { Select } from "@/components/ui/Select";
 import { useAvatarStore } from "@/store/avatarStore";
-import type { Customization, UUID } from "@/types";
+import type { Customization } from "@/types";
 import { hexToRgb, rgbToHex } from "@/utils/color";
 
 const RENDER_TYPES = [

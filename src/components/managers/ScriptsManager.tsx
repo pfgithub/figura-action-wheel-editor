@@ -129,12 +129,6 @@ export function ScriptsManager() {
 		}
 	};
 
-	const isDeletable = (script: Script) => {
-		return !Object.values(script.data.instanceTypes).some(
-			(it) => it.mode === "one",
-		);
-	};
-
 	return (
 		<>
 			<MasterDetailManager<Script>
