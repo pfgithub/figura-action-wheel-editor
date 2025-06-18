@@ -226,8 +226,8 @@ export function AnimationSettingsManager() {
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
 	const { conditionalSettings, scripts: allScripts } = avatar ?? {
-		conditionalSettings: {},
-		scripts: {},
+		conditionalSettings: {} as Record<UUID, ConditionalSetting>,
+		scripts: {} as Record<UUID, Script>,
 	};
 
 	const allScriptInstances = useMemo(() => {
