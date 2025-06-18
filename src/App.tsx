@@ -1,16 +1,13 @@
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
-import type {
-	UUID,
-	ActionWheel,
-	Avatar,
-	AnimationID,
-	TextureAsset,
-} from "@/types";
-import type { BBModel, BBModelElement, BBModelOutliner } from "@/bbmodel";
+import type { UUID, ActionWheel, Avatar } from "@/types";
 import { useAvatarStore } from "@/store/avatarStore";
 import { generateUUID } from "@/utils/uuid";
 import "./index.css";
+import {
+	loadProjectFromFiles,
+	type LoadedProjectData,
+} from "@/services/projectLoader";
 
 // UI Components
 import { Button } from "@/components/ui/Button";
@@ -19,35 +16,14 @@ import { Button } from "@/components/ui/Button";
 import { ActionWheelsManager } from "@/components/managers/ActionWheelsManager";
 import { AnimationSettingsManager } from "@/components/managers/AnimationSettingsManager";
 import { ScriptsManager } from "@/components/managers/ScriptsManager";
-import { isValidLuaIdent, parseLua } from "@/data/generateLua";
 import { KeybindsManager } from "@/components/managers/KeybindsManager";
-
-const stringifyPart = (part: string) => {
-	if (!isValidLuaIdent(part)) {
-		return `[${JSON.stringify(part)}]`;
-	}
-	return `.${part}`;
-};
-function stringifyParts(parts: string[]): string {
-	return parts.map(stringifyPart).join("");
-}
-function withoutExtension(str: string): string {
-	const s = str.split(".");
-	s.pop();
-	return s.join(".");
-}
 
 // A component for the file drop area
 function FileDropzone({
 	onFileLoaded,
 	setLoadError,
 }: {
-	onFileLoaded: (
-		project: Avatar,
-		animations: AnimationID[],
-		modelElements: string[],
-		textures: TextureAsset[],
-	) => void;
+	onFileLoaded: (data: LoadedProjectData) => void;
 	setLoadError: (error: string | null) => void;
 }) {
 	const [isDragging, setIsDragging] = useState(false);
@@ -55,175 +31,11 @@ function FileDropzone({
 
 	const handleFiles = async (files: FileList) => {
 		if (!files || files.length === 0) return;
-
 		setLoadError(null); // Reset error on new attempt
 
-		let projectFile: File | null = null;
-		const bbmodelFiles: File[] = [];
-		const imageFiles: File[] = [];
-		const imageExtensions = [".png", ".jpg", ".jpeg", ".webp"];
-
-		for (const file of Array.from(files)) {
-			if (file.name.toLowerCase().endsWith(".figura-editor.lua")) {
-				if (projectFile) {
-					setLoadError(
-						'Error: Multiple "figura-editor" files found. Please provide only one figura-editor file.',
-					);
-					return;
-				}
-				projectFile = file;
-			} else if (file.name.toLowerCase().endsWith(".bbmodel")) {
-				bbmodelFiles.push(file);
-			} else if (
-				imageExtensions.some((ext) => file.name.toLowerCase().endsWith(ext))
-			) {
-				imageFiles.push(file);
-			}
-		}
-
 		try {
-			// Helper to read a file as text
-			const readFileAsText = (file: File): Promise<string> => {
-				return new Promise((resolve, reject) => {
-					const reader = new FileReader();
-					reader.onload = () => resolve(reader.result as string);
-					reader.onerror = () =>
-						reject(new Error(`Failed to read file: ${file.name}`));
-					reader.readAsText(file);
-				});
-			};
-
-			const readImage = (
-				name: string,
-				imageURL: string,
-			): Promise<TextureAsset> => {
-				return new Promise((resolve, reject) => {
-					const img = new Image();
-					img.onload = () => {
-						resolve({
-							name: name,
-							url: img.src,
-							width: img.width,
-							height: img.height,
-						});
-					};
-					img.onerror = () =>
-						reject(new Error(`Failed to load image: ${name}`));
-					img.src = imageURL;
-				});
-			};
-
-			// Read all files in parallel
-			const projectFileContent = projectFile
-				? await readFileAsText(projectFile)
-				: null;
-			const bbmodelFileContents = await Promise.all(
-				bbmodelFiles.map(readFileAsText),
-			);
-
-			// --- Parse project.figura-editor.lua ---
-			const projectData: Avatar = projectFileContent
-				? parseLua(projectFileContent)
-				: ({
-						actionWheels: {},
-						toggleGroups: {},
-						conditionalSettings: {},
-						scripts: {},
-						keybinds: {},
-					} satisfies Avatar);
-			// Basic validation
-			if (
-				!projectData.actionWheels ||
-				!projectData.toggleGroups ||
-				!projectData.conditionalSettings
-			) {
-				throw new Error(
-					"Invalid or corrupted project.figura-editor.lua format.",
-				);
-			}
-			projectData.scripts ??= {};
-			projectData.keybinds ??= {};
-
-			// --- Parse bbmodels and extract animations and textures ---
-			const allAnimations: AnimationID[] = [];
-			const allModelElements: string[] = [];
-			const allImagesPromises: Promise<TextureAsset>[] = [];
-			for (let i = 0; i < bbmodelFiles.length; i++) {
-				const file = bbmodelFiles[i];
-				const content = bbmodelFileContents[i];
-				const modelName = file.name.slice(
-					0,
-					file.name.length - ".bbmodel".length,
-				);
-				const model: BBModel = JSON.parse(content);
-
-				if (!model.meta) {
-					console.warn(
-						`Skipping invalid or malformed bbmodel file: ${file.name}`,
-					);
-					continue;
-				}
-
-				if (Array.isArray(model.animations)) {
-					for (const anim of model.animations) {
-						if (anim.name) {
-							const animationId =
-								`animations${stringifyParts([modelName, anim.name])}` as AnimationID;
-							allAnimations.push(animationId);
-						}
-					}
-				}
-
-				const elements = new Map<UUID, BBModelElement>();
-				if (Array.isArray(model.elements)) {
-					for (const element of model.elements) {
-						elements.set(element.uuid, element);
-					}
-				}
-
-				if (Array.isArray(model.outliner)) {
-					const traverseOutliner = (
-						items: (BBModelOutliner | UUID)[],
-						parts: string[],
-					) => {
-						for (const item of items) {
-							if (typeof item === "string") {
-								const element = elements.get(item);
-								if (element) {
-									const newParts = [...parts, element.name];
-									allModelElements.push(`models${stringifyParts(newParts)}`);
-								}
-							} else {
-								const newParts = [...parts, item.name];
-								if (item.children?.length) {
-									allModelElements.push(`models${stringifyParts(newParts)}`);
-									traverseOutliner(item.children, newParts);
-								}
-							}
-						}
-					};
-					traverseOutliner(model.outliner, [modelName]);
-				}
-
-				if (Array.isArray(model.textures)) {
-					for (const texture of model.textures) {
-						if (!texture.name || !texture.source) continue;
-						allImagesPromises.push(
-							readImage(
-								`${modelName}.${withoutExtension(texture.name)}`,
-								texture.source,
-							),
-						);
-					}
-				}
-			}
-
-			onFileLoaded(
-				projectData,
-				allAnimations,
-				allModelElements,
-				await Promise.all(allImagesPromises),
-			);
+			const loadedData = await loadProjectFromFiles(files);
+			onFileLoaded(loadedData);
 		} catch (err: any) {
 			setLoadError(
 				err.message || "An unknown error occurred during file processing.",
@@ -357,13 +169,8 @@ export function App() {
 		setViewedWheelUuid(newWheelUuid);
 	};
 
-	const handleProjectLoad = (
-		project: Avatar,
-		animations: AnimationID[],
-		modelElements: string[],
-		textures: TextureAsset[],
-	) => {
-		loadAvatar(project, animations, modelElements, textures);
+	const handleProjectLoad = (data: LoadedProjectData) => {
+		loadAvatar(data.project, data.animations, data.modelElements, data.textures);
 	};
 
 	// If no project is loaded, show the dropzone.
