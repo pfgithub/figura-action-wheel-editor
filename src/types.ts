@@ -56,7 +56,7 @@ export type Keybind = {
 	uuid: UUID;
 	name: string;
 	keyId: string;
-	effect?: ActionEffect;
+	effects?: ActionEffect[];
 };
 
 export type KeybindListItem = {
@@ -89,24 +89,28 @@ export type Action = {
 	icon: IconItem | IconTexture;
 	label: string;
 	color: [number, number, number];
-	effect?: ActionEffect;
+	effects?: ActionEffect[];
 };
 export type ActionEffect =
 	| {
+			id: UUID;
 			kind: "toggle";
 			toggleGroup?: UUID;
 			value?: UUID;
 	  }
 	| {
+			id: UUID;
 			kind: "switchPage";
 			actionWheel?: UUID;
 	  }
 	| {
+			id: UUID;
 			kind: "scriptAction";
 			scriptInstance?: UUID;
 			scriptAction?: UUID;
 	  }
 	| {
+			id: UUID;
 			kind: "toggleAnimation";
 			animation?: AnimationRef;
 	  };
@@ -239,7 +243,7 @@ export type AnimationTransition = {
 	uuid: UUID;
 	targetNode: UUID;
 	waitForFinish?: boolean;
-	effect?: ActionEffect;
+	effects?: ActionEffect[];
 	activationCondition?: Condition;
 };
 

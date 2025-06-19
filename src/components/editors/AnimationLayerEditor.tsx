@@ -77,6 +77,7 @@ function AnimationNodeDetailsEditor({
 			uuid: generateUUID(),
 			targetNode: otherNodes[0]?.uuid,
 			waitForFinish: true,
+			effects: [],
 		};
 		setTransitionForDialog(newTransition);
 	};
@@ -235,18 +236,19 @@ function AnimationNodeDetailsEditor({
 
 							<div>
 								<h4 className="text-lg font-semibold text-slate-300 border-b border-slate-700 pb-2 mb-4">
-									Transition Effect
+									Transition Effects
 								</h4>
 								<p className="text-xs text-slate-400 -mt-3 mb-3">
-									Optionally run an action when this transition occurs.
+									Optionally run one or more actions when this transition
+									occurs. Effects run in order.
 								</p>
 								<div className="bg-slate-900/50 p-4 rounded-lg ring-1 ring-slate-700">
 									<ActionEffectEditor
-										effect={localTransitionState.effect}
-										updateEffect={(effect) =>
+										effects={localTransitionState.effects}
+										updateEffects={(effects) =>
 											setLocalTransitionState({
 												...localTransitionState,
-												effect,
+												effects,
 											})
 										}
 									/>

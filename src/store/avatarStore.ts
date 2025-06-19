@@ -3,12 +3,14 @@ import { temporal } from "zundo";
 import { create } from "zustand";
 import { generateLua } from "@/data/generateLua";
 import type {
+	ActionEffect,
 	AnimationRef,
 	Avatar,
 	AvatarMetadata,
 	ModelPartRef,
 	TextureAsset,
 } from "@/types";
+import { generateUUID } from "@/utils/uuid";
 
 export type AvatarUpdater = (draft: WritableDraft<Avatar>) => void;
 export type MetadataUpdater = (draft: WritableDraft<AvatarMetadata>) => void;
@@ -47,6 +49,54 @@ export const useAvatarStore = create<AvatarState>()(
 
 			// --- Actions ---
 			loadAvatar: (data, animations, modelElements, textures, metadata) => {
+				// --- MIGRATION LOGIC for ActionEffect array ---
+				const migrateEffects = (item: {
+					effect?: ActionEffect | ActionEffect[];
+					effects?: ActionEffect[];
+				}) => {
+					const oldEffect = (item as any).effect;
+					// If `effect` exists and `effects` doesn't, we need to migrate.
+					if (oldEffect && !(item as any).effects) {
+						if (!Array.isArray(oldEffect)) {
+							// Single object -> array with one object
+							const effectWithId = oldEffect as ActionEffect;
+							if (!effectWithId.id) effectWithId.id = generateUUID();
+							(item as any).effects = [effectWithId];
+						} else {
+							// It was an array under the old key, just move it.
+							(item as any).effects = oldEffect;
+						}
+						delete (item as any).effect;
+					}
+					// Ensure all effects in the array have a UUID for D&D keys.
+					if ((item as any).effects) {
+						(item as any).effects.forEach((e: ActionEffect) => {
+							if (!e.id) e.id = generateUUID();
+						});
+					}
+				};
+
+				for (const wheel of Object.values(data.actionWheels)) {
+					for (const action of wheel.actions) {
+						migrateEffects(action);
+					}
+				}
+				if (data.keybinds) {
+					for (const keybind of Object.values(data.keybinds)) {
+						migrateEffects(keybind);
+					}
+				}
+				if (data.animationLayers) {
+					for (const layer of Object.values(data.animationLayers)) {
+						for (const node of Object.values(layer.nodes)) {
+							for (const transition of node.transitions) {
+								migrateEffects(transition);
+							}
+						}
+					}
+				}
+				// --- END MIGRATION LOGIC ---
+
 				data.animationLayers ??= {};
 				set({ avatar: data, animations, modelElements, textures, metadata });
 				// After loading a new project, clear the undo/redo history.
