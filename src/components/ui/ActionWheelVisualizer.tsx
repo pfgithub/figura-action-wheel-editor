@@ -301,7 +301,6 @@ export function ActionWheelVisualizer({
 				style={{
 					width: `${WHEEL_RADIUS * 2 + BUTTON_SIZE}px`,
 					height: `${WHEEL_RADIUS * 2 + BUTTON_SIZE}px`,
-					margin: "0 auto",
 				}}
 			>
 				{/* Central Hub */}

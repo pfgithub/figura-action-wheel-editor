@@ -25,6 +25,7 @@ interface MasterDetailManagerProps<T extends { uuid: UUID }> {
 	onSelectId: (id: UUID | null) => void;
 	onAddItem: () => void;
 	onDeleteItem?: (item: T) => void;
+	rightButtons?: (item: T) => React.ReactNode;
 
 	// Filtering
 	filterText?: string;
@@ -47,6 +48,7 @@ export function MasterDetailManager<T extends { uuid: UUID }>({
 	onSelectId,
 	onAddItem,
 	onDeleteItem,
+	rightButtons,
 	filterText,
 	onFilterTextChange,
 	editorTitle,
@@ -96,6 +98,7 @@ export function MasterDetailManager<T extends { uuid: UUID }>({
 							<h3 className="text-xl font-bold text-slate-100 truncate">
 								{editorTitle ? editorTitle(selectedItem) : "Edit Item"}
 							</h3>
+							{rightButtons?.(selectedItem)}
 							{onDeleteItem && (
 								<Button
 									onClick={() => onDeleteItem(selectedItem)}

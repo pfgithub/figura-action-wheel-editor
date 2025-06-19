@@ -280,43 +280,62 @@ export function generateLuaInner(avatar: Avatar) {
 		tick = 2,
 		render = 3,
 	}
-	type UpdateFrequency = {
-		// it is run once, at init
-		kind: UpdateFrequencyKind.init,
-	} | {
-		// it is run at init and every time any of the specified toggle groups change
-		kind: UpdateFrequencyKind.toggleGroupChanged,
-		groups: UUID[],
-	} | {
-		// it is run every tick
-		kind: UpdateFrequencyKind.tick
-	} | {
-		// it is run every render
-		kind: UpdateFrequencyKind.render,
-	};
-	function mergeUpdateFrequency(a: UpdateFrequency, b: UpdateFrequency): UpdateFrequency {
-		if(a.kind > b.kind) return a;
-		if(b.kind > a.kind) return b;
-		if(a.kind === UpdateFrequencyKind.toggleGroupChanged && b.kind === UpdateFrequencyKind.toggleGroupChanged) {
-			return {kind: UpdateFrequencyKind.toggleGroupChanged, groups: [...new Set([...a.groups, ...b.groups])]};
+	type UpdateFrequency =
+		| {
+				// it is run once, at init
+				kind: UpdateFrequencyKind.init;
+		  }
+		| {
+				// it is run at init and every time any of the specified toggle groups change
+				kind: UpdateFrequencyKind.toggleGroupChanged;
+				groups: UUID[];
+		  }
+		| {
+				// it is run every tick
+				kind: UpdateFrequencyKind.tick;
+		  }
+		| {
+				// it is run every render
+				kind: UpdateFrequencyKind.render;
+		  };
+	function mergeUpdateFrequency(
+		a: UpdateFrequency,
+		b: UpdateFrequency,
+	): UpdateFrequency {
+		if (a.kind > b.kind) return a;
+		if (b.kind > a.kind) return b;
+		if (
+			a.kind === UpdateFrequencyKind.toggleGroupChanged &&
+			b.kind === UpdateFrequencyKind.toggleGroupChanged
+		) {
+			return {
+				kind: UpdateFrequencyKind.toggleGroupChanged,
+				groups: [...new Set([...a.groups, ...b.groups])],
+			};
 		}
 		return a;
 	}
 	const getUpdateFrequency = (cond: Condition): UpdateFrequency => {
-		if(cond.kind === "toggleGroup" && cond.toggleGroup) {
-			return {kind: UpdateFrequencyKind.toggleGroupChanged, groups: [cond.toggleGroup]};
-		}else if(cond.kind === "render" && cond.render != null) {
+		if (cond.kind === "toggleGroup" && cond.toggleGroup) {
+			return {
+				kind: UpdateFrequencyKind.toggleGroupChanged,
+				groups: [cond.toggleGroup],
+			};
+		} else if (cond.kind === "render" && cond.render != null) {
 			// TODO: not all of these need to be every render, just a few
-			return {kind: UpdateFrequencyKind.render};
-		}else if(cond.kind === "and" || cond.kind === "or") {
-			return cond.conditions.reduce<UpdateFrequency>((t, a) => mergeUpdateFrequency(t, getUpdateFrequency(a)), {kind: UpdateFrequencyKind.init});
-		}else if(cond.kind === "not" && cond.condition) {
+			return { kind: UpdateFrequencyKind.render };
+		} else if (cond.kind === "and" || cond.kind === "or") {
+			return cond.conditions.reduce<UpdateFrequency>(
+				(t, a) => mergeUpdateFrequency(t, getUpdateFrequency(a)),
+				{ kind: UpdateFrequencyKind.init },
+			);
+		} else if (cond.kind === "not" && cond.condition) {
 			return getUpdateFrequency(cond.condition);
-		}else if(cond.kind === "animation") {
+		} else if (cond.kind === "animation") {
 			// maybe should be tick or animation state changed?
-			return {kind: UpdateFrequencyKind.render};
-		}else{
-			return {kind: UpdateFrequencyKind.init};
+			return { kind: UpdateFrequencyKind.render };
+		} else {
+			return { kind: UpdateFrequencyKind.init };
 		}
 	};
 	// todo these will need seperate caches per point they can be inserted at
@@ -390,21 +409,23 @@ end
 	src += `end\n`;
 
 	// animation state machine
-	for(const state of Object.values(avatar.animationLayers ?? {})) {
+	for (const state of Object.values(avatar.animationLayers ?? {})) {
 		const varname = ctx.addNextIdent(state.name);
 		predeclare.push(`local ${varname} = ${ctx.uuidToNumber(state.noneNode)}`);
 		// we can consider supporting saving animation states
 
 		// call noneNode's animationStartFn on init
 
-		for(const node of Object.values(state.nodes)) {
+		for (const node of Object.values(state.nodes)) {
 			const num = ctx.uuidToNumber(node.uuid);
 
-			for(const transition of node.transitions) {
-				if(transition.activationCondition == null) continue;
+			for (const transition of node.transitions) {
+				if (transition.activationCondition == null) continue;
 
 				// to support waitForFinish, make the activation condition AND(animation done, existing condition)
-				const updateFrequency = getUpdateFrequency(transition.activationCondition);
+				const updateFrequency = getUpdateFrequency(
+					transition.activationCondition,
+				);
 
 				// now we have to add the transition in two places:
 				// - unless updateFrequency is render then add it in thisAnimationStartFn

@@ -1,8 +1,10 @@
 import { WheelEditor } from "@/components/editors/WheelEditor";
+import { MasterDetailManager } from "@/components/layout/MasterDetailManager";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { PlusIcon } from "@/components/ui/icons";
 import { useAvatarStore } from "@/store/avatarStore";
-import type { UUID } from "@/types";
+import type { ActionWheel, UUID } from "@/types";
 
 interface ActionWheelsManagerProps {
 	addActionWheel: () => void;
@@ -25,7 +27,7 @@ const NoWheelsEmptyState = ({ onAdd }: { onAdd: () => void }) => (
 			className="w-16 h-16 mb-4"
 		>
 			<circle cx="12" cy="12" r="10" />
-			<path d="M12 8v4l2 2" />
+			<circle cx="12" cy="12" r="3" />
 		</svg>
 		<h3 className="text-lg font-semibold text-slate-200">
 			No Action Wheels Created Yet
@@ -44,6 +46,28 @@ const NoWheelsEmptyState = ({ onAdd }: { onAdd: () => void }) => (
 	</div>
 );
 
+const EmptyState = () => (
+	<div className="flex flex-col items-center justify-center h-full text-slate-500">
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			className="w-16 h-16 mb-4"
+		>
+			<circle cx="12" cy="12" r="10" />
+			<circle cx="12" cy="12" r="3" />
+		</svg>
+		<h3 className="text-lg font-semibold">Select an action wheel to edit</h3>
+		<p className="text-sm">Choose a wheel from the list, or add a new one.</p>
+	</div>
+);
+
 export function ActionWheelsManager({
 	addActionWheel,
 	viewedWheelUuid,
@@ -53,12 +77,12 @@ export function ActionWheelsManager({
 
 	if (!avatar) return null;
 
-	const allActionWheels = Object.values(avatar.actionWheels);
-	const viewedWheel = viewedWheelUuid
-		? avatar.actionWheels[viewedWheelUuid]
-		: null;
+	const allActionWheels = Object.values(avatar.actionWheels).sort((a, b) =>
+		a.title.localeCompare(b.title),
+	);
 
-	const handleDeleteWheel = (uuid: UUID) => {
+	const handleDeleteWheel = (wheelToDelete: ActionWheel) => {
+		const uuid = wheelToDelete.uuid;
 		updateAvatar((draft) => {
 			delete draft.actionWheels[uuid];
 			if (draft.mainActionWheel === uuid) {
@@ -86,11 +110,23 @@ export function ActionWheelsManager({
 			});
 		});
 
-		// After deletion, select the first available wheel or null
-		const remainingWheels = Object.values(avatar.actionWheels).filter(
-			(w) => w.uuid !== uuid,
-		);
-		setViewedWheelUuid(remainingWheels[0]?.uuid ?? null);
+		if (viewedWheelUuid === uuid) {
+			setViewedWheelUuid(null);
+		}
+	};
+
+	const setMainWheel = (uuid: UUID | undefined) => {
+		updateAvatar((draft) => {
+			draft.mainActionWheel = uuid;
+		});
+	};
+
+	const updateWheelTitle = (uuid: UUID, title: string) => {
+		updateAvatar((draft) => {
+			if (draft.actionWheels[uuid]) {
+				draft.actionWheels[uuid].title = title;
+			}
+		});
 	};
 
 	if (allActionWheels.length === 0) {
@@ -98,51 +134,64 @@ export function ActionWheelsManager({
 	}
 
 	return (
-		<div className="flex flex-col h-full">
-			{/* Horizontal Wheel Navigation */}
-			<div className="flex-shrink-0 flex items-center gap-4 border-b border-slate-700 pb-3 mb-6">
-				<div className="flex-grow flex items-center gap-2 overflow-x-auto -mb-3 pb-3">
-					{allActionWheels.map((wheel) => (
-						<button
-							key={wheel.uuid}
-							onClick={() => setViewedWheelUuid(wheel.uuid)}
-							className={`flex-shrink-0 flex items-center gap-2.5 py-2.5 px-4 rounded-t-lg transition-colors duration-200 border-b-2 ${
-								viewedWheelUuid === wheel.uuid
-									? "bg-slate-800/60 border-violet-500 text-white"
-									: "border-transparent text-slate-400 hover:text-white hover:bg-slate-800/60"
-							}`}
-						>
-							{avatar.mainActionWheel === wheel.uuid && (
-								<span className="text-amber-400 text-lg" title="Main Wheel">
-									★
-								</span>
-							)}
-							<span className="font-semibold text-sm">{wheel.title}</span>
-							<span className="text-xs text-slate-300 bg-slate-700 rounded-full px-2 py-0.5">
-								{wheel.actions.length}
-							</span>
-						</button>
-					))}
-				</div>
+		<MasterDetailManager<ActionWheel>
+			items={allActionWheels}
+			selectedId={viewedWheelUuid}
+			onSelectId={setViewedWheelUuid}
+			title="Action Wheels"
+			onAddItem={addActionWheel}
+			onDeleteItem={handleDeleteWheel}
+			addText="Add Wheel"
+			deleteText="Delete Wheel"
+			editorTitle={(wheel) => (
+				<Input
+					value={wheel.title}
+					onChange={(e) => updateWheelTitle(wheel.uuid, e.target.value)}
+					className="bg-transparent border-none p-0 h-auto text-xl font-bold w-full focus:ring-0 focus:bg-slate-700"
+				/>
+			)}
+			rightButtons={(wheel) => (
 				<Button
-					onClick={addActionWheel}
-					className="bg-violet-600 hover:bg-violet-500 flex-shrink-0"
+					onClick={() =>
+						setMainWheel(
+							avatar.mainActionWheel === wheel.uuid ? undefined : wheel.uuid,
+						)
+					}
+					className={
+						avatar.mainActionWheel === wheel.uuid
+							? "bg-amber-500 focus-visible:ring-amber-300"
+							: "bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400"
+					}
 				>
-					<PlusIcon className="w-5 h-5 mr-2" />
-					Add Wheel
+					{avatar.mainActionWheel !== wheel.uuid ? "Set as Main" : "Unset Main"}
 				</Button>
-			</div>
-
-			{/* Editor Content */}
-			<div className="flex-grow min-h-0">
-				{viewedWheel && (
-					<WheelEditor
-						key={viewedWheel.uuid}
-						wheel={viewedWheel}
-						onDeleteWheel={() => handleDeleteWheel(viewedWheel.uuid)}
-					/>
-				)}
-			</div>
-		</div>
+			)}
+			renderListItem={(wheel, isSelected) => (
+				<button
+					className={`w-full text-left p-3 rounded-lg transition-colors duration-150 flex items-center gap-3 ${
+						isSelected
+							? "bg-violet-500/20 ring-2 ring-violet-500"
+							: "bg-slate-800 hover:bg-slate-700"
+					}`}
+				>
+					{avatar.mainActionWheel === wheel.uuid && (
+						<span className="text-amber-400 font-bold" title="Main Wheel">
+							★
+						</span>
+					)}
+					<div className="flex-grow">
+						<h3 className="font-semibold text-slate-100 truncate">
+							{wheel.title}
+						</h3>
+						<p className="text-sm text-slate-400">
+							{wheel.actions.length} action
+							{wheel.actions.length !== 1 && "s"}
+						</p>
+					</div>
+				</button>
+			)}
+			renderEditor={(wheel) => <WheelEditor key={wheel.uuid} wheel={wheel} />}
+			renderEmptyState={EmptyState}
+		/>
 	);
 }

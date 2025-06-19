@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { ActionEditor } from "@/components/editors/ActionEditor";
 import { ActionWheelVisualizer } from "@/components/ui/ActionWheelVisualizer";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { TrashIcon } from "@/components/ui/icons";
 import { useAvatarStore } from "@/store/avatarStore";
 import type { Action, ActionWheel, UUID } from "@/types";
 import { generateUUID } from "@/utils/uuid";
@@ -12,7 +9,6 @@ const MAX_ACTIONS_PER_WHEEL = 8;
 
 interface WheelEditorProps {
 	wheel: ActionWheel;
-	onDeleteWheel: () => void;
 }
 
 const EditorEmptyState = () => (
@@ -40,27 +36,13 @@ const EditorEmptyState = () => (
 	</div>
 );
 
-export function WheelEditor({ wheel, onDeleteWheel }: WheelEditorProps) {
+export function WheelEditor({ wheel }: WheelEditorProps) {
 	const { avatar, updateAvatar } = useAvatarStore();
 	const [selectedActionIndex, setSelectedActionIndex] = useState<number | null>(
 		null,
 	);
 
 	if (!avatar) return null;
-
-	const setMainWheel = (uuid: UUID | undefined) => {
-		updateAvatar((draft) => {
-			draft.mainActionWheel = uuid;
-		});
-	};
-
-	const updateWheelTitle = (uuid: UUID, title: string) => {
-		updateAvatar((draft) => {
-			if (draft.actionWheels[uuid]) {
-				draft.actionWheels[uuid].title = title;
-			}
-		});
-	};
 
 	const addAction = (wheelUuid: UUID) => {
 		updateAvatar((draft) => {
@@ -148,46 +130,10 @@ export function WheelEditor({ wheel, onDeleteWheel }: WheelEditorProps) {
 	};
 
 	return (
-		<div className="space-y-6">
-			{/* Wheel Header Controls */}
-			<div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-				<Input
-					type="text"
-					aria-label="Wheel Title"
-					value={wheel.title}
-					onChange={(e) => updateWheelTitle(wheel.uuid, e.target.value)}
-					className="text-2xl font-bold bg-transparent border-0 ring-1 ring-slate-700 p-2 focus:bg-slate-700/80 focus:ring-violet-500 focus:border-violet-500"
-				/>
-				<div className="flex gap-2 flex-shrink-0">
-					<Button
-						onClick={() =>
-							setMainWheel(
-								avatar.mainActionWheel === wheel.uuid ? undefined : wheel.uuid,
-							)
-						}
-						className={
-							avatar.mainActionWheel === wheel.uuid
-								? "bg-amber-500 focus-visible:ring-amber-300"
-								: "bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400"
-						}
-					>
-						{avatar.mainActionWheel !== wheel.uuid
-							? "Set as Main"
-							: "Unset Main"}
-					</Button>
-					<Button
-						onClick={onDeleteWheel}
-						className="bg-rose-600 text-rose-200"
-					>
-						<TrashIcon className="w-5 h-5 mr-2" />
-						Delete Wheel
-					</Button>
-				</div>
-			</div>
-
+		<div className="space-y-6 w-full">
 			{/* Main Content */}
 			<div className="grid lg:grid-cols-2 gap-8 items-start">
-				<div className="flex justify-center items-center py-4 lg:sticky lg:top-6">
+				<div className="flex flex-col gap-4 justify-center items-center py-4">
 					<ActionWheelVisualizer
 						key={wheel.uuid}
 						actions={wheel.actions}
@@ -201,7 +147,7 @@ export function WheelEditor({ wheel, onDeleteWheel }: WheelEditorProps) {
 					/>
 				</div>
 
-				<div>
+				<div className="flex-1">
 					{selectedActionData ? (
 						<ActionEditor
 							key={`${selectedActionData.wheelUuid}-${selectedActionData.action.uuid}`}

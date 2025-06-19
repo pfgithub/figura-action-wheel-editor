@@ -12,7 +12,7 @@ export function SegmentedControl<T>({
 }: SegmentedControlProps<T>) {
 	return (
 		<div
-			className="inline-flex rounded-md shadow-sm bg-slate-800 p-1"
+			className="inline-flex rounded-md shadow-sm bg-slate-800 p-1 flex-wrap"
 			role="group"
 		>
 			{options.map((option, index) => (
