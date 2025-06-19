@@ -417,13 +417,13 @@ end
 		// call noneNode's animationStartFn on init
 
 		for (const node of Object.values(state.nodes)) {
-			const num = ctx.uuidToNumber(node.uuid);
+			const _num = ctx.uuidToNumber(node.uuid);
 
 			for (const transition of node.transitions) {
 				if (transition.activationCondition == null) continue;
 
 				// to support waitForFinish, make the activation condition AND(animation done, existing condition)
-				const updateFrequency = getUpdateFrequency(
+				const _updateFrequency = getUpdateFrequency(
 					transition.activationCondition,
 				);
 
