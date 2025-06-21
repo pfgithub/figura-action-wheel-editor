@@ -148,6 +148,8 @@ function memo<U, T>(cb: (src: U) => T): (src: NoInfer<U>) => NoInfer<T> {
 	};
 }
 
+// statement | expression(prec)
+// if expression(3) inserted into slot(4), it needs parens
 type Lua = string | number | Lua[];
 function lua(a: TemplateStringsArray, ...b: Lua[]): Lua {
 	const res: Lua[] = [];
