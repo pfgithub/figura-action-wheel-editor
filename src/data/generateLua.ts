@@ -171,23 +171,26 @@ export function generateLua(avatar: Avatar) {
 export function generateLuaInner(avatar: Avatar) {
 	const ctx = new Ctx();
 	const warnEnabled = true;
-	let alwaysWarnings = ``;
+	const src: Lua[] = [];
+	const alwaysWarnings: Lua[] = [];
+	src.push(alwaysWarnings);
 	const addWarning = (msg: string) => {
-		alwaysWarnings += lua`print(${luaString(msg)})\n`;
+		if(!warnEnabled) return;
+		alwaysWarnings.push(lua`print(${luaString(msg)})\n`);
 	}
 
 	const fns: Lua[] = [];
+	src.push(fns);
 	const predeclare: Lua[] = [];
-	fns.push(predeclare);
+	src.push(predeclare);
 
-	let mainVars = `\n-- Setup vars\n`;
-	let src: Lua[] = [];
+	const mainVars: Lua[] = [`\n-- Setup vars\n`];
 
 	const textureVars = new Map<string, string>();
 	const getTexture = (texture: string): string => {
 		if (textureVars.has(texture)) return textureVars.get(texture)!;
 		const val = ctx.addNextIdent(texture);
-		mainVars += `local ${val} = tryOrNil(function() return textures[${luaString(texture)}] end, ${luaString(texture)})\n`;
+		mainVars.push(`local ${val} = tryOrNil(function() return textures[${luaString(texture)}] end, ${luaString(texture)})\n`);
 		textureVars.set(texture, val);
 		return val;
 	};
@@ -195,7 +198,7 @@ export function generateLuaInner(avatar: Avatar) {
 	const getModelPart = (modelPart: string): string => {
 		if (modelPartVars.has(modelPart)) return modelPartVars.get(modelPart)!;
 		const val = ctx.addNextIdent(modelPart);
-		mainVars += `local ${val} = tryOrNil(function() return ${modelPart} end, ${warnEnabled ? luaString(modelPart) : null})\n`;
+		mainVars.push(`local ${val} = tryOrNil(function() return ${modelPart} end, ${warnEnabled ? luaString(modelPart) : null})\n`);
 		modelPartVars.set(modelPart, val);
 		return val;
 	};
@@ -203,7 +206,7 @@ export function generateLuaInner(avatar: Avatar) {
 	const _getAnimation = (animation: string): string => {
 		if (animationVars.has(animation)) return animationVars.get(animation)!;
 		const val = ctx.addNextIdent(animation);
-		mainVars += `local ${val} = tryOrNil(function() return ${animation} end, ${luaString(animation)})\n`;
+		mainVars.push(`local ${val} = tryOrNil(function() return ${animation} end, ${luaString(animation)})\n`);
 		animationVars.set(animation, val);
 		return val;
 	};
@@ -312,8 +315,8 @@ export function generateLuaInner(avatar: Avatar) {
 
 	src.push(`\n-- Render event\n`);
 	src.push(`function events.render(delta, context)\n`);
-	let renderVars = "";
-	let renderContents = "";
+	const renderVars: Lua[] = [];
+	const renderContents: Lua[] = [];
 
 	const renderIdToVarMap = new Map<string, string>();
 	enum UpdateFrequencyKind {
@@ -391,7 +394,7 @@ export function generateLuaInner(avatar: Avatar) {
 				return renderIdToVarMap.get(cond.render)!;
 			if (cond.render === "playerIsFlying") {
 				// fly detection
-				mainVars += `playerIsFlying = false
+				mainVars.push(`playerIsFlying = false
 do
   local wasFlying = false
   function pings.setPlayerIsFlying(value)
@@ -407,12 +410,12 @@ do
     end
   end
 end
-`;
+`);
 				renderIdToVarMap.set(cond.render, "playerIsFlying");
 				return "playerIsFlying";
 			}
 			const varId = ctx.addNextIdent(cond.render);
-			renderVars += `    local ${varId} = ${cond.render}\n`;
+			renderVars.push(`    local ${varId} = ${cond.render}\n`);
 			renderIdToVarMap.set(cond.render, varId);
 			return varId;
 		} else if (cond.kind === "and") {
@@ -427,7 +430,7 @@ end
 			if (!cond.condition) return "false";
 			return `not (${addCondition(cond.condition)})`;
 		} else {
-			alwaysWarnings += `    print("TODO implement condition ${cond.kind}")\n`;
+			alwaysWarnings.push(`    print("TODO implement condition ${cond.kind}")\n`);
 			return "false";
 		}
 	};
@@ -441,9 +444,9 @@ end
 				"models" +
 					stringifyParts([setting.element.model, ...setting.element.partPath]),
 			);
-			renderContents += `    if ${elem} then ${elem}:setVisible(${cond}) end\n`;
+			renderContents.push(`    if ${elem} then ${elem}:setVisible(${cond}) end\n`);
 		} else {
-			alwaysWarnings += `print("TODO implement setting ${setting.kind}")\n`;
+			alwaysWarnings.push(`print("TODO implement setting ${setting.kind}")\n`);
 		}
 	}
 	src.push(renderVars);
@@ -492,7 +495,7 @@ end
 		}
 	}
 
-	return fns.flat(Infinity as 1).join("") + mainVars + src.flat(Infinity as 1).join("") + alwaysWarnings;
+	return src.flat(Infinity as 1).join("");
 }
 
 export function parseLua(source: string): Avatar {
