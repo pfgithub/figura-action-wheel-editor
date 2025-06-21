@@ -186,39 +186,28 @@ export function generateLuaInner(avatar: Avatar) {
 
 	const mainVars: Lua[] = [`\n-- Setup vars\n`];
 
-	const textureVars = new Map<string, string>();
-	const getTexture = (texture: string): string => {
-		if (textureVars.has(texture)) return textureVars.get(texture)!;
+	const getTexture = memo((texture: string): string => {
 		const val = ctx.addNextIdent(texture);
 		mainVars.push(`local ${val} = tryOrNil(function() return textures[${luaString(texture)}] end, ${luaString(texture)})\n`);
-		textureVars.set(texture, val);
 		return val;
-	};
-	const modelPartVars = new Map<string, string>();
-	const getModelPart = (modelPart: string): string => {
-		if (modelPartVars.has(modelPart)) return modelPartVars.get(modelPart)!;
+	});
+	const getModelPart = memo((modelPart: string): string => {
 		const val = ctx.addNextIdent(modelPart);
 		mainVars.push(`local ${val} = tryOrNil(function() return ${modelPart} end, ${warnEnabled ? luaString(modelPart) : null})\n`);
-		modelPartVars.set(modelPart, val);
 		return val;
-	};
-	const animationVars = new Map<string, string>();
-	const _getAnimation = (animation: string): string => {
-		if (animationVars.has(animation)) return animationVars.get(animation)!;
+	});
+	const _getAnimation = memo((animation: string): string => {
 		const val = ctx.addNextIdent(animation);
 		mainVars.push(`local ${val} = tryOrNil(function() return ${animation} end, ${luaString(animation)})\n`);
-		animationVars.set(animation, val);
 		return val;
-	};
+	});
 	type ToggleGroup = {
 		toggler: string;
 		ping: string;
 		activeState: string;
 		onToggled: Lua[];
 	};
-	const toggleGroups = new Map<UUID, ToggleGroup>();
-	const getToggleGroup = (toggleGroup: UUID): ToggleGroup => {
-		if (toggleGroups.has(toggleGroup)) return toggleGroups.get(toggleGroup)!;
+	const getToggleGroup = memo((toggleGroup: UUID): ToggleGroup => {
 		const activeState = ctx.addNextIdent(toggleGroup);
 		const ping = `pings.actionEditor_${ctx.addTrueUuidIdent(toggleGroup)}`;
 		fns.push(`local ${activeState} = nil\n`);
@@ -229,9 +218,8 @@ export function generateLuaInner(avatar: Avatar) {
 		fns.push(`end\n`);
 		const toggler = ctx.addNextIdent(toggleGroup);
 		const ret: ToggleGroup = { toggler, ping, activeState, onToggled };
-		toggleGroups.set(toggleGroup, ret);
 		return ret;
-	};
+	});
 	type Effect = {callEffect: (state: Lua) => Lua, state?: {get: Lua, onChange: (callback: Lua) => void}};
 	const getEffect = memo((effect: ActionEffect): Effect => {
 		const none: Effect = {callEffect() {return "--"}};
