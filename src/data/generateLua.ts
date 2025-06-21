@@ -418,7 +418,7 @@ end
 			if (!cond.condition) return "false";
 			return `not (${addCondition(cond.condition)})`;
 		} else {
-			alwaysWarnings.push(`    print("TODO implement condition ${cond.kind}")\n`);
+			addWarning(`TODO implement condition ${cond.kind}`);
 			return "false";
 		}
 	};
@@ -434,7 +434,7 @@ end
 			);
 			renderContents.push(`    if ${elem} then ${elem}:setVisible(${cond}) end\n`);
 		} else {
-			alwaysWarnings.push(`print("TODO implement setting ${setting.kind}")\n`);
+			addWarning(`TODO implement ${setting.kind}`);
 		}
 	}
 	src.push(renderVars);
