@@ -1,4 +1,4 @@
-import type { Avatar, Condition, UUID } from "@/types";
+import type { ActionEffect, Avatar, Condition, UUID } from "@/types";
 
 /*
 Use Store to store the values
@@ -113,7 +113,7 @@ class Ctx {
 	addNextIdent(nameHint?: string): string {
 		return uuidToIdent(`${this.nextIdentId++}`, nameHint);
 	}
-	getUuidIdent(uuid: UUID): string | null {
+	getUuidIdent(uuid: UUID): Lua | null {
 		const result = this.uuidToIdentMap.get(uuid);
 		if (!result) return null;
 		return result;
@@ -140,6 +140,23 @@ function stringifyParts(parts: string[]): string {
 	return parts.map(stringifyPart).join("");
 }
 
+function memo<U, T>(cb: (src: U) => T): (src: NoInfer<U>) => NoInfer<T> {
+	const map = new Map<U, T>();
+	return src => {
+		if(!map.has(src)) map.set(src, cb(src));
+		return map.get(src)!;
+	};
+}
+
+type Lua = string | number | Lua[];
+function lua(a: TemplateStringsArray, ...b: Lua[]): Lua {
+	const res: Lua[] = [];
+	for(let i = 0; i < a.length; i++) {
+		res.push(a[i]);
+		b[i] && res.push(b[i]);
+	}
+	return res;
+}
 export function generateLua(avatar: Avatar) {
 	const header = getHeader(avatar);
 	try {
@@ -155,14 +172,16 @@ export function generateLuaInner(avatar: Avatar) {
 	const ctx = new Ctx();
 	const warnEnabled = true;
 	let alwaysWarnings = ``;
+	const addWarning = (msg: string) => {
+		alwaysWarnings += lua`print(${luaString(msg)})\n`;
+	}
 
-	type Lua = string | Lua[];
 	const fns: Lua[] = [];
 	const predeclare: Lua[] = [];
 	fns.push(predeclare);
 
 	let mainVars = `\n-- Setup vars\n`;
-	let src = "";
+	let src: Lua[] = [];
 
 	const textureVars = new Map<string, string>();
 	const getTexture = (texture: string): string => {
@@ -210,66 +229,89 @@ export function generateLuaInner(avatar: Avatar) {
 		toggleGroups.set(toggleGroup, ret);
 		return ret;
 	};
+	type Effect = {callEffect: (state: Lua) => Lua, state?: {get: Lua, onChange: (callback: Lua) => void}};
+	const getEffect = memo((effect: ActionEffect): Effect => {
+		const none: Effect = {callEffect() {return "--"}};
+		if(effect.kind === "toggle" && effect.toggleGroup) {
+			const toggleGroup = getToggleGroup(effect.toggleGroup);
+			const num =
+				effect.value == null
+					? "nil"
+					: ctx.uuidToNumber(effect.value);
+			return {
+				callEffect(state) {
+					return `${toggleGroup.ping}((${state}) and ${num} or nil)`;
+				},
+				state: {
+					get: `(${toggleGroup.activeState} == ${num})`,
+					onChange: (callback) => toggleGroup.onToggled.push(`    ${callback}\n`),
+				},
+			};
+		}else if(effect.kind === "switchPage" && effect.actionWheel != null) {
+			const actionWheel = ctx.getUuidIdent(effect.actionWheel);
+			if(!actionWheel) {
+				addWarning(`switchPage missing action wheel`);
+				return none;
+			}
+			return {
+				callEffect(state) {
+					return lua`if ${state} then action_wheel:setPage(${actionWheel}) end`;
+				},
+			};
+		}else{
+			addWarning(`TODO implement effect ${effect.kind}`);
+			return none;
+		}
+		// const effectFn = ctx.addNextIdent();
+		// fns.push(`local function ${effectFn}(state)\n`);
+		// fns.push(`    if state then `);
+		// fns.push(`end\n`);
+	});
 
-	src += `\n-- Action wheels\n`;
+	src.push(lua`\n-- Action wheels\n`);
 	for (const actionWheel of Object.values(avatar.actionWheels)) {
 		const name = ctx.addUuidIdent(actionWheel.uuid, actionWheel.title);
-		src += `local ${name} = action_wheel:newPage()\n`;
+		src.push(lua`local ${name} = action_wheel:newPage()\n`);
 	}
-	src += `\n-- Action wheel actions\n`;
+	src.push(lua`\n-- Action wheel actions\n`);
 	for (const actionWheel of Object.values(avatar.actionWheels)) {
 		const actionWheelIdent = ctx.getUuidIdent(actionWheel.uuid);
 		if (!actionWheelIdent) continue;
-		const _updateActionWheelStatesBody = "";
 		for (const action of actionWheel.actions) {
 			const actionIdent = ctx.addUuidIdent(action.uuid);
 			predeclare.push(`local ${actionIdent} = nil\n`);
-			src += `${actionIdent} = ${actionWheelIdent}:newAction()\n`;
-			src += `${actionIdent}:title(${luaString(action.label)})\n`;
+			src.push(lua`${actionIdent} = ${actionWheelIdent}:newAction()\n`);
+			src.push(lua`${actionIdent}:title(${luaString(action.label)})\n`);
 			if (action.icon.type === "item") {
-				src += `${actionIdent}:item(${luaString(action.icon.id)})\n`;
+				src.push(lua`${actionIdent}:item(${luaString(action.icon.id)})\n`);
 			} else if (action.icon.type === "texture") {
 				const texVar = getTexture(action.icon.file);
-				src += `if ${texVar} then ${actionIdent}:texture(${texVar}, ${action.icon.u}, ${action.icon.v}, ${action.icon.width}, ${action.icon.height}, ${action.icon.scale}) end\n`;
+				src.push(lua`if ${texVar} then ${actionIdent}:texture(${texVar}, ${action.icon.u}, ${action.icon.v}, ${action.icon.width}, ${action.icon.height}, ${action.icon.scale}) end\n`);
 			} else {
 				// no icon
 			}
-			src += `${actionIdent}:hoverColor(${action.color[0]} / 255, ${action.color[1]} / 255, ${action.color[2]} / 255)\n`;
-			if (
-				action.effect?.kind === "toggle" &&
-				action.effect.toggleGroup != null
-			) {
-				const toggleGroup = getToggleGroup(action.effect.toggleGroup);
-				const num =
-					action.effect.value == null
-						? "nil"
-						: ctx.uuidToNumber(action.effect.value);
-				src += `${actionIdent}:onToggle(function(toggled)\n`;
-				src += `    ${toggleGroup.ping}(toggled and ${num} or nil)\n`;
-				src += `end)\n`;
-				toggleGroup.onToggled.push(
-					`    ${actionIdent}:toggled(${toggleGroup.activeState} == ${num})\n`,
-				);
-			} else if (
-				action.effect?.kind === "switchPage" &&
-				action.effect.actionWheel != null
-			) {
-				src += `${actionIdent}:onLeftClick(function() action_wheel:setPage(${ctx.getUuidIdent(action.effect.actionWheel)}) end)\n`;
-			} else {
-				// no effect
+			src.push(`${actionIdent}:hoverColor(${action.color[0]} / 255, ${action.color[1]} / 255, ${action.color[2]} / 255)\n`);
+			src.push(`${actionIdent}:onToggle(function(toggled)\n`);
+			for(const effect of action.effects ?? []) {
+				const fx = getEffect(effect);
+				src.push(lua`    ${fx.callEffect(lua`toggled`)}\n`);
+				if(fx.state) {
+					fx.state.onChange(`${actionIdent}:toggled(${fx.state.get})`);
+				}
 			}
+			src.push(`end)\n`);
 		}
 	}
-	src += `\n-- Action wheel main\n`;
+	src.push(`\n-- Action wheel main\n`);
 	const mainName = avatar.mainActionWheel
 		? ctx.getUuidIdent(avatar.mainActionWheel)
 		: null;
 	if (mainName) {
-		src += `action_wheel:setPage(${mainName})\n`;
+		src.push(`action_wheel:setPage(${mainName})\n`);
 	}
 
-	src += `\n-- Render event\n`;
-	src += `function events.render(delta, context)\n`;
+	src.push(`\n-- Render event\n`);
+	src.push(`function events.render(delta, context)\n`);
 	let renderVars = "";
 	let renderContents = "";
 
@@ -404,9 +446,9 @@ end
 			alwaysWarnings += `print("TODO implement setting ${setting.kind}")\n`;
 		}
 	}
-	src += renderVars;
-	src += renderContents;
-	src += `end\n`;
+	src.push(renderVars);
+	src.push(renderContents);
+	src.push(`end\n`);
 
 	// animation state machine
 	for (const state of Object.values(avatar.animationLayers ?? {})) {
@@ -450,7 +492,7 @@ end
 		}
 	}
 
-	return fns.flat(Infinity as 1).join("") + mainVars + src + alwaysWarnings;
+	return fns.flat(Infinity as 1).join("") + mainVars + src.flat(Infinity as 1).join("") + alwaysWarnings;
 }
 
 export function parseLua(source: string): Avatar {
