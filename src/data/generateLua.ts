@@ -1,4 +1,4 @@
-import type { ActionEffect, Avatar, Condition, UUID } from "@/types";
+import type { ActionEffect, AnimationRef, Avatar, Condition, UUID } from "@/types";
 
 /*
 Use Store to store the values
@@ -198,7 +198,11 @@ export function generateLuaInner(avatar: Avatar) {
 		mainVars.push(`local ${val} = tryOrNil(function() return ${modelPart} end, ${warnEnabled ? luaString(modelPart) : null})\n`);
 		return val;
 	});
-	const _getAnimation = memo((animation: string): string => {
+	type AnimationStr = string & {__is_animation_str: true};
+	const astr = (animation: AnimationRef): AnimationStr => {
+		return `animations${stringifyParts([animation.model, animation.animation])}` as AnimationStr;
+	};
+	const getAnimation = memo((animation: AnimationStr): Lua => {
 		const val = ctx.addNextIdent(animation);
 		mainVars.push(`local ${val} = tryOrNil(function() return ${animation} end, ${luaString(animation)})\n`);
 		return val;
@@ -251,6 +255,19 @@ export function generateLuaInner(avatar: Avatar) {
 					return lua`if ${state} then action_wheel:setPage(${actionWheel}) end`;
 				},
 			};
+		}else if(effect.kind === "toggleAnimation" && effect.animation != null) {
+			const animation = getAnimation(astr(effect.animation));
+			return {
+				callEffect(state) {
+					return `${animation}:setPlaying(${state})`;
+				},
+				state: {
+					get: `${animation}:isPlaying()`,
+					onChange: () => {
+						addWarning(`TODO implement animation state events?`);
+					},
+				},
+			};
 		}else{
 			addWarning(`TODO implement effect ${effect.kind}`);
 			return none;
@@ -288,6 +305,10 @@ export function generateLuaInner(avatar: Avatar) {
 			for(const effect of action.effects ?? []) {
 				const fx = getEffect(effect);
 				src.push(lua`    ${fx.callEffect(lua`toggled`)}\n`);
+			}
+			const toggleState = action.effects?.[0];
+			if(toggleState) {
+				const fx = getEffect(toggleState);
 				if(fx.state) {
 					fx.state.onChange(`${actionIdent}:toggled(${fx.state.get})`);
 				}
