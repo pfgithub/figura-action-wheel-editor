@@ -80,6 +80,66 @@ await addScript(
 );
 
 /*
+this is the plan for the new system
+*/
+await addScript(
+	"Toggles",
+	"_todo",
+	async (sub): Promise<ScriptDataInstanceType[]> => [
+		{
+			uuid: await sub("Toggles/Toggle Animation"),
+			name: "Toggle",
+			mode: "many",
+			parameters: [
+				// union{Animation, ModelPart, }
+				// we could implement 'union' if we implement ie name: "key", defaultValue: "abc", hidden: true
+				{
+					uuid: await sub("Toggles/Toggle Animation/Animation"),
+					name: "Animation",
+					type: {
+						kind: "Animation",
+					},
+				},
+				{
+					uuid: await sub("Toggles/Toggle Animation/Exclusive Tags"),
+					name: "Exclusive Tags",
+					type: { kind: "list", child: {kind: "string"} },
+				},
+				{
+					uuid: await sub("Toggles/Toggle Animation/Saved"),
+					name: "Saved",
+					type: { kind: "boolean" },
+					defaultValue: true,
+				},
+			],
+			defines: {
+				conditions: {},
+				settings: {
+					[await sub("CameraPivot/Disable")]: {
+						uuid: await sub("CameraPivot/Disable"),
+						name: "Disable",
+					},
+					[await sub("CameraPivot/Allow Rotate Camera")]: {
+						uuid: await sub("CameraPivot/Allow Rotate Camera"),
+						name: "Allow Rotate Camera",
+					},
+					[await sub("CameraPivot/Move Crosshair")]: {
+						uuid: await sub("CameraPivot/Move Crosshair"),
+						name: "Fix Crosshair (May trigger AntiCheat in multiplayer)",
+					},
+				},
+				action: {
+					[await sub("Toggles/DefineAction/Execute")]: {
+						uuid: await sub("Toggles/DefineAction/Execute"),
+						name: "Execute",
+					},
+				},
+			},
+		},
+	],
+);
+
+/*
 TODO:
 - need to be able to add RenderSetting from script
   - it will be ($ScriptName.$ComponentName: $ComponentProp)
