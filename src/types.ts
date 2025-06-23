@@ -45,7 +45,6 @@ export type Customization = {
 export type Avatar = {
 	mainActionWheel?: UUID;
 	actionWheels: Record<UUID, ActionWheel>;
-	toggleGroups: Record<UUID, ToggleGroup>;
 	conditionalSettings: Record<UUID, ConditionalSetting>;
 	scripts: Record<UUID, Script>;
 	keybinds: Record<UUID, Keybind>;
@@ -93,12 +92,6 @@ export type Action = {
 export type ActionEffect =
 	| {
 			id: UUID;
-			kind: "toggle";
-			toggleGroup?: UUID;
-			value?: UUID;
-	  }
-	| {
-			id: UUID;
 			kind: "switchPage";
 			actionWheel?: UUID;
 	  }
@@ -108,17 +101,6 @@ export type ActionEffect =
 			scriptInstance?: UUID;
 			scriptAction?: UUID;
 	  };
-
-export type ToggleGroupOption = {
-	name: string;
-};
-
-export type ToggleGroup = {
-	uuid: UUID;
-	name: string;
-	options: Record<UUID, ToggleGroupOption>;
-	saved?: boolean;
-};
 
 export type HideElementSetting = {
 	uuid: UUID;
@@ -162,12 +144,6 @@ export type ConditionNot = {
 	kind: "not";
 	condition?: Condition;
 };
-export type ConditionToggleGroup = {
-	id: UUID;
-	kind: "toggleGroup";
-	toggleGroup?: UUID;
-	value?: UUID;
-};
 export type ConditionRender = {
 	id: UUID;
 	kind: "render";
@@ -190,7 +166,6 @@ export type Condition =
 	| ConditionOr
 	| ConditionAnd
 	| ConditionNot
-	| ConditionToggleGroup
 	| ConditionRender
 	| ConditionAnimation
 	| ConditionScript;
@@ -293,9 +268,6 @@ export type LuaType =
 	  }
 	| {
 			kind: "ActionWheel";
-	  }
-	| {
-			kind: "ToggleGroup";
 	  }
 	| {
 			kind: "Animation";

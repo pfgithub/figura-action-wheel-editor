@@ -19,7 +19,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { produce } from "immer";
 import { useMemo, useState } from "react";
-import { ToggleGroupControls } from "@/components/shared/ToggleGroupControls";
 import { FormRow } from "@/components/ui/FormRow";
 import { Select } from "@/components/ui/Select";
 import { useScriptInstancesWithDefine } from "@/hooks/useScriptData";
@@ -38,12 +37,6 @@ const effectKindData: {
 		text: string;
 	};
 } = {
-	toggle: {
-		label: "Toggle Option",
-		border: "border-sky-500",
-		bg: "bg-sky-900/30",
-		text: "text-sky-300",
-	},
 	switchPage: {
 		label: "Switch Wheel",
 		border: "border-emerald-500",
@@ -61,8 +54,6 @@ const effectKindData: {
 const createNewEffectNode = (kind: PaletteItemKind): ActionEffect => {
 	const id = generateUUID();
 	switch (kind) {
-		case "toggle":
-			return { id, kind };
 		case "switchPage":
 			return { id, kind };
 		case "scriptAction":
@@ -138,11 +129,7 @@ function PaletteItem({ kind }: { kind: PaletteItemKind }) {
 }
 
 function EffectPalette() {
-	const paletteItems: PaletteItemKind[] = [
-		"toggle",
-		"switchPage",
-		"scriptAction",
-	];
+	const paletteItems: PaletteItemKind[] = ["switchPage", "scriptAction"];
 	return (
 		<div className="w-64 flex-shrink-0 p-3 bg-slate-900/50 rounded-lg space-y-2 self-start">
 			<h3 className="font-bold text-slate-300 mb-2">Effects</h3>
@@ -166,13 +153,8 @@ function EffectForm({
 
 	if (!avatar) return null;
 
-	const allToggleGroups = Object.values(avatar.toggleGroups ?? {});
 	const allActionWheels = Object.values(avatar.actionWheels ?? {});
 
-	const selectedToggleGroup =
-		effect.kind === "toggle"
-			? allToggleGroups.find((g) => g.uuid === effect.toggleGroup)
-			: null;
 	const selectedScriptInstanceData =
 		effect.kind === "scriptAction"
 			? allScriptInstances.find(
@@ -184,52 +166,6 @@ function EffectForm({
 		: [];
 
 	switch (effect.kind) {
-		case "toggle":
-			return (
-				<>
-					<FormRow label="Toggle Group">
-						<ToggleGroupControls
-							selectedGroupUUID={effect.toggleGroup}
-							onGroupChange={(newUUID) => {
-								onUpdate((d) => {
-									if (d.kind === "toggle") {
-										d.toggleGroup = newUUID;
-										d.value = undefined;
-									}
-								});
-							}}
-						/>
-					</FormRow>
-					<FormRow label="Value">
-						<Select
-							value={effect.value ?? ""}
-							onChange={(e) =>
-								onUpdate((d) => {
-									if (d.kind === "toggle")
-										d.value = e.target.value
-											? (e.target.value as UUID)
-											: undefined;
-								})
-							}
-							disabled={!effect.toggleGroup}
-						>
-							<option value="">
-								{effect.toggleGroup
-									? "-- Select an option --"
-									: "-- First select a group --"}
-							</option>
-							{selectedToggleGroup &&
-								Object.entries(selectedToggleGroup.options).map(
-									([uuid, option]) => (
-										<option key={uuid} value={uuid}>
-											{option.name}
-										</option>
-									),
-								)}
-						</Select>
-					</FormRow>
-				</>
-			);
 		case "switchPage":
 			return (
 				<FormRow label="Target Wheel">

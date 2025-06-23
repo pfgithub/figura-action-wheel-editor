@@ -30,7 +30,6 @@ export function ConditionPalette() {
 		"and",
 		"or",
 		"not",
-		"toggleGroup",
 		"render",
 		"animation",
 		"script",

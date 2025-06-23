@@ -8,7 +8,6 @@ import { NotConditionNode } from "./nodes/NotConditionNode";
 import { OrConditionNode } from "./nodes/OrConditionNode";
 import { RenderConditionNode } from "./nodes/RenderConditionNode";
 import { ScriptConditionNode } from "./nodes/ScriptConditionNode";
-import { ToggleGroupConditionNode } from "./nodes/ToggleGroupConditionNode";
 import { DropZone, GripVerticalIcon, Trash2Icon } from "./ui";
 
 interface ConditionNodeProps {
@@ -101,13 +100,6 @@ export function ConditionNode({
 					<NotConditionNode
 						condition={condition}
 						path={path}
-						handleUpdate={handleUpdate}
-					/>
-				);
-			case "toggleGroup":
-				return (
-					<ToggleGroupConditionNode
-						condition={condition}
 						handleUpdate={handleUpdate}
 					/>
 				);

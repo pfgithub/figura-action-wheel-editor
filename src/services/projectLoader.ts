@@ -102,17 +102,12 @@ export async function loadProjectFromFiles(
 		? parseLua(projectFileContent)
 		: {
 				actionWheels: {},
-				toggleGroups: {},
 				conditionalSettings: {},
 				scripts: {},
 				keybinds: {},
 			};
 	// Basic validation
-	if (
-		!projectData.actionWheels ||
-		!projectData.toggleGroups ||
-		!projectData.conditionalSettings
-	) {
+	if (!projectData.actionWheels || !projectData.conditionalSettings) {
 		throw new Error("Invalid or corrupted project.figura-editor.lua format.");
 	}
 	projectData.scripts ??= {};

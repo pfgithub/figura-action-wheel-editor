@@ -29,7 +29,6 @@ export function ScriptParameterEditor({
 	const { avatar, modelElements, animations } = useAvatarStore();
 
 	if (!avatar) return null;
-	const allToggleGroups = Object.values(avatar.toggleGroups);
 	const allActionWheels = Object.values(avatar.actionWheels);
 
 	const handleValueChange = (paramName: string, newValue: any) => {
@@ -117,26 +116,6 @@ export function ScriptParameterEditor({
 						{animations.map((anim) => (
 							<option key={JSON.stringify(anim)} value={JSON.stringify(anim)}>
 								{displayAnimationRef(anim)}
-							</option>
-						))}
-					</Select>
-				);
-
-			case "ToggleGroup":
-				return (
-					<Select
-						value={value ?? ""}
-						onChange={(e) =>
-							handleValueChange(
-								param.name,
-								(e.target.value as UUID) || undefined,
-							)
-						}
-					>
-						<option value="">-- Select a group --</option>
-						{allToggleGroups.map((group) => (
-							<option key={group.uuid} value={group.uuid}>
-								{group.name}
 							</option>
 						))}
 					</Select>

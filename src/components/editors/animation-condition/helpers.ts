@@ -27,12 +27,6 @@ export const kindStyles: {
 		bg: "bg-amber-900/30",
 		text: "text-amber-300",
 	},
-	toggleGroup: {
-		label: "Group State",
-		border: "border-violet-500",
-		bg: "bg-violet-900/30",
-		text: "text-violet-300",
-	},
 	render: {
 		label: "Other State",
 		border: "border-rose-500",
@@ -103,8 +97,6 @@ export const createNewConditionNode = (kind: PaletteItemKind): Condition => {
 			return { id, kind: "or", conditions: [] };
 		case "not":
 			return { id, kind: "not" };
-		case "toggleGroup":
-			return { id, kind: "toggleGroup" };
 		case "render":
 			return { id, kind: "render" };
 		case "animation":
