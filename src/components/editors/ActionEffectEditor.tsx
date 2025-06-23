@@ -56,12 +56,6 @@ const effectKindData: {
 		bg: "bg-amber-900/30",
 		text: "text-amber-300",
 	},
-	toggleAnimation: {
-		label: "Toggle Animation",
-		border: "border-rose-500",
-		bg: "bg-rose-900/30",
-		text: "text-rose-300",
-	},
 };
 
 const createNewEffectNode = (kind: PaletteItemKind): ActionEffect => {
@@ -72,8 +66,6 @@ const createNewEffectNode = (kind: PaletteItemKind): ActionEffect => {
 		case "switchPage":
 			return { id, kind };
 		case "scriptAction":
-			return { id, kind };
-		case "toggleAnimation":
 			return { id, kind };
 	}
 };
@@ -150,7 +142,6 @@ function EffectPalette() {
 		"toggle",
 		"switchPage",
 		"scriptAction",
-		"toggleAnimation",
 	];
 	return (
 		<div className="w-64 flex-shrink-0 p-3 bg-slate-900/50 rounded-lg space-y-2 self-start">
@@ -319,34 +310,6 @@ function EffectForm({
 						</Select>
 					</FormRow>
 				</>
-			);
-		case "toggleAnimation":
-			return (
-				<FormRow label="Animation">
-					<Select
-						value={effect.animation ? JSON.stringify(effect.animation) : ""}
-						onChange={(e) =>
-							onUpdate((d) => {
-								if (d.kind === "toggleAnimation")
-									d.animation = e.target.value
-										? (JSON.parse(e.target.value) as AnimationRef)
-										: undefined;
-							})
-						}
-						disabled={animations.length === 0}
-					>
-						<option value="">
-							{animations.length > 0
-								? "-- Select an animation --"
-								: "-- No animations found --"}
-						</option>
-						{animations.map((anim) => (
-							<option key={JSON.stringify(anim)} value={JSON.stringify(anim)}>
-								{displayAnimationRef(anim)}
-							</option>
-						))}
-					</Select>
-				</FormRow>
 			);
 		default:
 			return null;

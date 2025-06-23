@@ -37,3 +37,7 @@ Output the list of created/modified/deleted files with the full updated content 
 
 If changes need to me made to files not included in the context, describe how to refactor them.
 
+
+redoing stuff:
+
+- [ ] Remove Toggle Groups from the app as they are no longer needed.

@@ -86,18 +86,8 @@ export const useAvatarStore = create<AvatarState>()(
 						migrateEffects(keybind);
 					}
 				}
-				if (data.animationLayers) {
-					for (const layer of Object.values(data.animationLayers)) {
-						for (const node of Object.values(layer.nodes)) {
-							for (const transition of node.transitions) {
-								migrateEffects(transition);
-							}
-						}
-					}
-				}
 				// --- END MIGRATION LOGIC ---
 
-				data.animationLayers ??= {};
 				set({ avatar: data, animations, modelElements, textures, metadata });
 				// After loading a new project, clear the undo/redo history.
 				useAvatarStore.temporal.getState().clear();

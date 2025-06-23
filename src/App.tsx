@@ -8,7 +8,6 @@ import "./index.css";
 // Manager Components
 import { MetadataEditorDialog } from "@/components/dialogs/MetadataEditorDialog";
 import { ActionWheelsManager } from "@/components/managers/ActionWheelsManager";
-import { AnimationNodesManager } from "@/components/managers/AnimationNodesManager";
 import { AnimationSettingsManager } from "@/components/managers/AnimationSettingsManager";
 import { KeybindsManager } from "@/components/managers/KeybindsManager";
 import { ScriptsManager } from "@/components/managers/ScriptsManager";
@@ -124,12 +123,7 @@ function FileDropzone({
 	);
 }
 
-type EditorTab =
-	| "wheels"
-	| "settings"
-	| "animation_nodes"
-	| "scripts"
-	| "keybinds";
+type EditorTab = "wheels" | "settings" | "scripts" | "keybinds";
 
 export function App() {
 	const { avatar, isSaving, saveAvatar, updateAvatar, loadAvatar } =
@@ -215,7 +209,6 @@ export function App() {
 	const TABS: { id: EditorTab; label: string }[] = [
 		{ id: "wheels", label: "Action Wheels" },
 		{ id: "settings", label: "Conditional Settings" },
-		{ id: "animation_nodes", label: "Animation Nodes" },
 		{ id: "scripts", label: "Scripts" },
 		{ id: "keybinds", label: "Keybinds" },
 	];
@@ -232,8 +225,6 @@ export function App() {
 				);
 			case "settings":
 				return <AnimationSettingsManager />;
-			case "animation_nodes":
-				return <AnimationNodesManager />;
 			case "scripts":
 				return <ScriptsManager />;
 			case "keybinds":

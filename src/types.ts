@@ -49,7 +49,6 @@ export type Avatar = {
 	conditionalSettings: Record<UUID, ConditionalSetting>;
 	scripts: Record<UUID, Script>;
 	keybinds: Record<UUID, Keybind>;
-	animationLayers?: Record<UUID, AnimationLayer>;
 };
 
 export type Keybind = {
@@ -108,11 +107,6 @@ export type ActionEffect =
 			kind: "scriptAction";
 			scriptInstance?: UUID;
 			scriptAction?: UUID;
-	  }
-	| {
-			id: UUID;
-			kind: "toggleAnimation";
-			animation?: AnimationRef;
 	  };
 
 export type ToggleGroupOption = {
@@ -221,30 +215,6 @@ export type Image = {
 	width: number;
 	height: number;
 	thumbhash: string;
-};
-
-// --- Animation Nodes ---
-
-export type AnimationLayer = {
-	uuid: UUID;
-	name: string;
-	nodes: Record<UUID, AnimationNode>;
-	noneNode: UUID;
-};
-
-export type AnimationNode = {
-	uuid: UUID;
-	name: string;
-	animation?: AnimationRef; // Empty string represents "None"
-	transitions: AnimationTransition[];
-};
-
-export type AnimationTransition = {
-	uuid: UUID;
-	targetNode: UUID;
-	waitForFinish?: boolean;
-	effects?: ActionEffect[];
-	activationCondition?: Condition;
 };
 
 // --- Scripts ---

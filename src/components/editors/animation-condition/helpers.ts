@@ -45,12 +45,6 @@ export const kindStyles: {
 		bg: "bg-fuchsia-900/30",
 		text: "text-fuchsia-300",
 	},
-	custom: {
-		label: "Custom Lua",
-		border: "border-slate-500",
-		bg: "bg-slate-700/50",
-		text: "text-slate-300",
-	},
 	script: {
 		label: "Script Condition",
 		border: "border-teal-500",

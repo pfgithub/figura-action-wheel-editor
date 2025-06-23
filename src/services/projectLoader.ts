@@ -106,7 +106,6 @@ export async function loadProjectFromFiles(
 				conditionalSettings: {},
 				scripts: {},
 				keybinds: {},
-				animationLayers: {},
 			};
 	// Basic validation
 	if (
@@ -118,7 +117,6 @@ export async function loadProjectFromFiles(
 	}
 	projectData.scripts ??= {};
 	projectData.keybinds ??= {};
-	projectData.animationLayers ??= {};
 
 	// --- Parse avatar.json ---
 	let metadata: AvatarMetadata = {};
