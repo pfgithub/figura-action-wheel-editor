@@ -389,15 +389,15 @@ export function ActionEditor({
 						<SectionDivider />
 
 						<h4 className="text-lg font-semibold text-slate-300 border-b border-slate-700 pb-2 mb-4">
-							Action Effects
+							Action Effect
 						</h4>
 						<p className="text-xs text-slate-400 -mt-3 mb-3">
-							Effects are run in order from top to bottom.
+							The effect is run when the action is selected.
 						</p>
 
 						<ActionEffectEditor
-							effects={action.effects}
-							updateEffects={(effects) => updateAction({ ...action, effects })}
+							effect={action.effect}
+							updateEffect={(effect) => updateAction({ ...action, effect })}
 						/>
 					</div>
 				</div>

@@ -54,7 +54,7 @@ export type Keybind = {
 	uuid: UUID;
 	name: string;
 	keyId: string;
-	effects?: ActionEffect[];
+	effect?: ActionEffect;
 };
 
 export type KeybindListItem = {
@@ -87,7 +87,7 @@ export type Action = {
 	icon: IconItem | IconTexture;
 	label: string;
 	color: [number, number, number];
-	effects?: ActionEffect[];
+	effect?: ActionEffect;
 };
 export type ActionEffect =
 	| {

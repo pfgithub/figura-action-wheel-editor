@@ -46,14 +46,14 @@ export function KeybindEditor({ keybind, updateKeybind }: KeybindEditorProps) {
 			<hr className="border-slate-700/60 my-6" />
 
 			<h4 className="text-lg font-semibold text-slate-300 border-b border-slate-700 pb-2 mb-4">
-				Action Effects
+				Action Effect
 			</h4>
 			<p className="text-xs text-slate-400 -mt-3 mb-3">
-				Effects are run in order from top to bottom.
+				The effect is run when the keybind is pressed.
 			</p>
 			<ActionEffectEditor
-				effects={keybind.effects}
-				updateEffects={(effects) => handleUpdate("effects", effects)}
+				effect={keybind.effect}
+				updateEffect={(effect) => handleUpdate("effect", effect)}
 			/>
 		</div>
 	);

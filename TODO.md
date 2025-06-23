@@ -40,6 +40,6 @@ If changes need to me made to files not included in the context, describe how to
 
 redoing stuff:
 
-- [ ] Remove Toggle Groups from the app as they are no longer needed.
+- [ ] Change Action Effects from `effects: ActionEffect[]` to `effect?: ActionEffect`.
 - [ ] Add an action type called "Toggle".
        You can choose an Animation or a ModelPart to toggle. You can set a list of Exclusive Tags for the toggle (UUID[]). You can set if the toggle is Saved or not.

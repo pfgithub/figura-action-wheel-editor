@@ -92,19 +92,21 @@ export function ActionWheelsManager({
 			// Clear references from other wheels and keybinds
 			Object.values(draft.actionWheels).forEach((wheel) => {
 				wheel.actions.forEach((action) => {
-					action.effects?.forEach((effect) => {
-						if (effect.kind === "switchPage" && effect.actionWheel === uuid) {
-							effect.actionWheel = undefined;
-						}
-					});
+					if (
+						action.effect?.kind === "switchPage" &&
+						action.effect.actionWheel === uuid
+					) {
+						action.effect.actionWheel = undefined;
+					}
 				});
 			});
 			Object.values(draft.keybinds ?? {}).forEach((keybind) => {
-				keybind.effects?.forEach((effect) => {
-					if (effect.kind === "switchPage" && effect.actionWheel === uuid) {
-						effect.actionWheel = undefined;
-					}
-				});
+				if (
+					keybind.effect?.kind === "switchPage" &&
+					keybind.effect.actionWheel === uuid
+				) {
+					keybind.effect.actionWheel = undefined;
+				}
 			});
 		});
 
