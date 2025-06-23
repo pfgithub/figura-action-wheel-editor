@@ -42,12 +42,18 @@ export type Customization = {
 	smooth?: boolean;
 };
 
+export type ExclusiveTag = {
+	uuid: UUID;
+	name: string;
+};
+
 export type Avatar = {
 	mainActionWheel?: UUID;
 	actionWheels: Record<UUID, ActionWheel>;
 	conditionalSettings: Record<UUID, ConditionalSetting>;
 	scripts: Record<UUID, Script>;
 	keybinds: Record<UUID, Keybind>;
+	exclusiveTags?: Record<UUID, ExclusiveTag>;
 };
 
 export type Keybind = {
@@ -107,9 +113,9 @@ export type ActionEffect =
 			targetType?: "animation" | "modelPart";
 			animation?: AnimationRef;
 			modelPart?: ModelPartRef;
-			exclusiveTags?: UUID[];
 			isSaved?: boolean;
 			defaultOn?: boolean;
+			exclusiveTags?: UUID[];
 	  };
 
 export type HideElementSetting = {

@@ -105,13 +105,17 @@ export async function loadProjectFromFiles(
 				conditionalSettings: {},
 				scripts: {},
 				keybinds: {},
+				exclusiveTags: {},
 			};
 	// Basic validation
 	if (!projectData.actionWheels || !projectData.conditionalSettings) {
 		throw new Error("Invalid or corrupted project.figura-editor.lua format.");
 	}
+
+	// Migrations
 	projectData.scripts ??= {};
 	projectData.keybinds ??= {};
+	projectData.exclusiveTags ??= {};
 
 	// --- Parse avatar.json ---
 	let metadata: AvatarMetadata = {};

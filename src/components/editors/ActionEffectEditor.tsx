@@ -1,5 +1,12 @@
 import { produce } from "immer";
+import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+} from "@/components/ui/Dialog";
 import { FormRow } from "@/components/ui/FormRow";
 import { Input } from "@/components/ui/Input";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
@@ -17,51 +24,6 @@ import { generateUUID } from "@/utils/uuid";
 
 // --- Types & Data ---
 type ActionEffectKind = ActionEffect["kind"];
-
-// A simple UUID list editor for exclusive tags
-const UUIDArrayEditor = ({
-	label,
-	values,
-	onChange,
-}: {
-	label: string;
-	values: UUID[];
-	onChange: (newValues: UUID[]) => void;
-}) => {
-	const addValue = () => onChange([...(values ?? []), generateUUID()]);
-	const removeValue = (index: number) =>
-		onChange((values ?? []).filter((_, i) => i !== index));
-
-	return (
-		<FormRow label={label}>
-			<div className="space-y-2">
-				{(values ?? []).map((value, index) => (
-					<div key={value} className="flex gap-2 items-center">
-						<Input
-							value={value}
-							readOnly
-							className="bg-slate-800/80 font-mono text-xs"
-						/>
-						<Button
-							onClick={() => removeValue(index)}
-							className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 w-9 h-9 p-0 flex-shrink-0"
-							aria-label="Remove Tag"
-						>
-							<TrashIcon className="w-5 h-5" />
-						</Button>
-					</div>
-				))}
-				<Button
-					onClick={addValue}
-					className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 w-full mt-2"
-				>
-					<PlusIcon className="w-5 h-5 mr-2" />
-					Add Exclusive Tag
-				</Button>
-			</div>
-		</FormRow>
-	);
-};
 
 const effectKindData: {
 	[key in ActionEffectKind]: { label: string };
@@ -91,10 +53,148 @@ const createNewEffect = (kind: ActionEffectKind): ActionEffect => {
 				targetType: "animation",
 				isSaved: true,
 				defaultOn: false,
-				exclusiveTags: [],
 			};
 	}
 };
+
+function ExclusiveTagsManagerDialog({
+	isOpen,
+	onClose,
+}: {
+	isOpen: boolean;
+	onClose: () => void;
+}) {
+	const { avatar, updateAvatar } = useAvatarStore();
+	const [newTagName, setNewTagName] = useState("");
+
+	const exclusiveTags = Object.values(avatar?.exclusiveTags ?? {});
+
+	const handleAddTag = () => {
+		if (!newTagName.trim()) return;
+		const newTag = { uuid: generateUUID(), name: newTagName.trim() };
+		updateAvatar((draft) => {
+			draft.exclusiveTags ??= {};
+			draft.exclusiveTags[newTag.uuid] = newTag;
+		});
+		setNewTagName("");
+	};
+
+	const handleRenameTag = (tagId: UUID, newName: string) => {
+		updateAvatar((draft) => {
+			if (draft.exclusiveTags?.[tagId]) {
+				draft.exclusiveTags[tagId].name = newName;
+			}
+		});
+	};
+
+	const handleDeleteTag = (tagId: UUID) => {
+		// eslint-disable-next-line no-alert
+		if (
+			!window.confirm(
+				"Are you sure you want to delete this tag? It will be removed from all actions that use it.",
+			)
+		)
+			return;
+
+		updateAvatar((draft) => {
+			if (draft.exclusiveTags) {
+				delete draft.exclusiveTags[tagId];
+			}
+
+			// Clean up in action wheels
+			Object.values(draft.actionWheels).forEach((wheel) => {
+				wheel.actions.forEach((action) => {
+					if (
+						action.effect?.kind === "toggle" &&
+						action.effect.exclusiveTags?.includes(tagId)
+					) {
+						action.effect.exclusiveTags = action.effect.exclusiveTags.filter(
+							(id) => id !== tagId,
+						);
+					}
+				});
+			});
+
+			// Clean up in keybinds
+			Object.values(draft.keybinds ?? {}).forEach((keybind) => {
+				if (
+					keybind.effect?.kind === "toggle" &&
+					keybind.effect.exclusiveTags?.includes(tagId)
+				) {
+					keybind.effect.exclusiveTags = keybind.effect.exclusiveTags.filter(
+						(id) => id !== tagId,
+					);
+				}
+			});
+		});
+	};
+
+	return (
+		<Dialog open={isOpen} onClose={onClose} className="max-w-lg">
+			<DialogHeader>Manage Exclusive Tags</DialogHeader>
+			<DialogContent>
+				<p className="text-sm text-slate-400 mb-4">
+					Exclusive tags ensure that only one toggle action with a given tag can
+					be active at a time.
+				</p>
+				<div className="space-y-2 max-h-72 overflow-y-auto -mr-2 pr-2">
+					{exclusiveTags.length > 0 ? (
+						exclusiveTags.map((tag) => (
+							<div
+								key={tag.uuid}
+								className="flex items-center gap-2 p-1 rounded-md bg-slate-900/50"
+							>
+								<Input
+									value={tag.name}
+									onChange={(e) => handleRenameTag(tag.uuid, e.target.value)}
+									className="bg-transparent border-none focus:ring-0 focus:bg-slate-700"
+								/>
+								<Button
+									onClick={() => handleDeleteTag(tag.uuid)}
+									className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 w-9 h-9 p-0 flex-shrink-0"
+								>
+									<TrashIcon className="w-5 h-5" />
+								</Button>
+							</div>
+						))
+					) : (
+						<div className="text-center text-slate-500 py-8">
+							No tags created yet.
+						</div>
+					)}
+				</div>
+				<div className="flex gap-2 pt-4 border-t border-slate-700">
+					<Input
+						placeholder="New tag name..."
+						value={newTagName}
+						onChange={(e) => setNewTagName(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === "Enter") {
+								handleAddTag();
+								e.preventDefault();
+							}
+						}}
+					/>
+					<Button
+						onClick={handleAddTag}
+						disabled={!newTagName.trim()}
+						className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 w-10 h-10 p-0 flex-shrink-0"
+					>
+						<PlusIcon className="w-5 h-5" />
+					</Button>
+				</div>
+			</DialogContent>
+			<DialogFooter>
+				<Button
+					onClick={onClose}
+					className="bg-slate-600 hover:bg-slate-500"
+				>
+					Close
+				</Button>
+			</DialogFooter>
+		</Dialog>
+	);
+}
 
 // --- Main Editor ---
 interface ActionEffectEditorProps {
@@ -108,6 +208,7 @@ export function ActionEffectEditor({
 }: ActionEffectEditorProps) {
 	const { avatar, animations, modelElements } = useAvatarStore();
 	const allScriptInstances = useScriptInstancesWithDefine("action");
+	const [isTagsManagerOpen, setTagsManagerOpen] = useState(false);
 
 	const handleEffectTypeChange = (
 		e: React.ChangeEvent<HTMLSelectElement>,
@@ -225,7 +326,11 @@ export function ActionEffectEditor({
 					</>
 				);
 			}
-			case "toggle":
+			case "toggle": {
+				const allTags = Object.values(avatar.exclusiveTags ?? {});
+				const appliedTagIds = new Set(effect.exclusiveTags ?? []);
+				const availableTags = allTags.filter((t) => !appliedTagIds.has(t.uuid));
+
 				return (
 					<div className="space-y-4">
 						<FormRow label="Toggle Type">
@@ -300,15 +405,6 @@ export function ActionEffectEditor({
 								</Select>
 							</FormRow>
 						)}
-						<UUIDArrayEditor
-							label="Exclusive Tags"
-							values={effect.exclusiveTags ?? []}
-							onChange={(newTags) =>
-								handleUpdate((d) => {
-									if (d.kind === "toggle") d.exclusiveTags = newTags;
-								})
-							}
-						/>
 						<FormRow label="Saved">
 							<input
 								type="checkbox"
@@ -333,8 +429,96 @@ export function ActionEffectEditor({
 								className="w-5 h-5 rounded bg-slate-700 border-slate-600 text-violet-500 focus:ring-violet-500"
 							/>
 						</FormRow>
+						{/* Exclusive Tags Section */}
+						<div className="pt-4 mt-4 border-t border-slate-700/60">
+							<div className="flex justify-between items-center mb-1">
+								<label className="text-slate-400 text-sm font-medium">
+									Exclusive Tags
+								</label>
+								<Button
+									onClick={() => setTagsManagerOpen(true)}
+									className="bg-slate-600/50 hover:bg-slate-600 text-xs py-1 px-2"
+								>
+									Manage Tags...
+								</Button>
+							</div>
+							<p className="text-xs text-slate-500 mb-3">
+								If another action with one of these tags is active, this toggle
+								will be forced off.
+							</p>
+
+							<div className="space-y-2">
+								<div className="flex flex-wrap gap-2 min-h-[2.25rem] p-2 bg-slate-900/40 rounded-md border border-slate-700/50">
+									{(effect.exclusiveTags ?? []).map((tagId) => {
+										const tag = avatar.exclusiveTags?.[tagId];
+										if (!tag) return null;
+										return (
+											<div
+												key={tag.uuid}
+												className="flex items-center gap-1.5 bg-violet-500/20 text-violet-300 text-sm font-medium pl-2.5 pr-1 py-0.5 rounded-full"
+											>
+												<span>{tag.name}</span>
+												<button
+													type="button"
+													onClick={() =>
+														handleUpdate((d) => {
+															if (
+																d.kind === "toggle" &&
+																d.exclusiveTags
+															) {
+																d.exclusiveTags =
+																	d.exclusiveTags.filter(
+																		(id) => id !== tagId,
+																	);
+															}
+														})
+													}
+													className="bg-violet-500/20 hover:bg-violet-500/50 rounded-full w-5 h-5 flex items-center justify-center text-violet-200 hover:text-white"
+												>
+													×
+												</button>
+											</div>
+										);
+									})}
+									{(!effect.exclusiveTags ||
+										effect.exclusiveTags.length === 0) && (
+										<span className="text-slate-500 text-sm italic px-1 py-0.5">
+											No tags applied.
+										</span>
+									)}
+								</div>
+								<Select
+									value=""
+									onChange={(e) => {
+										const tagId = e.target.value;
+										if (!tagId) return;
+										handleUpdate((d) => {
+											if (d.kind === "toggle") {
+												d.exclusiveTags = [
+													...(d.exclusiveTags ?? []),
+													tagId as UUID,
+												];
+											}
+										});
+									}}
+									disabled={availableTags.length === 0}
+								>
+									<option value="">
+										{availableTags.length > 0
+											? "Add a tag..."
+											: "All tags applied"}
+									</option>
+									{availableTags.map((tag) => (
+										<option key={tag.uuid} value={tag.uuid}>
+											{tag.name}
+										</option>
+									))}
+								</Select>
+							</div>
+						</div>
 					</div>
 				);
+			}
 			default:
 				return null;
 		}
@@ -354,6 +538,10 @@ export function ActionEffectEditor({
 			</FormRow>
 
 			{renderEffectForm()}
+			<ExclusiveTagsManagerDialog
+				isOpen={isTagsManagerOpen}
+				onClose={() => setTagsManagerOpen(false)}
+			/>
 		</div>
 	);
 }
