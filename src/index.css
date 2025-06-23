@@ -1,1 +1,56 @@
 @import "tailwindcss";
+@import "reactflow/dist/style.css";
+
+/* Custom React Flow styles to match the app's theme */
+.react-flow .react-flow__node {
+	background-color: #334155; /* slate-700 */
+	color: #f1f5f9; /* slate-100 */
+	border-color: #475569; /* slate-600 */
+	border-radius: 0.5rem;
+	padding: 0.5rem 1rem;
+	min-width: 150px;
+	text-align: center;
+	font-weight: 600;
+	font-size: 0.875rem;
+}
+
+.react-flow .react-flow__node.selected {
+	border-color: #8b5cf6; /* violet-500 */
+	box-shadow: 0 0 0 1px #8b5cf6;
+}
+
+.react-flow .react-flow__edge-path {
+	stroke: #64748b; /* slate-500 */
+	stroke-width: 2;
+}
+
+.react-flow .react-flow__edge.selected .react-flow__edge-path,
+.react-flow .react-flow__edge:hover .react-flow__edge-path {
+	stroke: #a78bfa; /* violet-400 */
+}
+
+.react-flow .react-flow__arrowhead path {
+	fill: #64748b; /* slate-500 */
+}
+
+.react-flow .react-flow__edge.selected .react-flow__arrowhead path,
+.react-flow .react-flow__edge:hover .react-flow__arrowhead path {
+	fill: #a78bfa; /* violet-400 */
+}
+
+.react-flow .react-flow__controls {
+	box-shadow: none;
+}
+.react-flow .react-flow__controls-button {
+	background-color: #334155; /* slate-700 */
+	border-bottom-color: #475569; /* slate-600 */
+	fill: #f1f5f9;
+}
+
+.react-flow .react-flow__controls-button:hover {
+	background-color: #475569; /* slate-600 */
+}
+
+.react-flow .react-flow__background {
+	background-color: transparent;
+}
