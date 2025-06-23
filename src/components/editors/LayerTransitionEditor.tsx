@@ -18,8 +18,10 @@ export function LayerTransitionEditor({
 	const { animations: allAnims } = useAvatarStore();
 	const layerNodes = Object.values(layer.nodes);
 
-	const displayAnimationRef = (ref: AnimationRef) =>
-		`${ref.model}.${ref.animation}`;
+	const displayAnimationRef = (ref: AnimationRef) => {
+		const loop = ref.loop ? ` (${ref.loop})` : "";
+		return `${ref.model}.${ref.animation}${loop}`;
+	};
 
 	const handleUpdate = <K extends keyof LayerTransition>(
 		key: K,

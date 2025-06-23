@@ -38,8 +38,10 @@ const modelPartRefToId = (ref: ModelPartRef) =>
 	`models.${ref.model}.${ref.partPath.join(".")}`;
 const displayModelPartRef = (ref: ModelPartRef) =>
 	`${ref.model}.${ref.partPath.join(".")}`;
-const displayAnimationRef = (ref: AnimationRef) =>
-	`${ref.model}.${ref.animation}`;
+const displayAnimationRef = (ref: AnimationRef) => {
+	const loop = ref.loop ? ` (${ref.loop})` : "";
+	return `${ref.model}.${ref.animation}${loop}`;
+};
 
 const Section = ({
 	title,

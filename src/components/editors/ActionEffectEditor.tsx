@@ -233,8 +233,10 @@ export function ActionEffectEditor({
 		const allActionWheels = Object.values(avatar.actionWheels ?? {});
 		const displayModelPartRef = (ref: ModelPartRef) =>
 			`${ref.model}.${ref.partPath.join(".")}`;
-		const displayAnimationRef = (ref: AnimationRef) =>
-			`${ref.model}.${ref.animation}`;
+		const displayAnimationRef = (ref: AnimationRef) => {
+			const loop = ref.loop ? ` (${ref.loop})` : "";
+			return `${ref.model}.${ref.animation}${loop}`;
+		};
 
 		switch (effect.kind) {
 			case "switchPage":

@@ -156,7 +156,11 @@ export async function loadProjectFromFiles(
 		if (Array.isArray(model.animations)) {
 			for (const anim of model.animations) {
 				if (anim.name) {
-					allAnimations.push({ model: modelName, animation: anim.name });
+					allAnimations.push({
+						model: modelName,
+						animation: anim.name,
+						loop: anim.loop,
+					});
 				}
 			}
 		}

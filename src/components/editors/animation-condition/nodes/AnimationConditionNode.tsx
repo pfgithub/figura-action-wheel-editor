@@ -7,8 +7,10 @@ interface AnimationConditionNodeProps {
 	handleUpdate: (updater: (draft: ConditionAnimation) => void) => void;
 }
 
-const displayAnimationRef = (ref: AnimationRef) =>
-	`${ref.model}.${ref.animation}`;
+const displayAnimationRef = (ref: AnimationRef) => {
+	const loop = ref.loop ? ` (${ref.loop})` : "";
+	return `${ref.model}.${ref.animation}${loop}`;
+};
 
 export function AnimationConditionNode({
 	condition,

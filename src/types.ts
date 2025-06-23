@@ -5,6 +5,7 @@ export type RenderValueID = string & { __is_render_value_id: true };
 export type AnimationRef = {
 	model: string;
 	animation: string;
+	loop?: "once" | "hold" | "loop";
 };
 
 export type ModelPartRef = {
