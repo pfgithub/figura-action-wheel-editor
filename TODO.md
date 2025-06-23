@@ -87,3 +87,5 @@ type LayerCondition = {
   targetNode?: UUID,
 };
 ```
+
+- [ ] Change the 'Exclusive Tags' editor so it does not need a modal. Instead, you can type in a tag. It will offer to add it if it doesn't exist or let you select from an existing tag.
