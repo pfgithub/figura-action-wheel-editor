@@ -46,9 +46,11 @@ redoing stuff:
 
 the new Layers, only needed for fancy stuff:
 
-Add the Layers tab. It should be a master-detail view. The center should be reserved for a future visualization, for now it can have a list of nodes and transitions.
+Add the Layers tab. It should be a master-detail view.
 
 If nothing is selected, the right sidebar should have a reorderable list of layer conditions. When a node is selected, the right sidebar should let you edit that node. When a transition is selected, the right sidebar should let you edit that transition.
+
+In the future, the center will be a visualization. But for now, the center should be a list of nodes and transitions.
 
 These are the proposed types for Layers:
 

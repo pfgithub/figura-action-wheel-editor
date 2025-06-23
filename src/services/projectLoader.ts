@@ -106,6 +106,7 @@ export async function loadProjectFromFiles(
 				scripts: {},
 				keybinds: {},
 				exclusiveTags: {},
+				layers: {},
 			};
 	// Basic validation
 	if (!projectData.actionWheels || !projectData.conditionalSettings) {
@@ -116,6 +117,7 @@ export async function loadProjectFromFiles(
 	projectData.scripts ??= {};
 	projectData.keybinds ??= {};
 	projectData.exclusiveTags ??= {};
+	projectData.layers ??= {};
 
 	// --- Parse avatar.json ---
 	let metadata: AvatarMetadata = {};

@@ -54,6 +54,7 @@ export type Avatar = {
 	scripts: Record<UUID, Script>;
 	keybinds: Record<UUID, Keybind>;
 	exclusiveTags?: Record<UUID, ExclusiveTag>;
+	layers?: Record<UUID, Layer>;
 };
 
 export type Keybind = {
@@ -291,3 +292,36 @@ export type LuaType =
 	| {
 			kind: "item";
 	  };
+
+// --- Layers ---
+
+export type Layer = {
+	uuid: UUID;
+	name: string;
+	nodes: Record<UUID, LayerNode>;
+	transitions: Record<UUID, LayerTransition>;
+	// in order. the first condition that matches will be the one
+	conditions: LayerCondition[];
+};
+export type LayerNode = {
+	uuid: UUID;
+	name: string;
+	animation?: AnimationRef; // 'Once' animations are not allowed
+};
+export type LayerTransition = {
+	uuid: UUID;
+	fromNode: UUID;
+	toNode: UUID;
+
+	// if no animation is set, the transition will be instant
+	animation?: AnimationRef; // 'Loop' animations are not allowed
+
+	reverse: boolean; // if the animation should play in reverse
+	allowCancel: boolean; // if the target node we're animating to can be gotten to faster by going from this animation's fromNode, allow cancelling this animation
+	weight: number; // default 1.0
+};
+export type LayerCondition = {
+	uuid: UUID;
+	condition?: Condition;
+	targetNode?: UUID;
+};
