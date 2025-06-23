@@ -91,7 +91,7 @@ type LayerCondition = {
 ```
 
 - [x] In the LayerConditionsEditor and the , the AnimationConditionEditor is too big. Create a new component that is an inline preview of the Condition and clicking on it opens a modal with the AnimationConditionEditor, and use that component in LayerConditionsEditor.
-- [ ] Update the LayerNodeEditor to include a list of transitions coming from this node and have a button to add a transition there. You should be able to add a transition to any existing node, or add a new node with an animation. If you add a new node this way, it should automatically set up two transitions: One from the current node to the new node with the animation and one from the new node to the current node with the animation and reverse set to true.
+- [x] Update the LayerNodeEditor to include a list of transitions coming from this node and have a button to add a transition there. You should be able to add a transition to any existing node, or add a new node with an animation. If you add a new node this way, it should automatically set up two transitions: One from the current node to the new node with the animation and one from the new node to the current node with the animation and reverse set to true.
 - [ ] Update the LayerNodeEditor to show which LayerConditions activate it and enable adding new conditions to activate it. There also be a button to change the condition priority which sets the selection in the LayerEditor to null in order to show the conditions
 - [ ] Change the 'Exclusive Tags' editor so it does not need a modal. Instead, you can type in a tag. It will offer to add it if it doesn't exist or let you select from an existing tag.
 - [ ] Improve the activation condition summaries.

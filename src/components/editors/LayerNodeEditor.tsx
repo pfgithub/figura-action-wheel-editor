@@ -1,5 +1,9 @@
 import { Popover, Transition } from "@headlessui/react";
 import React, { useState } from "react";
+import {
+	createNewConditionNode,
+	summarizeCondition,
+} from "@/components/editors/animation-condition/helpers";
 import { Button } from "@/components/ui/Button";
 import {
 	Dialog,
@@ -15,6 +19,7 @@ import { useAvatarStore } from "@/store/avatarStore";
 import type {
 	AnimationRef,
 	Layer,
+	LayerCondition,
 	LayerNode,
 	LayerTransition,
 	UUID,
@@ -165,6 +170,22 @@ export function LayerNodeEditor({
 		(n) => n.uuid !== node.uuid,
 	);
 
+	const activatingConditions = layer.conditions.filter(
+		(c) => c.targetNode === node.uuid,
+	);
+
+	const handleAddActivatingCondition = () => {
+		const newCondition: LayerCondition = {
+			uuid: generateUUID(),
+			targetNode: node.uuid,
+			condition: createNewConditionNode("or"), // Default to an empty 'or' which evaluates to false.
+		};
+		updateLayer((draft) => {
+			draft.conditions.push(newCondition);
+		});
+		setSelection(null);
+	};
+
 	const displayAnimationRef = (ref: AnimationRef) => {
 		const loop = ref.loop ? ` (${ref.loop})` : "";
 		return `${ref.model}.${ref.animation}${loop}`;
@@ -310,6 +331,49 @@ export function LayerNodeEditor({
 								No outgoing transitions.
 							</p>
 						)}
+					</div>
+				</div>
+
+				<div className="pt-4 mt-4 border-t border-slate-700/60">
+					<h4 className="text-base font-semibold text-slate-300">
+						Activating Conditions
+					</h4>
+					<p className="text-xs text-slate-400 mt-1 mb-3">
+						This node becomes active if one of these conditions is the first to
+						be met in the layer's condition list.
+					</p>
+					<div className="space-y-2 bg-slate-900/30 p-2 rounded-md max-h-48 overflow-y-auto">
+						{activatingConditions.length > 0 ? (
+							activatingConditions.map((cond) => (
+								<div
+									key={cond.uuid}
+									className="w-full text-left p-2 rounded-md bg-slate-700/50"
+									title={summarizeCondition(cond.condition)}
+								>
+									<p className="truncate text-sm text-slate-300">
+										{summarizeCondition(cond.condition)}
+									</p>
+								</div>
+							))
+						) : (
+							<p className="text-sm text-slate-500 text-center p-4">
+								No conditions activate this node.
+							</p>
+						)}
+					</div>
+					<div className="mt-3 grid grid-cols-2 gap-2">
+						<Button
+							onClick={handleAddActivatingCondition}
+							className="w-full justify-center bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300"
+						>
+							<PlusIcon className="w-4 h-4 mr-2" /> Add New Condition
+						</Button>
+						<Button
+							onClick={() => setSelection(null)}
+							className="w-full justify-center bg-slate-600 hover:bg-slate-500"
+						>
+							Reorder Conditions
+						</Button>
 					</div>
 				</div>
 			</div>
