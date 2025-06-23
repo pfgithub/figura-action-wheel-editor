@@ -100,6 +100,16 @@ export type ActionEffect =
 			kind: "scriptAction";
 			scriptInstance?: UUID;
 			scriptAction?: UUID;
+	  }
+	| {
+			id: UUID;
+			kind: "toggle";
+			targetType?: "animation" | "modelPart";
+			animation?: AnimationRef;
+			modelPart?: ModelPartRef;
+			exclusiveTags?: UUID[];
+			isSaved?: boolean;
+			defaultOn?: boolean;
 	  };
 
 export type HideElementSetting = {

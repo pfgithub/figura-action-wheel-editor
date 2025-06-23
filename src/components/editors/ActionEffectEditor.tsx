@@ -1,13 +1,67 @@
 import { produce } from "immer";
+import { Button } from "@/components/ui/Button";
 import { FormRow } from "@/components/ui/FormRow";
+import { Input } from "@/components/ui/Input";
+import { PlusIcon, TrashIcon } from "@/components/ui/icons";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Select } from "@/components/ui/Select";
 import { useScriptInstancesWithDefine } from "@/hooks/useScriptData";
 import { useAvatarStore } from "@/store/avatarStore";
-import type { ActionEffect, UUID } from "@/types";
+import type {
+	ActionEffect,
+	AnimationRef,
+	ModelPartRef,
+	UUID,
+} from "@/types";
 import { generateUUID } from "@/utils/uuid";
 
 // --- Types & Data ---
 type ActionEffectKind = ActionEffect["kind"];
+
+// A simple UUID list editor for exclusive tags
+const UUIDArrayEditor = ({
+	label,
+	values,
+	onChange,
+}: {
+	label: string;
+	values: UUID[];
+	onChange: (newValues: UUID[]) => void;
+}) => {
+	const addValue = () => onChange([...(values ?? []), generateUUID()]);
+	const removeValue = (index: number) =>
+		onChange((values ?? []).filter((_, i) => i !== index));
+
+	return (
+		<FormRow label={label}>
+			<div className="space-y-2">
+				{(values ?? []).map((value, index) => (
+					<div key={value} className="flex gap-2 items-center">
+						<Input
+							value={value}
+							readOnly
+							className="bg-slate-800/80 font-mono text-xs"
+						/>
+						<Button
+							onClick={() => removeValue(index)}
+							className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 w-9 h-9 p-0 flex-shrink-0"
+							aria-label="Remove Tag"
+						>
+							<TrashIcon className="w-5 h-5" />
+						</Button>
+					</div>
+				))}
+				<Button
+					onClick={addValue}
+					className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 w-full mt-2"
+				>
+					<PlusIcon className="w-5 h-5 mr-2" />
+					Add Exclusive Tag
+				</Button>
+			</div>
+		</FormRow>
+	);
+};
 
 const effectKindData: {
 	[key in ActionEffectKind]: { label: string };
@@ -18,6 +72,9 @@ const effectKindData: {
 	scriptAction: {
 		label: "Script Action",
 	},
+	toggle: {
+		label: "Toggle",
+	},
 };
 
 const createNewEffect = (kind: ActionEffectKind): ActionEffect => {
@@ -27,6 +84,15 @@ const createNewEffect = (kind: ActionEffectKind): ActionEffect => {
 			return { id, kind };
 		case "scriptAction":
 			return { id, kind };
+		case "toggle":
+			return {
+				id,
+				kind,
+				targetType: "animation",
+				isSaved: true,
+				defaultOn: false,
+				exclusiveTags: [],
+			};
 	}
 };
 
@@ -40,7 +106,7 @@ export function ActionEffectEditor({
 	effect,
 	updateEffect,
 }: ActionEffectEditorProps) {
-	const { avatar } = useAvatarStore();
+	const { avatar, animations, modelElements } = useAvatarStore();
 	const allScriptInstances = useScriptInstancesWithDefine("action");
 
 	const handleEffectTypeChange = (
@@ -64,6 +130,10 @@ export function ActionEffectEditor({
 		if (!effect || !avatar) return null;
 
 		const allActionWheels = Object.values(avatar.actionWheels ?? {});
+		const displayModelPartRef = (ref: ModelPartRef) =>
+			`${ref.model}.${ref.partPath.join(".")}`;
+		const displayAnimationRef = (ref: AnimationRef) =>
+			`${ref.model}.${ref.animation}`;
 
 		switch (effect.kind) {
 			case "switchPage":
@@ -155,6 +225,116 @@ export function ActionEffectEditor({
 					</>
 				);
 			}
+			case "toggle":
+				return (
+					<div className="space-y-4">
+						<FormRow label="Toggle Type">
+							<SegmentedControl
+								value={effect.targetType ?? "animation"}
+								onChange={(val) =>
+									handleUpdate((d) => {
+										if (d.kind === "toggle") {
+											d.targetType = val as "animation" | "modelPart";
+											// Reset other target when type changes
+											d.animation = undefined;
+											d.modelPart = undefined;
+										}
+									})
+								}
+								options={[
+									{ label: "Animation", value: "animation" },
+									{ label: "Model Part", value: "modelPart" },
+								]}
+							/>
+						</FormRow>
+						{effect.targetType === "animation" ? (
+							<FormRow label="Animation">
+								<Select
+									value={
+										effect.animation ? JSON.stringify(effect.animation) : ""
+									}
+									onChange={(e) =>
+										handleUpdate((d) => {
+											if (d.kind === "toggle")
+												d.animation = e.target.value
+													? JSON.parse(e.target.value)
+													: undefined;
+										})
+									}
+								>
+									<option value="">-- Select Animation --</option>
+									{animations.map((anim) => (
+										<option
+											key={JSON.stringify(anim)}
+											value={JSON.stringify(anim)}
+										>
+											{displayAnimationRef(anim)}
+										</option>
+									))}
+								</Select>
+							</FormRow>
+						) : (
+							<FormRow label="Model Part">
+								<Select
+									value={
+										effect.modelPart ? JSON.stringify(effect.modelPart) : ""
+									}
+									onChange={(e) =>
+										handleUpdate((d) => {
+											if (d.kind === "toggle")
+												d.modelPart = e.target.value
+													? JSON.parse(e.target.value)
+													: undefined;
+										})
+									}
+								>
+									<option value="">-- Select Model Part --</option>
+									{modelElements.map((part) => (
+										<option
+											key={JSON.stringify(part)}
+											value={JSON.stringify(part)}
+										>
+											{displayModelPartRef(part)}
+										</option>
+									))}
+								</Select>
+							</FormRow>
+						)}
+						<UUIDArrayEditor
+							label="Exclusive Tags"
+							values={effect.exclusiveTags ?? []}
+							onChange={(newTags) =>
+								handleUpdate((d) => {
+									if (d.kind === "toggle") d.exclusiveTags = newTags;
+								})
+							}
+						/>
+						<FormRow label="Saved">
+							<input
+								type="checkbox"
+								checked={effect.isSaved ?? false}
+								onChange={(e) =>
+									handleUpdate((d) => {
+										if (d.kind === "toggle") d.isSaved = e.target.checked;
+									})
+								}
+								className="w-5 h-5 rounded bg-slate-700 border-slate-600 text-violet-500 focus:ring-violet-500"
+							/>
+						</FormRow>
+						<FormRow label="Default On">
+							<input
+								type="checkbox"
+								checked={effect.defaultOn ?? false}
+								onChange={(e) =>
+									handleUpdate((d) => {
+										if (d.kind === "toggle") d.defaultOn = e.target.checked;
+									})
+								}
+								className="w-5 h-5 rounded bg-slate-700 border-slate-600 text-violet-500 focus:ring-violet-500"
+							/>
+						</FormRow>
+					</div>
+				);
 			default:
 				return null;
 		}
