@@ -1,4 +1,3 @@
-import { produce } from "immer";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
@@ -119,6 +118,8 @@ export function LayerEditor({ layer }: { layer: Layer }) {
 								d.nodes[node.uuid] = updatedNode;
 							})
 						}
+						updateLayer={handleUpdateLayer}
+						setSelection={setSelection}
 					/>
 				</div>
 			);
