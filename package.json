@@ -18,7 +18,6 @@
 		"bun-plugin-tailwind": "^0.0.14",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
-		"dagre": "^0.8.5",
 		"immer": "^10.1.1",
 		"lucide-react": "^0.475.0",
 		"react": "^19",

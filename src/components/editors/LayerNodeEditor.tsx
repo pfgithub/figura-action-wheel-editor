@@ -62,9 +62,14 @@ function AddNewNodeWithTransitionDialog({
 		}
 
 		const animRef: AnimationRef = JSON.parse(selectedAnim);
+		const currentNode = layer.nodes[currentNodeId];
 		const newNode: LayerNode = {
 			uuid: generateUUID(),
 			name: newNodeName.trim(),
+			position: {
+				x: (currentNode.position?.x ?? 0) + 250,
+				y: currentNode.position?.y ?? 0,
+			},
 		};
 		const transitionToNew: LayerTransition = {
 			uuid: generateUUID(),

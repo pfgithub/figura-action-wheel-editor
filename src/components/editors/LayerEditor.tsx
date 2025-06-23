@@ -54,6 +54,10 @@ export function LayerEditor({ layer }: { layer: Layer }) {
 		const newNode: LayerNode = {
 			uuid: generateUUID(),
 			name: `Node ${nodes.length + 1}`,
+			position: {
+				x: 50 + (nodes.length % 4) * 200,
+				y: 50 + Math.floor(nodes.length / 4) * 120,
+			},
 		};
 		handleUpdateLayer((draft) => {
 			draft.nodes[newNode.uuid] = newNode;
@@ -179,6 +183,7 @@ export function LayerEditor({ layer }: { layer: Layer }) {
 						layer={layer}
 						selection={selection}
 						onSelect={setSelection}
+						updateLayer={handleUpdateLayer}
 					/>
 				</div>
 			</div>

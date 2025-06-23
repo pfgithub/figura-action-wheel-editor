@@ -1,6 +1,5 @@
 // src/components/editors/LayerGraph.tsx
-import dagre from "dagre";
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect } from "react";
 import ReactFlow, {
 	Background,
 	Controls,
@@ -21,66 +20,53 @@ interface LayerGraphProps {
 	layer: Layer;
 	selection: Selection;
 	onSelect: (selection: Selection) => void;
+	updateLayer: (updater: (draftLayer: Layer) => void) => void;
 }
-
-const dagreGraph = new dagre.graphlib.Graph();
-dagreGraph.setDefaultEdgeLabel(() => ({}));
-
-const nodeWidth = 170;
-const nodeHeight = 40;
-
-const getLayoutedElements = (
-	nodes: Node[],
-	edges: Edge[],
-	direction = "TB",
-) => {
-	dagreGraph.setGraph({ rankdir: direction, nodesep: 50, ranksep: 70 });
-
-	nodes.forEach((node) => {
-		dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
-	});
-
-	edges.forEach((edge) => {
-		dagreGraph.setEdge(edge.source, edge.target);
-	});
-
-	dagre.layout(dagreGraph);
-
-	nodes.forEach((node) => {
-		const nodeWithPosition = dagreGraph.node(node.id);
-		// We are shifting the dagre node position (anchor=center) to the top left
-		// so it matches the React Flow node anchor point (top left).
-		node.position = {
-			x: nodeWithPosition.x - nodeWidth / 2,
-			y: nodeWithPosition.y - nodeHeight / 2,
-		};
-	});
-
-	return { nodes, edges };
-};
 
 const proOptions = { hideAttribution: true };
 
-export function LayerGraph({ layer, selection, onSelect }: LayerGraphProps) {
+export function LayerGraph({
+	layer,
+	selection,
+	onSelect,
+	updateLayer,
+}: LayerGraphProps) {
 	const [nodes, setNodes, onNodesChange] = useNodesState([]);
 	const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-	const initialNodes = useMemo<Node[]>(() => {
-		return Object.values(layer.nodes).map((node) => ({
+	const onNodeDragStop = useCallback(
+		(_event: React.MouseEvent, node: Node) => {
+			updateLayer((draft) => {
+				const draftNode = draft.nodes[node.id];
+				if (draftNode) {
+					draftNode.position = node.position;
+				}
+			});
+		},
+		[updateLayer],
+	);
+
+	useEffect(() => {
+		const newNodes = Object.values(layer.nodes).map((node, i) => ({
 			id: node.uuid,
 			type: "default",
 			data: { label: node.name },
-			position: { x: 0, y: 0 }, // Position will be set by dagre
+			position:
+				node.position ?? {
+					x: 50 + (i % 4) * 200,
+					y: 50 + Math.floor(i / 4) * 120,
+				},
 		}));
-	}, [layer.nodes]);
+		setNodes(newNodes);
+	}, [layer.nodes, setNodes]);
 
-	const initialEdges = useMemo<Edge[]>(() => {
+	useEffect(() => {
 		const transitionArray = Object.values(layer.transitions);
 		const transitionSet = new Set(
 			transitionArray.map((t) => `${t.fromNode}->${t.toNode}`),
 		);
 
-		return transitionArray.map((t) => {
+		const newEdges = transitionArray.map((t) => {
 			const isPaired = transitionSet.has(`${t.toNode}->${t.fromNode}`);
 			return {
 				id: t.uuid,
@@ -92,19 +78,8 @@ export function LayerGraph({ layer, selection, onSelect }: LayerGraphProps) {
 				},
 			};
 		});
-	}, [layer.transitions]);
-
-	useEffect(() => {
-		if (initialNodes.length > 0) {
-			const { nodes: layoutedNodes, edges: layoutedEdges } =
-				getLayoutedElements(initialNodes, initialEdges);
-			setNodes([...layoutedNodes]);
-			setEdges([...layoutedEdges]);
-		} else {
-			setNodes([]);
-			setEdges([]);
-		}
-	}, [initialNodes, initialEdges, setNodes, setEdges]);
+		setEdges(newEdges);
+	}, [layer.transitions, setEdges]);
 
 	// Sync external selection with internal React Flow selection
 	useEffect(() => {
@@ -151,6 +126,7 @@ export function LayerGraph({ layer, selection, onSelect }: LayerGraphProps) {
 			onNodeClick={onNodeClick}
 			onEdgeClick={onEdgeClick}
 			onPaneClick={onPaneClick}
+			onNodeDragStop={onNodeDragStop}
 			fitView
 			fitViewOptions={fitViewOptions}
 			proOptions={proOptions}

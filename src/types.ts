@@ -308,6 +308,7 @@ export type LayerNode = {
 	uuid: UUID;
 	name: string;
 	animation?: AnimationRef; // 'Once' animations are not allowed
+	position?: { x: number; y: number };
 };
 export type LayerTransition = {
 	uuid: UUID;
