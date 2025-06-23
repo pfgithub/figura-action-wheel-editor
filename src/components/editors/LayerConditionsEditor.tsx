@@ -1,3 +1,4 @@
+// src/components/editors/LayerConditionsEditor.tsx
 import {
 	DndContext,
 	type DragEndEvent,
@@ -12,8 +13,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useState } from "react";
-import { AnimationConditionEditor } from "@/components/editors/AnimationConditionEditor";
+import { InlineAnimationConditionEditor } from "@/components/editors/InlineAnimationConditionEditor";
 import { Button } from "@/components/ui/Button";
 import { FormRow } from "@/components/ui/FormRow";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
@@ -118,7 +118,7 @@ function SortableConditionItem({
 					<label className="text-slate-400 text-sm font-medium mb-2 block">
 						Activation Condition
 					</label>
-					<AnimationConditionEditor
+					<InlineAnimationConditionEditor
 						condition={condition.condition}
 						updateCondition={(c) =>
 							updateCondition({ ...condition, condition: c })

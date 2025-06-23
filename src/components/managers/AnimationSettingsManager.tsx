@@ -1,5 +1,7 @@
+// src/components/managers/AnimationSettingsManager.tsx
 import { useCallback, useMemo, useState } from "react";
 import { AnimationSettingEditor } from "@/components/editors/AnimationSettingEditor";
+import { summarizeCondition } from "@/components/editors/animation-condition/helpers";
 import { MasterDetailManager } from "@/components/layout/MasterDetailManager";
 import { Button } from "@/components/ui/Button";
 import {
@@ -18,7 +20,6 @@ import {
 } from "@/hooks/useScriptData";
 import { useAvatarStore } from "@/store/avatarStore";
 import type {
-	Condition,
 	ConditionalSetting,
 	HideElementSetting,
 	ModelPartRef,
@@ -33,24 +34,6 @@ type SettingView = "hide_element" | "render" | "script";
 
 const displayModelPartRef = (ref: ModelPartRef) =>
 	`${ref.model}.${ref.partPath.join(".")}`;
-
-const summarizeCondition = (condition?: Condition): string => {
-	if (!condition) return "Always active";
-	const countLeafConditions = (c: any): number => {
-		if (!c) return 0;
-		if (Array.isArray(c.conditions))
-			return c.conditions.reduce(
-				(sum: number, sub: any) => sum + countLeafConditions(sub),
-				0,
-			);
-		if (c.kind === "not")
-			return c.condition ? countLeafConditions(c.condition) : 0;
-		return 1;
-	};
-	const count = countLeafConditions(condition);
-	if (count === 0) return "Not configured";
-	return count === 1 ? "1 Condition" : `${count} Conditions`;
-};
 
 const EmptyState = () => (
 	<div className="flex flex-col items-center justify-center h-full text-slate-500">

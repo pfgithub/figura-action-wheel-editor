@@ -1,3 +1,4 @@
+// src/components/editors/animation-condition/helpers.ts
 import type { Condition } from "@/types";
 import { generateUUID } from "@/utils/uuid";
 
@@ -104,4 +105,28 @@ export const createNewConditionNode = (kind: PaletteItemKind): Condition => {
 		case "script":
 			return { id, kind: "script" };
 	}
+};
+
+export const countLeafConditions = (c: Condition | undefined): number => {
+	if (!c) {
+		return 0;
+	}
+
+	if (c.kind === "and" || c.kind === "or") {
+		return c.conditions.reduce((sum, sub) => sum + countLeafConditions(sub), 0);
+	}
+
+	if (c.kind === "not") {
+		return countLeafConditions(c.condition);
+	}
+
+	// Any other kind is a leaf
+	return 1;
+};
+
+export const summarizeCondition = (condition?: Condition): string => {
+	if (!condition) return "Always Active";
+	const count = countLeafConditions(condition);
+	if (count === 0) return "Not Configured";
+	return count === 1 ? "1 Condition" : `${count} Conditions`;
 };
