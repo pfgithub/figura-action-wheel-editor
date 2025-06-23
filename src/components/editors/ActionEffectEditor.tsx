@@ -444,7 +444,6 @@ function ActionEffectEditorInner({
 	const { setNodeRef: setDropZoneRef, isOver: isDropZoneOver } = useDroppable({
 		id: DROP_ZONE_ID,
 	});
-	console.log("isOver", isDropZoneOver, setDropZoneRef);
 
 	return (
 		<>
