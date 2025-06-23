@@ -43,3 +43,47 @@ redoing stuff:
 - [ ] Change Action Effects from `effects: ActionEffect[]` to `effect?: ActionEffect`.
 - [ ] Add an action type called "Toggle".
        You can choose an Animation or a ModelPart to toggle. You can set a list of Exclusive Tags for the toggle (UUID[]). You can set if the toggle is Saved or not.
+
+the new Layers, only needed for fancy stuff:
+
+Add the Layers tab. It should be a master-detail view. The center should be reserved for a future visualization, for now it can have a list of nodes and transitions.
+
+If nothing is selected, the right sidebar should have a reorderable list of layer conditions. When a node is selected, the right sidebar should let you edit that node. When a transition is selected, the right sidebar should let you edit that transition.
+
+These are the proposed types for Layers:
+
+```ts
+// layers are ordered. the highest layer is the highest priority one.
+layers: Record<UUID, Layer>
+
+
+type Layer = {
+  uuid: UUID,
+  name: string,
+  nodes: Record<UUID, LayerNode>,
+  transitions: Record<UUID, LayerTransition>,
+  // in order. the first condition that matches will be the one
+  conditions: Record<UUID, LayerCondition>,
+};
+type LayerNode = {
+  uuid: UUID,
+  animation?: AnimationID, // 'Once' animations are not allowed
+};
+type LayerTransition = {
+  uuid: UUID,
+  fromNode: UUID,
+  toNode: UUID,
+  
+  // if no animation is set, the transition will be instant
+  animation?: AnimationID, // 'Loop' animations are not allowed
+
+  reverse: boolean, // if the animation should play in reverse
+  allowCancel: boolean, // if the target node we're animating to can be gotten to faster by going from this animation's fromNode, allow cancelling this animation
+  weight: number, // default 1.0
+};
+type LayerCondition = {
+  uuid: UUID,
+  condition?: Condition,
+  targetNode?: UUID,
+};
+```
