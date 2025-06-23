@@ -1,3 +1,4 @@
+// src/components/editors/LayerEditor.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
@@ -5,6 +6,7 @@ import { useAvatarStore } from "@/store/avatarStore";
 import type { Layer, LayerNode, LayerTransition, UUID } from "@/types";
 import { generateUUID } from "@/utils/uuid";
 import { LayerConditionsEditor } from "./LayerConditionsEditor";
+import { LayerGraph } from "./LayerGraph";
 import { LayerNodeEditor } from "./LayerNodeEditor";
 import { LayerTransitionEditor } from "./LayerTransitionEditor";
 
@@ -39,7 +41,6 @@ export function LayerEditor({ layer }: { layer: Layer }) {
 	const [selection, setSelection] = useState<Selection>(null);
 
 	const nodes = Object.values(layer.nodes);
-	const transitions = Object.values(layer.transitions);
 
 	const handleUpdateLayer = (updater: (draftLayer: Layer) => void) => {
 		updateAvatar((draft) => {
@@ -153,74 +154,32 @@ export function LayerEditor({ layer }: { layer: Layer }) {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
 			{/* Center Area */}
-			<div className="md:col-span-2 bg-slate-800/50 rounded-lg p-4 md:p-6 ring-1 ring-slate-700 overflow-y-auto">
-				<h3 className="text-xl font-bold mb-4">State Machine</h3>
-				<div className="text-center text-slate-500 mb-4 bg-slate-900/40 p-8 rounded-lg">
-					(Future visualization here)
+			<div className="md:col-span-2 bg-slate-800/50 rounded-lg p-4 ring-1 ring-slate-700 flex flex-col overflow-hidden">
+				<div className="flex justify-between items-center mb-4 flex-shrink-0">
+					<h3 className="text-xl font-bold">State Machine</h3>
+					<div className="flex gap-2">
+						<Button
+							onClick={handleAddNode}
+							className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300"
+						>
+							<PlusIcon className="w-5 h-5 mr-1" /> Add Node
+						</Button>
+						<Button
+							onClick={handleAddTransition}
+							className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300"
+							disabled={nodes.length < 2}
+						>
+							<PlusIcon className="w-5 h-5 mr-1" /> Add Transition
+						</Button>
+					</div>
 				</div>
-
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					{/* Nodes List */}
-					<div className="space-y-2">
-						<div className="flex justify-between items-center mb-2">
-							<h4 className="font-semibold text-lg text-slate-300">Nodes</h4>
-							<Button
-								onClick={handleAddNode}
-								className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300"
-							>
-								<PlusIcon className="w-5 h-5 mr-1" /> Add
-							</Button>
-						</div>
-						<div className="space-y-2 bg-slate-900/30 p-2 rounded-md max-h-60 overflow-y-auto">
-							{nodes.map((node) => (
-								<button
-									key={node.uuid}
-									onClick={() => setSelection({ type: "node", id: node.uuid })}
-									className={`w-full text-left p-2 rounded-md transition-colors ${selection?.type === "node" && selection.id === node.uuid ? "bg-violet-600/50 ring-2 ring-violet-500" : "bg-slate-700/50 hover:bg-slate-700/80"}`}
-								>
-									{node.name}
-								</button>
-							))}
-							{nodes.length === 0 && (
-								<p className="text-center p-4 text-slate-500">No nodes yet.</p>
-							)}
-						</div>
-					</div>
-
-					{/* Transitions List */}
-					<div className="space-y-2">
-						<div className="flex justify-between items-center mb-2">
-							<h4 className="font-semibold text-lg text-slate-300">
-								Transitions
-							</h4>
-							<Button
-								onClick={handleAddTransition}
-								className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300"
-								disabled={nodes.length < 2}
-							>
-								<PlusIcon className="w-5 h-5 mr-1" /> Add
-							</Button>
-						</div>
-						<div className="space-y-2 bg-slate-900/30 p-2 rounded-md max-h-60 overflow-y-auto">
-							{transitions.map((t) => (
-								<button
-									key={t.uuid}
-									onClick={() =>
-										setSelection({ type: "transition", id: t.uuid })
-									}
-									className={`w-full text-left p-2 rounded-md transition-colors ${selection?.type === "transition" && selection.id === t.uuid ? "bg-violet-600/50 ring-2 ring-violet-500" : "bg-slate-700/50 hover:bg-slate-700/80"}`}
-								>
-									{layer.nodes[t.fromNode]?.name ?? "???"} →{" "}
-									{layer.nodes[t.toNode]?.name ?? "???"}
-								</button>
-							))}
-							{transitions.length === 0 && (
-								<p className="text-center p-4 text-slate-500">
-									No transitions yet.
-								</p>
-							)}
-						</div>
-					</div>
+				<div className="flex-grow relative -m-4 mt-0">
+					<LayerGraph
+						key={layer.uuid} // Re-mount graph on layer change
+						layer={layer}
+						selection={selection}
+						onSelect={setSelection}
+					/>
 				</div>
 			</div>
 
