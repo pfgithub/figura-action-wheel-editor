@@ -3,9 +3,12 @@ import React, { useCallback, useEffect } from "react";
 import ReactFlow, {
 	Background,
 	Controls,
+	getBezierPath,
 	MarkerType,
+	Position,
 	useEdgesState,
 	useNodesState,
+	useStore,
 	type Edge,
 	type Node,
 } from "reactflow";
@@ -22,6 +25,123 @@ interface LayerGraphProps {
 	onSelect: (selection: Selection) => void;
 	updateLayer: (updater: (draftLayer: Layer) => void) => void;
 }
+
+// --- Floating Edge Utils (from React Flow docs) ---
+
+// this helper function returns the intersection point
+// of the line between the center of the intersectionNode and the target node
+function getNodeIntersection(intersectionNode: Node, targetNode: Node) {
+	const {
+		width: intersectionNodeWidth,
+		height: intersectionNodeHeight,
+		positionAbsolute: intersectionNodePosition,
+	} = intersectionNode;
+	const targetPosition = targetNode.positionAbsolute;
+
+	const w = intersectionNodeWidth! / 2;
+	const h = intersectionNodeHeight! / 2;
+
+	const x2 = intersectionNodePosition!.x + w;
+	const y2 = intersectionNodePosition!.y + h;
+	const x1 = targetPosition!.x + targetNode.width! / 2;
+	const y1 = targetPosition!.y + targetNode.height! / 2;
+
+	const xx1 = (x1 - x2) / (2 * w) - (y1 - y2) / (2 * h);
+	const yy1 = (x1 - x2) / (2 * w) + (y1 - y2) / (2 * h);
+	const a = 1 / (Math.abs(xx1) + Math.abs(yy1));
+	const xx3 = a * xx1;
+	const yy3 = a * yy1;
+	const x = w * (xx3 + yy3) + x2;
+	const y = h * (-xx3 + yy3) + y2;
+
+	return { x, y };
+}
+
+// returns the position (top,right,bottom,left) passed node compared to the intersection point
+function getEdgePosition(
+	node: Node,
+	intersectionPoint: { x: number; y: number },
+): Position {
+	const n = { ...node.positionAbsolute, ...node };
+	const nx = Math.round(n.x!);
+	const ny = Math.round(n.y!);
+	const px = Math.round(intersectionPoint.x);
+	const py = Math.round(intersectionPoint.y);
+
+	if (px <= nx + 1) {
+		return Position.Left;
+	}
+	if (px >= nx + n.width! - 1) {
+		return Position.Right;
+	}
+	if (py <= ny + 1) {
+		return Position.Top;
+	}
+	if (py >= ny + n.height! - 1) {
+		return Position.Bottom;
+	}
+
+	return Position.Top;
+}
+
+// returns the parameters (sx, sy, tx, ty, sourcePos, targetPos) you need to create an edge
+function getEdgeParams(source: Node, target: Node) {
+	const sourceIntersectionPoint = getNodeIntersection(source, target);
+	const targetIntersectionPoint = getNodeIntersection(target, source);
+
+	const sourcePos = getEdgePosition(source, sourceIntersectionPoint);
+	const targetPos = getEdgePosition(target, targetIntersectionPoint);
+
+	return {
+		sx: sourceIntersectionPoint.x,
+		sy: sourceIntersectionPoint.y,
+		tx: targetIntersectionPoint.x,
+		ty: targetIntersectionPoint.y,
+		sourcePos,
+		targetPos,
+	};
+}
+
+const FloatingEdge = ({ id, source, target, markerEnd, style }: Edge) => {
+	const sourceNode = useStore(
+		useCallback((store) => store.nodeInternals.get(source), [source]),
+	);
+	const targetNode = useStore(
+		useCallback((store) => store.nodeInternals.get(target), [target]),
+	);
+
+	if (!sourceNode || !targetNode) {
+		return null;
+	}
+
+	const { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(
+		sourceNode,
+		targetNode,
+	);
+
+	const [edgePath] = getBezierPath({
+		sourceX: sx,
+		sourceY: sy,
+		sourcePosition: sourcePos,
+		targetX: tx,
+		targetY: ty,
+		targetPosition: targetPos,
+	});
+
+	return (
+		<path
+			id={id}
+			className="react-flow__edge-path"
+			d={edgePath}
+			markerEnd={markerEnd}
+			style={style}
+		/>
+	);
+};
+
+const edgeTypes = {
+	floating: FloatingEdge,
+};
 
 const proOptions = { hideAttribution: true };
 
@@ -62,22 +182,15 @@ export function LayerGraph({
 
 	useEffect(() => {
 		const transitionArray = Object.values(layer.transitions);
-		const transitionSet = new Set(
-			transitionArray.map((t) => `${t.fromNode}->${t.toNode}`),
-		);
-
-		const newEdges = transitionArray.map((t) => {
-			const isPaired = transitionSet.has(`${t.toNode}->${t.fromNode}`);
-			return {
-				id: t.uuid,
-				source: t.fromNode,
-				target: t.toNode,
-				type: isPaired ? "smoothstep" : "default",
-				markerEnd: {
-					type: MarkerType.ArrowClosed,
-				},
-			};
-		});
+		const newEdges = transitionArray.map((t) => ({
+			id: t.uuid,
+			source: t.fromNode,
+			target: t.toNode,
+			type: "floating",
+			markerEnd: {
+				type: MarkerType.ArrowClosed,
+			},
+		}));
 		setEdges(newEdges);
 	}, [layer.transitions, setEdges]);
 
@@ -132,6 +245,7 @@ export function LayerGraph({
 			proOptions={proOptions}
 			className="bg-slate-900/40"
 			nodeDragThreshold={1}
+			edgeTypes={edgeTypes}
 		>
 			<Controls />
 			<Background />
