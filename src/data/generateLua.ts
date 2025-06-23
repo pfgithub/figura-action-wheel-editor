@@ -229,22 +229,22 @@ export function generateLuaInner(avatar: Avatar) {
 	type Effect = {callEffect: (state: Lua) => Lua, state?: {get: Lua, onChange: (callback: Lua) => void}};
 	const getEffect = memo((effect: ActionEffect): Effect => {
 		const none: Effect = {callEffect() {return "--"}};
-		if(effect.kind === "toggle" && effect.toggleGroup) {
-			const toggleGroup = getToggleGroup(effect.toggleGroup);
-			const num =
-				effect.value == null
-					? "nil"
-					: ctx.uuidToNumber(effect.value);
-			return {
-				callEffect(state) {
-					return `${toggleGroup.ping}((${state}) and ${num} or nil)`;
-				},
-				state: {
-					get: `(${toggleGroup.activeState} == ${num})`,
-					onChange: (callback) => toggleGroup.onToggled.push(`    ${callback}\n`),
-				},
-			};
-		}else if(effect.kind === "switchPage" && effect.actionWheel != null) {
+		// if(effect.kind === "toggle" && effect.toggleGroup) {
+		// 	const toggleGroup = getToggleGroup(effect.toggleGroup);
+		// 	const num =
+		// 		effect.value == null
+		// 			? "nil"
+		// 			: ctx.uuidToNumber(effect.value);
+		// 	return {
+		// 		callEffect(state) {
+		// 			return `${toggleGroup.ping}((${state}) and ${num} or nil)`;
+		// 		},
+		// 		state: {
+		// 			get: `(${toggleGroup.activeState} == ${num})`,
+		// 			onChange: (callback) => toggleGroup.onToggled.push(`    ${callback}\n`),
+		// 		},
+		// 	};
+		if(effect.kind === "switchPage" && effect.actionWheel != null) {
 			const actionWheel = ctx.getUuidIdent(effect.actionWheel);
 			if(!actionWheel) {
 				addWarning(`switchPage missing action wheel`);
@@ -255,19 +255,19 @@ export function generateLuaInner(avatar: Avatar) {
 					return lua`if ${state} then action_wheel:setPage(${actionWheel}) end`;
 				},
 			};
-		}else if(effect.kind === "toggleAnimation" && effect.animation != null) {
-			const animation = getAnimation(astr(effect.animation));
-			return {
-				callEffect(state) {
-					return `${animation}:setPlaying(${state})`;
-				},
-				state: {
-					get: `${animation}:isPlaying()`,
-					onChange: () => {
-						addWarning(`TODO implement animation state events?`);
-					},
-				},
-			};
+		// }else if(effect.kind === "toggleAnimation" && effect.animation != null) {
+		// 	const animation = getAnimation(astr(effect.animation));
+		// 	return {
+		// 		callEffect(state) {
+		// 			return `${animation}:setPlaying(${state})`;
+		// 		},
+		// 		state: {
+		// 			get: `${animation}:isPlaying()`,
+		// 			onChange: () => {
+		// 				addWarning(`TODO implement animation state events?`);
+		// 			},
+		// 		},
+		// 	};
 		}else{
 			addWarning(`TODO implement effect ${effect.kind}`);
 			return none;
@@ -372,12 +372,12 @@ export function generateLuaInner(avatar: Avatar) {
 		return a;
 	}
 	const getUpdateFrequency = (cond: Condition): UpdateFrequency => {
-		if (cond.kind === "toggleGroup" && cond.toggleGroup) {
-			return {
-				kind: UpdateFrequencyKind.toggleGroupChanged,
-				groups: [cond.toggleGroup],
-			};
-		} else if (cond.kind === "render" && cond.render != null) {
+		// if (cond.kind === "toggleGroup" && cond.toggleGroup) {
+		// 	return {
+		// 		kind: UpdateFrequencyKind.toggleGroupChanged,
+		// 		groups: [cond.toggleGroup],
+		// 	};
+		if (cond.kind === "render" && cond.render != null) {
 			// TODO: not all of these need to be every render, just a few
 			return { kind: UpdateFrequencyKind.render };
 		} else if (cond.kind === "and" || cond.kind === "or") {
@@ -396,11 +396,11 @@ export function generateLuaInner(avatar: Avatar) {
 	};
 	// todo these will need seperate caches per point they can be inserted at
 	const addCondition = (cond: Condition): string => {
-		if (cond.kind === "toggleGroup") {
-			if (!cond.toggleGroup) return "false";
-			const toggleGroup = getToggleGroup(cond.toggleGroup);
-			return `${toggleGroup.activeState} == ${cond.value == null ? "nil" : ctx.uuidToNumber(cond.value)}`;
-		} else if (cond.kind === "render" && cond.render != null) {
+		// if (cond.kind === "toggleGroup") {
+		// 	if (!cond.toggleGroup) return "false";
+		// 	const toggleGroup = getToggleGroup(cond.toggleGroup);
+		// 	return `${toggleGroup.activeState} == ${cond.value == null ? "nil" : ctx.uuidToNumber(cond.value)}`;
+		if (cond.kind === "render" && cond.render != null) {
 			if (renderIdToVarMap.has(cond.render))
 				return renderIdToVarMap.get(cond.render)!;
 			if (cond.render === "playerIsFlying") {
@@ -465,46 +465,46 @@ end
 	src.push(`end\n`);
 
 	// animation state machine
-	for (const state of Object.values(avatar.animationLayers ?? {})) {
-		const varname = ctx.addNextIdent(state.name);
-		predeclare.push(`local ${varname} = ${ctx.uuidToNumber(state.noneNode)}`);
-		// we can consider supporting saving animation states
+	// for (const state of Object.values(avatar.animationLayers ?? {})) {
+	// 	const varname = ctx.addNextIdent(state.name);
+	// 	predeclare.push(`local ${varname} = ${ctx.uuidToNumber(state.noneNode)}`);
+	// 	// we can consider supporting saving animation states
 
-		// call noneNode's animationStartFn on init
+	// 	// call noneNode's animationStartFn on init
 
-		for (const node of Object.values(state.nodes)) {
-			const _num = ctx.uuidToNumber(node.uuid);
+	// 	for (const node of Object.values(state.nodes)) {
+	// 		const _num = ctx.uuidToNumber(node.uuid);
 
-			for (const transition of node.transitions) {
-				if (transition.activationCondition == null) continue;
+	// 		for (const transition of node.transitions) {
+	// 			if (transition.activationCondition == null) continue;
 
-				// to support waitForFinish, make the activation condition AND(animation done, existing condition)
-				const _updateFrequency = getUpdateFrequency(
-					transition.activationCondition,
-				);
+	// 			// to support waitForFinish, make the activation condition AND(animation done, existing condition)
+	// 			const _updateFrequency = getUpdateFrequency(
+	// 				transition.activationCondition,
+	// 			);
 
-				// now we have to add the transition in two places:
-				// - unless updateFrequency is render then add it in thisAnimationStartFn
-				// - add it in the updatefrequency place
-				// which is:
-				// - fn checkAnimationNTransitionN()
-				//       if varname == num and activationCondition then
-				//           thisAnimationStopFn()
-				//           nextAnimationStartFn()
-				//       end
-				//   end
-				//   function thisAnimationStopFn()
-				//       thisAnimation:stop()
-				//   end
-				//   function nextAnimationStartFn()
-				//       nextAnimation:start()
-				//       run next animation action
-				//   end
-			}
+	// 			// now we have to add the transition in two places:
+	// 			// - unless updateFrequency is render then add it in thisAnimationStartFn
+	// 			// - add it in the updatefrequency place
+	// 			// which is:
+	// 			// - fn checkAnimationNTransitionN()
+	// 			//       if varname == num and activationCondition then
+	// 			//           thisAnimationStopFn()
+	// 			//           nextAnimationStartFn()
+	// 			//       end
+	// 			//   end
+	// 			//   function thisAnimationStopFn()
+	// 			//       thisAnimation:stop()
+	// 			//   end
+	// 			//   function nextAnimationStartFn()
+	// 			//       nextAnimation:start()
+	// 			//       run next animation action
+	// 			//   end
+	// 		}
 
-			// now for each condition we add it under (if animation state == this one) check condition
-		}
-	}
+	// 		// now for each condition we add it under (if animation state == this one) check condition
+	// 	}
+	// }
 
 	return src.flat(Infinity as 1).join("");
 }
