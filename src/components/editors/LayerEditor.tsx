@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
 import { useAvatarStore } from "@/store/avatarStore";
-import type { Layer, LayerNode, LayerTransition, UUID } from "@/types";
+import type { Layer, LayerNode, UUID } from "@/types";
 import { generateUUID } from "@/utils/uuid";
 import { LayerConditionsEditor } from "./LayerConditionsEditor";
 import { LayerGraph } from "./LayerGraph";
@@ -63,25 +63,6 @@ export function LayerEditor({ layer }: { layer: Layer }) {
 			draft.nodes[newNode.uuid] = newNode;
 		});
 		setSelection({ type: "node", id: newNode.uuid });
-	};
-
-	const handleAddTransition = () => {
-		if (nodes.length < 2) {
-			alert("You need at least two nodes to create a transition.");
-			return;
-		}
-		const newTransition: LayerTransition = {
-			uuid: generateUUID(),
-			fromNode: nodes[0].uuid,
-			toNode: nodes[1].uuid,
-			reverse: false,
-			allowCancel: true,
-			weight: 1.0,
-		};
-		handleUpdateLayer((draft) => {
-			draft.transitions[newTransition.uuid] = newTransition;
-		});
-		setSelection({ type: "transition", id: newTransition.uuid });
 	};
 
 	const handleDeleteSelection = () => {
@@ -167,13 +148,6 @@ export function LayerEditor({ layer }: { layer: Layer }) {
 							className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300"
 						>
 							<PlusIcon className="w-5 h-5 mr-1" /> Add Node
-						</Button>
-						<Button
-							onClick={handleAddTransition}
-							className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300"
-							disabled={nodes.length < 2}
-						>
-							<PlusIcon className="w-5 h-5 mr-1" /> Add Transition
 						</Button>
 					</div>
 				</div>
