@@ -93,6 +93,7 @@ type LayerCondition = {
 - [x] In the LayerConditionsEditor and the , the AnimationConditionEditor is too big. Create a new component that is an inline preview of the Condition and clicking on it opens a modal with the AnimationConditionEditor, and use that component in LayerConditionsEditor.
 - [x] Update the LayerNodeEditor to include a list of transitions coming from this node and have a button to add a transition there. You should be able to add a transition to any existing node, or add a new node with an animation. If you add a new node this way, it should automatically set up two transitions: One from the current node to the new node with the animation and one from the new node to the current node with the animation and reverse set to true.
 - [x] Update the layer graph to use floating edges
+- [ ] Fix when there's multiple overlapping transitions (no overlap)
 - [ ] Update layers so there is always at least one node.
   - actually we don't really need a root node arguably?
   - because you set conditions and when we check for the first time we can jump to the target one
