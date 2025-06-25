@@ -1,5 +1,4 @@
 import { FormRow } from "@/components/ui/FormRow";
-import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useKeybindsList } from "@/hooks/useKeybindsList";
 import type { Keybind } from "@/types";
@@ -19,15 +18,6 @@ export function KeybindEditor({ keybind, updateKeybind }: KeybindEditorProps) {
 
 	return (
 		<div className="space-y-4">
-			<FormRow label="Name">
-				<Input
-					type="text"
-					value={keybind.name}
-					onChange={(e) => handleUpdate("name", e.target.value)}
-					placeholder="e.g., Toggle Crouch"
-				/>
-			</FormRow>
-
 			<FormRow label="Key">
 				<Select
 					value={keybind.keyId}

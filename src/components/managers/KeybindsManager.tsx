@@ -5,6 +5,7 @@ import { useKeybindsList } from "@/hooks/useKeybindsList";
 import { useAvatarStore } from "@/store/avatarStore";
 import type { Keybind, UUID } from "@/types";
 import { generateUUID } from "@/utils/uuid";
+import { Input } from "../ui/Input";
 
 const EmptyState = () => (
 	<div className="flex flex-col items-center justify-center h-full text-slate-500">
@@ -92,7 +93,13 @@ export function KeybindsManager() {
 			title="Keybinds"
 			onAddItem={handleAddKeybind}
 			onDeleteItem={handleDelete}
-			editorTitle={(keybind) => keybind.name}
+			editorTitle={(keybind) => (
+				<Input
+					value={keybind.name}
+					onChange={(e) => updateKeybind({...keybind, name: e.target.value})}
+					className="border-none p-0 h-auto text-xl font-bold w-full focus:ring-0 focus:bg-slate-700"
+				/>
+			)}
 			renderListItem={(keybind, isSelected) => (
 				<button
 					className={`w-full text-left p-3 rounded-lg transition-colors duration-150 ${
