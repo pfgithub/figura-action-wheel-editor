@@ -147,7 +147,7 @@ function ExclusiveTagsManagerDialog({
 								<Input
 									value={tag.name}
 									onChange={(e) => handleRenameTag(tag.uuid, e.target.value)}
-									className="bg-transparent border-none focus:ring-0 focus:bg-slate-700"
+									className="border-none focus:ring-0 focus:bg-slate-700"
 								/>
 								<Button
 									onClick={() => handleDeleteTag(tag.uuid)}

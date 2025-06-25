@@ -191,7 +191,7 @@ export function ScriptEditor({ script }: ScriptEditorProps) {
 															name: e.target.value,
 														})
 													}
-													className="bg-transparent border-none p-0 h-auto text-base font-semibold w-auto focus:ring-0"
+													className="border-none p-0 h-auto text-base font-semibold w-auto focus:ring-0"
 												/>
 											)}
 											<div className="flex items-center gap-2">

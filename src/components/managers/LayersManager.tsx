@@ -137,7 +137,7 @@ export function LayersManager() {
 									onChange={(e) =>
 										updateLayerName(selectedLayer.uuid, e.target.value)
 									}
-									className="bg-transparent border-none p-0 h-auto text-xl font-bold w-full focus:ring-0 focus:bg-slate-700"
+									className="border-none p-0 h-auto text-xl font-bold w-full focus:ring-0 focus:bg-slate-700"
 								/>
 							</h3>
 							<Button
