@@ -138,6 +138,23 @@ export function App() {
 		);
 	};
 
+	const handlePreview = () => {
+		handleProjectLoad({
+			project: {
+				actionWheels: {},
+				conditionalSettings: {},
+				scripts: {},
+				keybinds: {},
+				exclusiveTags: {},
+				layers: {},
+			},
+			metadata: {},
+			animations: [],
+			modelElements: [],
+			textures: [],
+		});
+	};
+
 	const handleFiles = async (files: FileList) => {
 		if (!files || files.length === 0) return;
 		setFileLoadError(null); // Reset error on new attempt
@@ -200,6 +217,19 @@ export function App() {
 					Avatar Editor
 				</h1>
 				<FileDropzone handleFiles={handleFiles} isDragging={isDragging} />
+				<div className="flex items-center my-6 w-full max-w-2xl">
+					<div className="flex-grow border-t border-slate-700" />
+					<span className="flex-shrink mx-4 uppercase text-xs font-semibold text-slate-500">
+						Or
+					</span>
+					<div className="flex-grow border-t border-slate-700" />
+				</div>
+				<Button
+					onClick={handlePreview}
+					className="bg-slate-600 hover:bg-slate-500 focus-visible:ring-slate-400 w-full max-w-2xl py-3 text-base"
+				>
+					Preview with a blank avatar
+				</Button>
 				{fileLoadError && (
 					<div className="mt-6 p-4 bg-rose-900/50 border border-rose-700 text-rose-300 rounded-lg max-w-2xl w-full">
 						<p>
