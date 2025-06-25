@@ -21,54 +21,13 @@ import {
 
 // A component for the file drop area
 function FileDropzone({
-	onFileLoaded,
-	setLoadError,
+	handleFiles,
+	isDragging,
 }: {
-	onFileLoaded: (data: LoadedProjectData) => void;
-	setLoadError: (error: string | null) => void;
+	handleFiles: (files: FileList) => void;
+	isDragging: boolean;
 }) {
-	const [isDragging, setIsDragging] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
-
-	const handleFiles = async (files: FileList) => {
-		if (!files || files.length === 0) return;
-		setLoadError(null); // Reset error on new attempt
-
-		try {
-			const loadedData = await loadProjectFromFiles(files);
-			onFileLoaded(loadedData);
-		} catch (err: any) {
-			setLoadError(
-				err.message || "An unknown error occurred during file processing.",
-			);
-		}
-	};
-
-	const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-		setIsDragging(true);
-	};
-
-	const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-		setIsDragging(false);
-	};
-
-	const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-	};
-
-	const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-		setIsDragging(false);
-		if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-			handleFiles(e.dataTransfer.files);
-		}
-	};
 
 	const handleClick = () => {
 		inputRef.current?.click();
@@ -85,11 +44,7 @@ function FileDropzone({
 	return (
 		<div
 			onClick={handleClick}
-			onDrop={handleDrop}
-			onDragOver={handleDragOver}
-			onDragEnter={handleDragEnter}
-			onDragLeave={handleDragLeave}
-			className={`w-full max-w-2xl h-80 rounded-2xl border-4 border-dashed flex flex-col items-center justify-center text-center p-8 cursor-pointer transition-colors duration-300 ${isDragging ? "border-violet-500 bg-violet-900/20" : "border-slate-700 hover:border-slate-600 bg-slate-800/20"}`}
+			className={`w-full max-w-2xl h-80 rounded-2xl border-4 border-dashed flex flex-col items-center justify-center text-center p-8 cursor-pointer transition-colors duration-300 pointer-events-auto ${isDragging ? "border-violet-500 bg-violet-900/20" : "border-slate-700 hover:border-slate-600 bg-slate-800/20"}`}
 		>
 			<input
 				ref={inputRef}
@@ -133,6 +88,8 @@ export function App() {
 	const [activeTab, setActiveTab] = useState<EditorTab>("wheels");
 	const [fileLoadError, setFileLoadError] = useState<string | null>(null);
 	const [isMetadataEditorOpen, setMetadataEditorOpen] = useState(false);
+	const [isDragging, setIsDragging] = useState(false);
+	const dragCounter = useRef(0);
 
 	// Get temporal state and actions for undo/redo
 	const { pastStates, futureStates, undo, redo } =
@@ -181,20 +138,68 @@ export function App() {
 		);
 	};
 
+	const handleFiles = async (files: FileList) => {
+		if (!files || files.length === 0) return;
+		setFileLoadError(null); // Reset error on new attempt
+
+		try {
+			const loadedData = await loadProjectFromFiles(files);
+			handleProjectLoad(loadedData);
+		} catch (err: any) {
+			setFileLoadError(
+				err.message || "An unknown error occurred during file processing.",
+			);
+		}
+	};
+
 	// If no project is loaded, show the dropzone.
 	if (!avatar) {
+		const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+			e.preventDefault();
+			e.stopPropagation();
+			dragCounter.current++;
+			if (dragCounter.current === 1) {
+				setIsDragging(true);
+			}
+		};
+
+		const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+			e.preventDefault();
+			e.stopPropagation();
+			dragCounter.current--;
+			if (dragCounter.current === 0) {
+				setIsDragging(false);
+			}
+		};
+
+		const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+			e.preventDefault();
+			e.stopPropagation();
+		};
+
+		const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+			e.preventDefault();
+			e.stopPropagation();
+			dragCounter.current = 0;
+			setIsDragging(false);
+			if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+				handleFiles(e.dataTransfer.files);
+			}
+		};
+
 		return (
 			<div
-				className="text-slate-100 h-screen flex flex-col items-center justify-center bg-slate-900 p-4"
+				className={`text-slate-100 h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300 ${isDragging ? "bg-slate-800" : "bg-slate-900"}`}
 				style={{ fontFamily: "'Inter', sans-serif" }}
+				onDrop={handleDrop}
+				onDragOver={handleDragOver}
+				onDragEnter={handleDragEnter}
+				onDragLeave={handleDragLeave}
 			>
 				<h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-500 mb-8">
 					Avatar Editor
 				</h1>
-				<FileDropzone
-					onFileLoaded={handleProjectLoad}
-					setLoadError={setFileLoadError}
-				/>
+				<FileDropzone handleFiles={handleFiles} isDragging={isDragging} />
 				{fileLoadError && (
 					<div className="mt-6 p-4 bg-rose-900/50 border border-rose-700 text-rose-300 rounded-lg max-w-2xl w-full">
 						<p>
