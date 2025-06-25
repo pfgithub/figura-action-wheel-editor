@@ -48,6 +48,16 @@ export type ExclusiveTag = {
 	name: string;
 };
 
+export type Variable = {
+	uuid: UUID;
+	name: string;
+	values: Record<UUID, VariableValue>;
+};
+export type VariableValue = {
+	uuid: UUID;
+	label: string;
+};
+
 export type Avatar = {
 	mainActionWheel?: UUID;
 	actionWheels: Record<UUID, ActionWheel>;
@@ -56,6 +66,7 @@ export type Avatar = {
 	keybinds: Record<UUID, Keybind>;
 	exclusiveTags?: Record<UUID, ExclusiveTag>;
 	layers?: Record<UUID, Layer>;
+	variables?: Record<UUID, Variable>;
 };
 
 export type Keybind = {
@@ -118,6 +129,12 @@ export type ActionEffect =
 			isSaved?: boolean;
 			defaultOn?: boolean;
 			exclusiveTags?: UUID[];
+	  }
+	| {
+			id: UUID;
+			kind: "toggleVariable";
+			variable?: UUID;
+			value?: UUID | null;
 	  };
 
 export type HideElementSetting = {

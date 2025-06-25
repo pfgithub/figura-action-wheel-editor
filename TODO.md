@@ -103,3 +103,4 @@ type LayerCondition = {
 - [ ] Consider using avatar zip files instead of the folder, so you can upload the whole avatar at once
   and download the whole avatar at once
   - if we do this, we can store the json in a dotfile because then figura won't load it
+- [ ] Extract the variable selection ui from ActionEffectEditor into a component and add a variable Condition

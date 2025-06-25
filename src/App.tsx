@@ -147,6 +147,7 @@ export function App() {
 				keybinds: {},
 				exclusiveTags: {},
 				layers: {},
+				variables: {},
 			},
 			metadata: {},
 			animations: [],
