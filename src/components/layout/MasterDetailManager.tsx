@@ -94,8 +94,8 @@ export function MasterDetailManager<T extends { uuid: UUID }>({
 			<div className="flex-grow bg-slate-800/50 rounded-lg p-4 md:p-6 ring-1 ring-slate-700 overflow-y-auto flex flex-row">
 				{selectedItem ? (
 					<div className="flex-1">
-						<div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-700">
-							<h3 className="text-xl font-bold text-slate-100 truncate">
+						<div className="flex gap-4 justify-between items-center mb-6 pb-4 border-b border-slate-700">
+							<h3 className="flex-1 text-xl font-bold text-slate-100 truncate">
 								{editorTitle ? editorTitle(selectedItem) : "Edit Item"}
 							</h3>
 							{rightButtons?.(selectedItem)}
