@@ -32,10 +32,33 @@ const BUTTON_SIZE = 64; // in px
 const MAX_ACTIONS = 8;
 
 /**
- * Calculates the angles for actions on the wheel based on the total number of actions.
- * - 1 action: on the right.
- * - 2 actions: first on right, second on left.
- * - 3+ actions: distributed evenly clockwise, starting from the top.
+ * Generates an array of evenly spaced angles within a given arc.
+ * @param count The number of angles to generate.
+ * @param startAngle The starting angle of the arc in radians.
+ * @param endAngle The ending angle of the arc in radians.
+ * @returns An array of angles in radians.
+ */
+const getAnglesInArc = (count: number, startAngle: number, endAngle: number): number[] => {
+	if (count === 0) {
+		return [];
+	}
+
+	const angles: number[] = [];
+	const totalArc = endAngle - startAngle;
+	const angleStep = totalArc / (count);
+	startAngle += angleStep / 2;
+
+	for (let i = 0; i < count; i++) {
+		angles.push(startAngle + i * angleStep);
+	}
+	return angles;
+};
+
+/**
+ * Calculates the angles for actions on a wheel based on the total number of actions.
+ * - Actions are split between the right and left semi-circles.
+ * - For an even number of actions `n`, there are `n/2` on the right and `n/2` on the left.
+ * - For an odd number of actions `n`, there are `floor(n/2)` on the right and `ceil(n/2)` on the left (except for n=1).
  * @param numActions The total number of actions to position.
  * @returns An array of angles in radians.
  */
@@ -43,25 +66,30 @@ const getActionAngles = (numActions: number): number[] => {
 	if (numActions <= 0) {
 		return [];
 	}
-	if (numActions === 1) {
-		// Right
-		return [0];
-	}
-	if (numActions === 2) {
-		// Right, then Left
-		return [0, Math.PI];
-	}
 
-	// 3 or more actions: distribute evenly, starting from top.
-	const angles: number[] = [];
-	const angleStep = (2 * Math.PI) / numActions;
-	// Start from the top plus half an angle step
-	const startAngle = -Math.PI / 2 + angleStep / 2;
+	// For safety, cap the number of actions if it exceeds the max.
+	const effectiveNumActions = Math.min(numActions, MAX_ACTIONS);
 
-	for (let i = 0; i < numActions; i++) {
-		angles.push(startAngle + i * angleStep);
-	}
-	return angles;
+	// 1. Determine the number of actions on the right and left sides.
+	const numRight = effectiveNumActions === 1 ? 1 : Math.floor(effectiveNumActions / 2);
+	const numLeft = effectiveNumActions - numRight;
+
+	// 2. Define the arcs for the right and left sides.
+
+	// Right side arc: from top to bottom (-90deg to +90deg)
+	const rightArcStart = -Math.PI / 2;
+	const rightArcEnd = Math.PI / 2;
+
+	// Left side arc: from top to bottom (+90deg to +270deg)
+	const leftArcStart = Math.PI / 2;
+	const leftArcEnd = (3 * Math.PI) / 2;
+
+	// 3. Generate the angles for each side.
+	const rightAngles = getAnglesInArc(numRight, rightArcStart, rightArcEnd);
+	const leftAngles = getAnglesInArc(numLeft, leftArcStart, leftArcEnd);
+
+	// 4. Combine and return the angles. Right side actions are listed first.
+	return [...rightAngles, ...leftAngles];
 };
 
 function RenderIcon({ icon }: { icon: IconItem | IconTexture }) {
