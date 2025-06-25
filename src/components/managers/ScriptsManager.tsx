@@ -108,18 +108,6 @@ export function ScriptsManager() {
 	};
 
 	const handleDelete = (itemToDelete: Script) => {
-		// Do not allow deleting scripts that have a "one" instance type, as they are mandatory
-		const hasMandatoryInstance = Object.values(
-			itemToDelete.data.instanceTypes,
-		).some((it) => it.mode === "one");
-
-		if (hasMandatoryInstance) {
-			alert(
-				`The script "${itemToDelete.name}" cannot be deleted because it is a mandatory script.`,
-			);
-			return;
-		}
-
 		if (!itemToDelete) return;
 		updateAvatar((draft) => {
 			delete draft.scripts[itemToDelete.uuid];
