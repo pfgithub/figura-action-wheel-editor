@@ -42,7 +42,7 @@ export function MinecraftItemPickerDialog({
 	}, [items, filter]);
 
 	return (
-		<Dialog open={open} onClose={onClose} className="max-w-4xl">
+		<Dialog open={open} onClose={onClose} className="max-w-4xl">{open ? <>
 			<DialogHeader>Choose an Item</DialogHeader>
 			<DialogContent>
 				<div className="mb-4">
@@ -65,7 +65,7 @@ export function MinecraftItemPickerDialog({
 				<div className="max-h-[60vh] overflow-y-auto -mr-4 pr-4">
 					{items && !error && (
 						<div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
-							{filteredItems.slice(0, 300).map((item) => (
+							{filteredItems.map((item) => (
 								<button
 									key={item.id}
 									type="button"
@@ -77,6 +77,7 @@ export function MinecraftItemPickerDialog({
 										src={`https://lfs.pfg.pw/source/${item.image.uuid}.png`}
 										alt={item.name}
 										className="w-8 h-8 image-pixelated transition-transform group-hover:scale-110"
+										loading="lazy"
 									/>
 									<span className="text-xs text-center text-slate-400 truncate w-full block mt-1">
 										{item.name}
@@ -90,11 +91,6 @@ export function MinecraftItemPickerDialog({
 							No items found for "{filter}".
 						</p>
 					)}
-					{items && filteredItems.length > 300 && (
-						<p className="p-2 text-center text-xs text-slate-500">
-							More than 300 results, please refine your search.
-						</p>
-					)}
 				</div>
 			</DialogContent>
 			<DialogFooter>
@@ -105,6 +101,6 @@ export function MinecraftItemPickerDialog({
 					Close
 				</Button>
 			</DialogFooter>
-		</Dialog>
+		</> : null}</Dialog>
 	);
 }
