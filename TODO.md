@@ -100,3 +100,5 @@ type LayerCondition = {
 - [ ] Remove the "add node" button from the layer state machine after ^^
 - [ ] Change the 'Exclusive Tags' editor so it does not need a modal. Instead, you can type in a tag. It will offer to add it if it doesn't exist or let you select from an existing tag.
 - [ ] Improve the activation condition summaries.
+- [ ] Consider using avatar zip files instead of the folder, so you can upload the whole avatar at once
+  and download the whole avatar at once
