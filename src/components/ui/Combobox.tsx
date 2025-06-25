@@ -129,7 +129,7 @@ export function Combobox({
 					leaveTo="opacity-0"
 					afterLeave={() => setQuery("")}
 				>
-					<ComboboxOptions portal anchor="bottom" className="mt-1 max-h-60 w-(--input-width) overflow-auto rounded-md bg-slate-800 py-1 text-base shadow-lg ring-1 ring-slate-700/50 focus:outline-none sm:text-sm z-10">
+					<ComboboxOptions portal anchor="bottom" className="max-h-60 w-(--input-width) overflow-auto rounded-md bg-slate-800 py-1 text-base shadow-lg ring-1 ring-slate-700/50 focus:outline-none sm:text-sm z-10">
 						{filteredOptions.length === 0 && !canCreate ? (
 							<div className="relative cursor-default select-none py-2 px-4 text-slate-400">
 								{trimmedQuery ? "No results found." : "Nothing to select."}
