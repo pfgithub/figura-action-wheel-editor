@@ -196,6 +196,12 @@ export type ConditionScript = {
 	scriptInstance?: UUID;
 	condition?: UUID;
 };
+export type ConditionVariable = {
+	id: UUID;
+	kind: "variable";
+	variable?: UUID;
+	value?: UUID | null;
+};
 
 export type Condition =
 	| ConditionOr
@@ -203,7 +209,8 @@ export type Condition =
 	| ConditionNot
 	| ConditionRender
 	| ConditionAnimation
-	| ConditionScript;
+	| ConditionScript
+	| ConditionVariable;
 
 export type RenderSettingData = {
 	id: RenderSettingID;

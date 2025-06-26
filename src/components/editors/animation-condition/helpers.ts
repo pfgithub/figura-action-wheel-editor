@@ -46,6 +46,12 @@ export const kindStyles: {
 		bg: "bg-teal-900/30",
 		text: "text-teal-300",
 	},
+	variable: {
+		label: "Variable State",
+		border: "border-indigo-500",
+		bg: "bg-indigo-900/30",
+		text: "text-indigo-300",
+	},
 };
 
 export type PaletteItemKind = Condition["kind"];
@@ -104,6 +110,8 @@ export const createNewConditionNode = (kind: PaletteItemKind): Condition => {
 			return { id, kind: "animation", mode: "PLAYING" };
 		case "script":
 			return { id, kind: "script" };
+		case "variable":
+			return { id, kind: "variable" };
 	}
 };
 

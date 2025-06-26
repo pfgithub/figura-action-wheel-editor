@@ -8,6 +8,7 @@ import { NotConditionNode } from "./nodes/NotConditionNode";
 import { OrConditionNode } from "./nodes/OrConditionNode";
 import { RenderConditionNode } from "./nodes/RenderConditionNode";
 import { ScriptConditionNode } from "./nodes/ScriptConditionNode";
+import { VariableConditionNode } from "./nodes/VariableConditionNode";
 import { DropZone, GripVerticalIcon, Trash2Icon } from "./ui";
 
 interface ConditionNodeProps {
@@ -120,6 +121,13 @@ export function ConditionNode({
 			case "script":
 				return (
 					<ScriptConditionNode
+						condition={condition}
+						handleUpdate={handleUpdate}
+					/>
+				);
+			case "variable":
+				return (
+					<VariableConditionNode
 						condition={condition}
 						handleUpdate={handleUpdate}
 					/>
