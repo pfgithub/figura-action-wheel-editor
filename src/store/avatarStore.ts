@@ -3,15 +3,12 @@ import { temporal } from "zundo";
 import { create } from "zustand";
 import { generateLua } from "@/data/generateLua";
 import type {
-	ActionEffect,
 	AnimationRef,
 	Avatar,
 	AvatarMetadata,
-	Condition,
 	ModelPartRef,
 	TextureAsset,
 } from "@/types";
-import { generateUUID } from "@/utils/uuid";
 
 export type AvatarUpdater = (draft: WritableDraft<Avatar>) => void;
 export type MetadataUpdater = (draft: WritableDraft<AvatarMetadata>) => void;

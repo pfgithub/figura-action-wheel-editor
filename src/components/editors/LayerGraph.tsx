@@ -211,14 +211,14 @@ export function LayerGraph({
 	}, [selection, setNodes, setEdges]);
 
 	const onNodeClick = useCallback(
-		(event: React.MouseEvent, node: Node) => {
+		(_event: React.MouseEvent, node: Node) => {
 			onSelect({ type: "node", id: node.id as UUID });
 		},
 		[onSelect],
 	);
 
 	const onEdgeClick = useCallback(
-		(event: React.MouseEvent, edge: Edge) => {
+		(_event: React.MouseEvent, edge: Edge) => {
 			onSelect({ type: "transition", id: edge.id as UUID });
 		},
 		[onSelect],

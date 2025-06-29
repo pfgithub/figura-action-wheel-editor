@@ -209,10 +209,10 @@ export function generateLuaInner(avatar: Avatar) {
 		return val;
 	});
 	type AnimationStr = string & { __is_animation_str: true };
-	const astr = (animation: AnimationRef): AnimationStr => {
+	const _astr = (animation: AnimationRef): AnimationStr => {
 		return `animations${stringifyParts([animation.model, animation.animation])}` as AnimationStr;
 	};
-	const getAnimation = memo((animation: AnimationStr): Lua => {
+	const _getAnimation = memo((animation: AnimationStr): Lua => {
 		const val = ctx.addNextIdent(animation);
 		mainVars.push(
 			`local ${val} = tryOrNil(function() return ${animation} end, ${luaString(animation)})\n`,
@@ -225,7 +225,7 @@ export function generateLuaInner(avatar: Avatar) {
 		activeState: string;
 		onToggled: Lua[];
 	};
-	const getToggleGroup = memo((toggleGroup: UUID): ToggleGroup => {
+	const _getToggleGroup = memo((toggleGroup: UUID): ToggleGroup => {
 		const activeState = ctx.addNextIdent(toggleGroup);
 		const ping = `pings.actionEditor_${ctx.addTrueUuidIdent(toggleGroup)}`;
 		fns.push(`local ${activeState} = nil\n`);
@@ -394,7 +394,7 @@ export function generateLuaInner(avatar: Avatar) {
 		}
 		return a;
 	}
-	const getUpdateFrequency = (cond: Condition): UpdateFrequency => {
+	const _getUpdateFrequency = (cond: Condition): UpdateFrequency => {
 		// if (cond.kind === "toggleGroup" && cond.toggleGroup) {
 		// 	return {
 		// 		kind: UpdateFrequencyKind.toggleGroupChanged,
@@ -405,11 +405,11 @@ export function generateLuaInner(avatar: Avatar) {
 			return { kind: UpdateFrequencyKind.render };
 		} else if (cond.kind === "and" || cond.kind === "or") {
 			return cond.conditions.reduce<UpdateFrequency>(
-				(t, a) => mergeUpdateFrequency(t, getUpdateFrequency(a)),
+				(t, a) => mergeUpdateFrequency(t, _getUpdateFrequency(a)),
 				{ kind: UpdateFrequencyKind.init },
 			);
 		} else if (cond.kind === "not" && cond.condition) {
-			return getUpdateFrequency(cond.condition);
+			return _getUpdateFrequency(cond.condition);
 		} else if (cond.kind === "animation") {
 			// maybe should be tick or animation state changed?
 			return { kind: UpdateFrequencyKind.render };
