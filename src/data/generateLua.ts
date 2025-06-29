@@ -187,10 +187,10 @@ export function generateLuaInner(avatar: Avatar) {
 		alwaysWarnings.push(lua`print(${luaString(msg)})\n`);
 	};
 
-	const fns: Lua[] = [];
-	src.push(fns);
 	const predeclare: Lua[] = [];
 	src.push(predeclare);
+	const fns: Lua[] = [];
+	src.push(fns);
 
 	const mainVars: Lua[] = [`\n-- Setup vars\n`];
 
@@ -225,16 +225,16 @@ export function generateLuaInner(avatar: Avatar) {
 		activeState: string;
 		onToggled: Lua[];
 	};
-	const _getToggleGroup = memo((toggleGroup: UUID): ToggleGroup => {
-		const activeState = ctx.addNextIdent(toggleGroup);
-		const ping = `pings.actionEditor_${ctx.addTrueUuidIdent(toggleGroup)}`;
+	const getToggleVariable = memo((toggleVariable: UUID): ToggleGroup => {
+		const activeState = ctx.addNextIdent(toggleVariable);
+		const ping = `pings.actionEditor_${ctx.addTrueUuidIdent(toggleVariable)}`;
 		fns.push(`local ${activeState} = nil\n`);
 		fns.push(`function ${ping}(nextState)\n`);
 		fns.push(`    ${activeState} = nextState\n`);
 		const onToggled: Lua[] = [];
 		fns.push(onToggled);
 		fns.push(`end\n`);
-		const toggler = ctx.addNextIdent(toggleGroup);
+		const toggler = ctx.addNextIdent(toggleVariable);
 		const ret: ToggleGroup = { toggler, ping, activeState, onToggled };
 		return ret;
 	});
@@ -245,25 +245,25 @@ export function generateLuaInner(avatar: Avatar) {
 	const getEffect = memo((effect: ActionEffect): Effect => {
 		const none: Effect = {
 			callEffect() {
-				return "--";
+				return "-- TODO impl effect";
 			},
 		};
-		// if(effect.kind === "toggle" && effect.toggleGroup) {
-		// 	const toggleGroup = getToggleGroup(effect.toggleGroup);
-		// 	const num =
-		// 		effect.value == null
-		// 			? "nil"
-		// 			: ctx.uuidToNumber(effect.value);
-		// 	return {
-		// 		callEffect(state) {
-		// 			return `${toggleGroup.ping}((${state}) and ${num} or nil)`;
-		// 		},
-		// 		state: {
-		// 			get: `(${toggleGroup.activeState} == ${num})`,
-		// 			onChange: (callback) => toggleGroup.onToggled.push(`    ${callback}\n`),
-		// 		},
-		// 	};
-		if (effect.kind === "switchPage" && effect.actionWheel != null) {
+		if(effect.kind === "toggleVariable" && effect.variable) {
+			const toggleGroup = getToggleVariable(effect.variable);
+			const num =
+				effect.value == null
+					? "nil"
+					: ctx.uuidToNumber(effect.value);
+			return {
+				callEffect(state) {
+					return `${toggleGroup.ping}((${state}) and ${num} or nil)`;
+				},
+				state: {
+					get: `(${toggleGroup.activeState} == ${num})`,
+					onChange: (callback) => toggleGroup.onToggled.push(`    ${callback}\n`),
+				},
+			};
+		}else if (effect.kind === "switchPage" && effect.actionWheel != null) {
 			const actionWheel = ctx.getUuidIdent(effect.actionWheel);
 			if (!actionWheel) {
 				addWarning(`switchPage missing action wheel`);
@@ -297,13 +297,10 @@ export function generateLuaInner(avatar: Avatar) {
 		// fns.push(`end\n`);
 	});
 
-	src.push(lua`\n-- Action wheels\n`);
-	for (const actionWheel of Object.values(avatar.actionWheels)) {
-		const name = ctx.addUuidIdent(actionWheel.uuid, actionWheel.title);
-		src.push(lua`local ${name} = action_wheel:newPage()\n`);
-	}
 	src.push(lua`\n-- Action wheel actions\n`);
 	for (const actionWheel of Object.values(avatar.actionWheels)) {
+		const name = ctx.addUuidIdent(actionWheel.uuid, actionWheel.title);
+		predeclare.push(lua`local ${name} = action_wheel:newPage()\n`);
 		const actionWheelIdent = ctx.getUuidIdent(actionWheel.uuid);
 		if (!actionWheelIdent) continue;
 		for (const action of actionWheel.actions) {
@@ -325,13 +322,9 @@ export function generateLuaInner(avatar: Avatar) {
 				`${actionIdent}:hoverColor(${action.color[0]} / 255, ${action.color[1]} / 255, ${action.color[2]} / 255)\n`,
 			);
 			src.push(`${actionIdent}:onToggle(function(toggled)\n`);
-			for (const effect of action.effects ?? []) {
-				const fx = getEffect(effect);
+			if(action.effect) {
+				const fx = getEffect(action.effect);
 				src.push(lua`    ${fx.callEffect(lua`toggled`)}\n`);
-			}
-			const toggleState = action.effects?.[0];
-			if (toggleState) {
-				const fx = getEffect(toggleState);
 				if (fx.state) {
 					fx.state.onChange(`${actionIdent}:toggled(${fx.state.get})`);
 				}

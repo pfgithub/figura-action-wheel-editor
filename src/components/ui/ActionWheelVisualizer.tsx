@@ -75,9 +75,9 @@ const getActionAngles = (numActions: number): number[] => {
 	const effectiveNumActions = Math.min(numActions, MAX_ACTIONS);
 
 	// 1. Determine the number of actions on the right and left sides.
-	const numRight =
+	const numLeft =
 		effectiveNumActions === 1 ? 1 : Math.floor(effectiveNumActions / 2);
-	const numLeft = effectiveNumActions - numRight;
+	const numRight = effectiveNumActions - numLeft;
 
 	// 2. Define the arcs for the right and left sides.
 
