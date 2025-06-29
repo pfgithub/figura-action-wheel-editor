@@ -25,10 +25,7 @@ const SidebarHeader = ({
 	<div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-700">
 		<h3 className="text-xl font-bold text-slate-100 truncate">{title}</h3>
 		{onDelete && (
-			<Button
-				onClick={onDelete}
-				className="bg-rose-600 hover:bg-rose-500"
-			>
+			<Button onClick={onDelete} className="bg-rose-600 hover:bg-rose-500">
 				<TrashIcon className="w-5 h-5 sm:mr-2" />
 				<span className="hidden sm:inline">Delete</span>
 			</Button>
@@ -163,7 +160,9 @@ export function LayerEditor({ layer }: { layer: Layer }) {
 			</div>
 
 			{/* Right Sidebar */}
-			<div className="md:col-span-1 overflow-y-auto">{renderRightSidebar()}</div>
+			<div className="md:col-span-1 overflow-y-auto">
+				{renderRightSidebar()}
+			</div>
 		</div>
 	);
 }

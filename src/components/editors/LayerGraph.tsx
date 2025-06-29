@@ -1,16 +1,17 @@
 // src/components/editors/LayerGraph.tsx
-import React, { useCallback, useEffect } from "react";
+import type React from "react";
+import { useCallback, useEffect } from "react";
 import ReactFlow, {
 	Background,
 	Controls,
+	type Edge,
 	getBezierPath,
 	MarkerType,
+	type Node,
 	Position,
 	useEdgesState,
 	useNodesState,
 	useStore,
-	type Edge,
-	type Node,
 } from "reactflow";
 import type { Layer, UUID } from "@/types";
 
@@ -171,11 +172,10 @@ export function LayerGraph({
 			id: node.uuid,
 			type: "default",
 			data: { label: node.name },
-			position:
-				node.position ?? {
-					x: 50 + (i % 4) * 200,
-					y: 50 + Math.floor(i / 4) * 120,
-				},
+			position: node.position ?? {
+				x: 50 + (i % 4) * 200,
+				y: 50 + Math.floor(i / 4) * 120,
+			},
 		}));
 		setNodes(newNodes);
 	}, [layer.nodes, setNodes]);

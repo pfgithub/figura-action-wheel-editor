@@ -58,7 +58,9 @@ export function LayerTransitionEditor({
 			</FormRow>
 			<FormRow label="Animation">
 				<Select
-					value={transition.animation ? JSON.stringify(transition.animation) : ""}
+					value={
+						transition.animation ? JSON.stringify(transition.animation) : ""
+					}
 					onChange={(e) =>
 						handleUpdate(
 							"animation",
@@ -82,7 +84,9 @@ export function LayerTransitionEditor({
 					type="number"
 					step="0.1"
 					value={transition.weight}
-					onChange={(e) => handleUpdate("weight", parseFloat(e.target.value) || 1.0)}
+					onChange={(e) =>
+						handleUpdate("weight", parseFloat(e.target.value) || 1.0)
+					}
 				/>
 			</FormRow>
 			<FormRow label="Reverse">

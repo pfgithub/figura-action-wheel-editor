@@ -1,5 +1,11 @@
-import { Combobox as HeadlessCombobox, ComboboxOptions, ComboboxOption, Transition } from "@headlessui/react";
-import React, { Fragment, useMemo, useState } from "react";
+import {
+	ComboboxOption,
+	ComboboxOptions,
+	Combobox as HeadlessCombobox,
+	Transition,
+} from "@headlessui/react";
+import type React from "react";
+import { Fragment, useMemo, useState } from "react";
 import { PlusIcon } from "./icons";
 
 export interface ComboboxOption {
@@ -79,7 +85,7 @@ export function Combobox({
 				onChange(newSelectedOptions.map((opt) => opt.id));
 			}}
 			multiple
-            immediate
+			immediate
 		>
 			<div className="relative">
 				<div className="flex flex-wrap gap-1.5 p-2 pr-10 rounded-md border border-slate-600 bg-slate-700/50 focus-within:border-violet-500 focus-within:ring-1 focus-within:ring-violet-500">
@@ -129,7 +135,11 @@ export function Combobox({
 					leaveTo="opacity-0"
 					afterLeave={() => setQuery("")}
 				>
-					<ComboboxOptions portal anchor="bottom" className="max-h-60 w-(--input-width) overflow-auto rounded-md bg-slate-800 py-1 text-base shadow-lg ring-1 ring-slate-700/50 focus:outline-none sm:text-sm z-10">
+					<ComboboxOptions
+						portal
+						anchor="bottom"
+						className="max-h-60 w-(--input-width) overflow-auto rounded-md bg-slate-800 py-1 text-base shadow-lg ring-1 ring-slate-700/50 focus:outline-none sm:text-sm z-10"
+					>
 						{filteredOptions.length === 0 && !canCreate ? (
 							<div className="relative cursor-default select-none py-2 px-4 text-slate-400">
 								{trimmedQuery ? "No results found." : "Nothing to select."}

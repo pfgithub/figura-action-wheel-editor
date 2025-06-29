@@ -1,4 +1,10 @@
-import type { ActionEffect, AnimationRef, Avatar, Condition, UUID } from "@/types";
+import type {
+	ActionEffect,
+	AnimationRef,
+	Avatar,
+	Condition,
+	UUID,
+} from "@/types";
 
 /*
 Use Store to store the values
@@ -142,8 +148,8 @@ function stringifyParts(parts: string[]): string {
 
 function memo<U, T>(cb: (src: U) => T): (src: NoInfer<U>) => NoInfer<T> {
 	const map = new Map<U, T>();
-	return src => {
-		if(!map.has(src)) map.set(src, cb(src));
+	return (src) => {
+		if (!map.has(src)) map.set(src, cb(src));
 		return map.get(src)!;
 	};
 }
@@ -153,7 +159,7 @@ function memo<U, T>(cb: (src: U) => T): (src: NoInfer<U>) => NoInfer<T> {
 type Lua = string | number | Lua[];
 function lua(a: TemplateStringsArray, ...b: Lua[]): Lua {
 	const res: Lua[] = [];
-	for(let i = 0; i < a.length; i++) {
+	for (let i = 0; i < a.length; i++) {
 		res.push(a[i]);
 		b[i] && res.push(b[i]);
 	}
@@ -177,9 +183,9 @@ export function generateLuaInner(avatar: Avatar) {
 	const alwaysWarnings: Lua[] = [];
 	src.push(alwaysWarnings);
 	const addWarning = (msg: string) => {
-		if(!warnEnabled) return;
+		if (!warnEnabled) return;
 		alwaysWarnings.push(lua`print(${luaString(msg)})\n`);
-	}
+	};
 
 	const fns: Lua[] = [];
 	src.push(fns);
@@ -190,21 +196,27 @@ export function generateLuaInner(avatar: Avatar) {
 
 	const getTexture = memo((texture: string): string => {
 		const val = ctx.addNextIdent(texture);
-		mainVars.push(`local ${val} = tryOrNil(function() return textures[${luaString(texture)}] end, ${luaString(texture)})\n`);
+		mainVars.push(
+			`local ${val} = tryOrNil(function() return textures[${luaString(texture)}] end, ${luaString(texture)})\n`,
+		);
 		return val;
 	});
 	const getModelPart = memo((modelPart: string): string => {
 		const val = ctx.addNextIdent(modelPart);
-		mainVars.push(`local ${val} = tryOrNil(function() return ${modelPart} end, ${warnEnabled ? luaString(modelPart) : null})\n`);
+		mainVars.push(
+			`local ${val} = tryOrNil(function() return ${modelPart} end, ${warnEnabled ? luaString(modelPart) : null})\n`,
+		);
 		return val;
 	});
-	type AnimationStr = string & {__is_animation_str: true};
+	type AnimationStr = string & { __is_animation_str: true };
 	const astr = (animation: AnimationRef): AnimationStr => {
 		return `animations${stringifyParts([animation.model, animation.animation])}` as AnimationStr;
 	};
 	const getAnimation = memo((animation: AnimationStr): Lua => {
 		const val = ctx.addNextIdent(animation);
-		mainVars.push(`local ${val} = tryOrNil(function() return ${animation} end, ${luaString(animation)})\n`);
+		mainVars.push(
+			`local ${val} = tryOrNil(function() return ${animation} end, ${luaString(animation)})\n`,
+		);
 		return val;
 	});
 	type ToggleGroup = {
@@ -226,9 +238,16 @@ export function generateLuaInner(avatar: Avatar) {
 		const ret: ToggleGroup = { toggler, ping, activeState, onToggled };
 		return ret;
 	});
-	type Effect = {callEffect: (state: Lua) => Lua, state?: {get: Lua, onChange: (callback: Lua) => void}};
+	type Effect = {
+		callEffect: (state: Lua) => Lua;
+		state?: { get: Lua; onChange: (callback: Lua) => void };
+	};
 	const getEffect = memo((effect: ActionEffect): Effect => {
-		const none: Effect = {callEffect() {return "--"}};
+		const none: Effect = {
+			callEffect() {
+				return "--";
+			},
+		};
 		// if(effect.kind === "toggle" && effect.toggleGroup) {
 		// 	const toggleGroup = getToggleGroup(effect.toggleGroup);
 		// 	const num =
@@ -244,9 +263,9 @@ export function generateLuaInner(avatar: Avatar) {
 		// 			onChange: (callback) => toggleGroup.onToggled.push(`    ${callback}\n`),
 		// 		},
 		// 	};
-		if(effect.kind === "switchPage" && effect.actionWheel != null) {
+		if (effect.kind === "switchPage" && effect.actionWheel != null) {
 			const actionWheel = ctx.getUuidIdent(effect.actionWheel);
-			if(!actionWheel) {
+			if (!actionWheel) {
 				addWarning(`switchPage missing action wheel`);
 				return none;
 			}
@@ -255,20 +274,20 @@ export function generateLuaInner(avatar: Avatar) {
 					return lua`if ${state} then action_wheel:setPage(${actionWheel}) end`;
 				},
 			};
-		// }else if(effect.kind === "toggleAnimation" && effect.animation != null) {
-		// 	const animation = getAnimation(astr(effect.animation));
-		// 	return {
-		// 		callEffect(state) {
-		// 			return `${animation}:setPlaying(${state})`;
-		// 		},
-		// 		state: {
-		// 			get: `${animation}:isPlaying()`,
-		// 			onChange: () => {
-		// 				addWarning(`TODO implement animation state events?`);
-		// 			},
-		// 		},
-		// 	};
-		}else{
+			// }else if(effect.kind === "toggleAnimation" && effect.animation != null) {
+			// 	const animation = getAnimation(astr(effect.animation));
+			// 	return {
+			// 		callEffect(state) {
+			// 			return `${animation}:setPlaying(${state})`;
+			// 		},
+			// 		state: {
+			// 			get: `${animation}:isPlaying()`,
+			// 			onChange: () => {
+			// 				addWarning(`TODO implement animation state events?`);
+			// 			},
+			// 		},
+			// 	};
+		} else {
 			addWarning(`TODO implement effect ${effect.kind}`);
 			return none;
 		}
@@ -296,20 +315,24 @@ export function generateLuaInner(avatar: Avatar) {
 				src.push(lua`${actionIdent}:item(${luaString(action.icon.id)})\n`);
 			} else if (action.icon.type === "texture") {
 				const texVar = getTexture(action.icon.file);
-				src.push(lua`if ${texVar} then ${actionIdent}:texture(${texVar}, ${action.icon.u}, ${action.icon.v}, ${action.icon.width}, ${action.icon.height}, ${action.icon.scale}) end\n`);
+				src.push(
+					lua`if ${texVar} then ${actionIdent}:texture(${texVar}, ${action.icon.u}, ${action.icon.v}, ${action.icon.width}, ${action.icon.height}, ${action.icon.scale}) end\n`,
+				);
 			} else {
 				// no icon
 			}
-			src.push(`${actionIdent}:hoverColor(${action.color[0]} / 255, ${action.color[1]} / 255, ${action.color[2]} / 255)\n`);
+			src.push(
+				`${actionIdent}:hoverColor(${action.color[0]} / 255, ${action.color[1]} / 255, ${action.color[2]} / 255)\n`,
+			);
 			src.push(`${actionIdent}:onToggle(function(toggled)\n`);
-			for(const effect of action.effects ?? []) {
+			for (const effect of action.effects ?? []) {
 				const fx = getEffect(effect);
 				src.push(lua`    ${fx.callEffect(lua`toggled`)}\n`);
 			}
 			const toggleState = action.effects?.[0];
-			if(toggleState) {
+			if (toggleState) {
 				const fx = getEffect(toggleState);
-				if(fx.state) {
+				if (fx.state) {
 					fx.state.onChange(`${actionIdent}:toggled(${fx.state.get})`);
 				}
 			}
@@ -455,7 +478,9 @@ end
 				"models" +
 					stringifyParts([setting.element.model, ...setting.element.partPath]),
 			);
-			renderContents.push(`    if ${elem} then ${elem}:setVisible(${cond}) end\n`);
+			renderContents.push(
+				`    if ${elem} then ${elem}:setVisible(${cond}) end\n`,
+			);
 		} else {
 			addWarning(`TODO implement ${setting.kind}`);
 		}

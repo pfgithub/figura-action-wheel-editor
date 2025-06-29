@@ -103,7 +103,10 @@ function SortableConditionItem({
 					<Select
 						value={condition.targetNode ?? ""}
 						onChange={(e) =>
-							updateCondition({ ...condition, targetNode: e.target.value as UUID })
+							updateCondition({
+								...condition,
+								targetNode: e.target.value as UUID,
+							})
 						}
 					>
 						<option value="">-- Select Target --</option>
@@ -171,7 +174,9 @@ export function LayerConditionsEditor({ layer }: { layer: Layer }) {
 
 	const handleDeleteCondition = (conditionUuid: UUID) => {
 		handleUpdateLayer((draft) => {
-			draft.conditions = draft.conditions.filter((c) => c.uuid !== conditionUuid);
+			draft.conditions = draft.conditions.filter(
+				(c) => c.uuid !== conditionUuid,
+			);
 		});
 	};
 
@@ -179,7 +184,9 @@ export function LayerConditionsEditor({ layer }: { layer: Layer }) {
 		const { active, over } = event;
 		if (over && active.id !== over.id) {
 			handleUpdateLayer((draft) => {
-				const oldIndex = draft.conditions.findIndex((c) => c.uuid === active.id);
+				const oldIndex = draft.conditions.findIndex(
+					(c) => c.uuid === active.id,
+				);
 				const newIndex = draft.conditions.findIndex((c) => c.uuid === over.id);
 				if (oldIndex !== -1 && newIndex !== -1) {
 					draft.conditions = arrayMove(draft.conditions, oldIndex, newIndex);
@@ -192,8 +199,8 @@ export function LayerConditionsEditor({ layer }: { layer: Layer }) {
 		<div className="bg-slate-800/50 rounded-lg p-4 ring-1 ring-slate-700">
 			<h3 className="text-xl font-bold mb-1">Conditions</h3>
 			<p className="text-sm text-slate-400 mb-4">
-				The first condition in this list that evaluates to true will determine the
-				active node.
+				The first condition in this list that evaluates to true will determine
+				the active node.
 			</p>
 			<div className="space-y-4">
 				<DndContext sensors={sensors} onDragEnd={handleDragEnd}>

@@ -38,14 +38,18 @@ const MAX_ACTIONS = 8;
  * @param endAngle The ending angle of the arc in radians.
  * @returns An array of angles in radians.
  */
-const getAnglesInArc = (count: number, startAngle: number, endAngle: number): number[] => {
+const getAnglesInArc = (
+	count: number,
+	startAngle: number,
+	endAngle: number,
+): number[] => {
 	if (count === 0) {
 		return [];
 	}
 
 	const angles: number[] = [];
 	const totalArc = endAngle - startAngle;
-	const angleStep = totalArc / (count);
+	const angleStep = totalArc / count;
 	startAngle += angleStep / 2;
 
 	for (let i = 0; i < count; i++) {
@@ -71,7 +75,8 @@ const getActionAngles = (numActions: number): number[] => {
 	const effectiveNumActions = Math.min(numActions, MAX_ACTIONS);
 
 	// 1. Determine the number of actions on the right and left sides.
-	const numRight = effectiveNumActions === 1 ? 1 : Math.floor(effectiveNumActions / 2);
+	const numRight =
+		effectiveNumActions === 1 ? 1 : Math.floor(effectiveNumActions / 2);
 	const numLeft = effectiveNumActions - numRight;
 
 	// 2. Define the arcs for the right and left sides.

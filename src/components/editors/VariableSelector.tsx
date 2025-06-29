@@ -30,9 +30,7 @@ export function VariableSelector({
 	const filteredVariables =
 		trimmedVarQuery === ""
 			? variables
-			: variables.filter((v) =>
-					v.name.toLowerCase().includes(trimmedVarQuery),
-				);
+			: variables.filter((v) => v.name.toLowerCase().includes(trimmedVarQuery));
 
 	const canCreateVariable =
 		trimmedVarQuery.length > 0 &&
@@ -151,9 +149,7 @@ export function VariableSelector({
 											}`
 										}
 									>
-										<span className="block truncate font-normal">
-											{v.name}
-										</span>
+										<span className="block truncate font-normal">{v.name}</span>
 									</HeadlessCombobox.Option>
 								))}
 								{canCreateVariable && (

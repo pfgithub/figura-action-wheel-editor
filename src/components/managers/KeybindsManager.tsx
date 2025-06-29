@@ -96,7 +96,7 @@ export function KeybindsManager() {
 			editorTitle={(keybind) => (
 				<Input
 					value={keybind.name}
-					onChange={(e) => updateKeybind({...keybind, name: e.target.value})}
+					onChange={(e) => updateKeybind({ ...keybind, name: e.target.value })}
 					className="border-none p-0 h-auto text-xl font-bold w-full focus:ring-0 focus:bg-slate-700"
 				/>
 			)}

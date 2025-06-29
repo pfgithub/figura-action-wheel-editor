@@ -4,12 +4,7 @@ import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Select } from "@/components/ui/Select";
 import { useScriptInstancesWithDefine } from "@/hooks/useScriptData";
 import { useAvatarStore } from "@/store/avatarStore";
-import type {
-	ActionEffect,
-	AnimationRef,
-	ModelPartRef,
-	UUID,
-} from "@/types";
+import type { ActionEffect, AnimationRef, ModelPartRef, UUID } from "@/types";
 import { generateUUID } from "@/utils/uuid";
 import { FormRow } from "../ui/FormRow";
 import { VariableSelector } from "./VariableSelector";
@@ -67,9 +62,7 @@ export function ActionEffectEditor({
 	const { avatar, animations, modelElements, updateAvatar } = useAvatarStore();
 	const allScriptInstances = useScriptInstancesWithDefine("action");
 
-	const handleEffectTypeChange = (
-		e: React.ChangeEvent<HTMLSelectElement>,
-	) => {
+	const handleEffectTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const newKind = e.target.value;
 		if (newKind === "") {
 			updateEffect(undefined);

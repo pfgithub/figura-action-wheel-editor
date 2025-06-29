@@ -130,10 +130,7 @@ function AddNewNodeWithTransitionDialog({
 				</div>
 			</DialogContent>
 			<DialogFooter>
-				<Button
-					onClick={onClose}
-					className="bg-slate-600 hover:bg-slate-500"
-				>
+				<Button onClick={onClose} className="bg-slate-600 hover:bg-slate-500">
 					Cancel
 				</Button>
 				<Button

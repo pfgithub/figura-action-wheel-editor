@@ -103,7 +103,7 @@ await addScript(
 				{
 					uuid: await sub("Toggles/Toggle Animation/Exclusive Tags"),
 					name: "Exclusive Tags",
-					type: { kind: "list", child: {kind: "string"} },
+					type: { kind: "list", child: { kind: "string" } },
 				},
 				{
 					uuid: await sub("Toggles/Toggle Animation/Saved"),

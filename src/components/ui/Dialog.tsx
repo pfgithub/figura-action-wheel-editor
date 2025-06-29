@@ -1,10 +1,11 @@
 import {
-	Dialog as HeadlessDialog,
 	DialogPanel,
 	DialogTitle,
+	Dialog as HeadlessDialog,
 	Transition,
 } from "@headlessui/react";
-import React, { Fragment } from "react";
+import type React from "react";
+import { Fragment } from "react";
 import { twMerge } from "tailwind-merge";
 
 export const Dialog = ({
