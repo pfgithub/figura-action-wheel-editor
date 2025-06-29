@@ -3,6 +3,7 @@ import type {
 	AnimationRef,
 	Avatar,
 	Condition,
+	ModelPartRef,
 	UUID,
 } from "@/types";
 
@@ -146,6 +147,17 @@ function stringifyParts(parts: string[]): string {
 	return parts.map(stringifyPart).join("");
 }
 
+function modelPartToStr(modelPart?: ModelPartRef): string {
+	if(!modelPart) return "nil";
+	return "models" +
+		stringifyParts([modelPart.model, ...modelPart.partPath]);
+}
+function animationToStr(animation?: AnimationRef): string {
+	if(!animation) return "nil";
+	return "animations" +
+		stringifyParts([animation.animation, ...animation.model]);
+}
+
 function memo<U, T>(cb: (src: U) => T): (src: NoInfer<U>) => NoInfer<T> {
 	const map = new Map<U, T>();
 	return (src) => {
@@ -192,33 +204,35 @@ export function generateLuaInner(avatar: Avatar) {
 	const fns: Lua[] = [];
 	src.push(fns);
 
-	const mainVars: Lua[] = [`\n-- Setup vars\n`];
-
 	const getTexture = memo((texture: string): string => {
 		const val = ctx.addNextIdent(texture);
-		mainVars.push(
+		predeclare.push(
 			`local ${val} = tryOrNil(function() return textures[${luaString(texture)}] end, ${luaString(texture)})\n`,
 		);
 		return val;
 	});
 	const getModelPart = memo((modelPart: string): string => {
 		const val = ctx.addNextIdent(modelPart);
-		mainVars.push(
+		predeclare.push(
 			`local ${val} = tryOrNil(function() return ${modelPart} end, ${warnEnabled ? luaString(modelPart) : null})\n`,
 		);
 		return val;
 	});
-	type AnimationStr = string & { __is_animation_str: true };
-	const _astr = (animation: AnimationRef): AnimationStr => {
-		return `animations${stringifyParts([animation.model, animation.animation])}` as AnimationStr;
-	};
-	const _getAnimation = memo((animation: AnimationStr): Lua => {
+	const getAnimation = memo((animation: string): Lua => {
 		const val = ctx.addNextIdent(animation);
-		mainVars.push(
+		predeclare.push(
 			`local ${val} = tryOrNil(function() return ${animation} end, ${luaString(animation)})\n`,
 		);
 		return val;
 	});
+	// const getExclusiveTag = memo((tag: UUID): {
+	// 	addReset(effect: Lua): Lua,
+	// } => {
+	// 	const val = ctx.addUuidIdent(tag);
+	// 	predeclare.push(
+	// 		`local function ${val}()`
+	// 	);
+	// });
 	type ToggleGroup = {
 		toggler: string;
 		ping: string;
@@ -263,6 +277,51 @@ export function generateLuaInner(avatar: Avatar) {
 					onChange: (callback) => toggleGroup.onToggled.push(`    ${callback}\n`),
 				},
 			};
+		}else if(effect.kind === "toggle") {
+			/*
+			what's the simplest way?
+
+			we should move everything into the render fn and then optimize
+			from there
+
+			toggles are : each exclusive tag is a variable. value is the number of the effect uuid.
+			no exclusive tags = it makes a variable just for the toggle.
+
+			*/
+			return none;
+			// let target: {getValue: Lua, setValue(value: Lua): Lua};
+			// if(effect.targetType === "animation") {
+			// 	const animationDetails = getAnimation(animationToStr(effect.animation));
+			// 	target = {getValue: lua`(${animationDetails}:isPlaying())`, setValue: value => lua`if ${animationDetails} then ${animationDetails}:setPlaying(${value}) end`};
+			// }else if(effect.targetType === "modelPart") {
+			// 	const modelPartDetails = getModelPart(modelPartToStr(effect.modelPart));
+			// 	target = {getValue: lua`(not not ${modelPartDetails})`, setValue: value => lua`if ${modelPartDetails} then ${modelPartDetails}:setVisible(${value}) end`};
+			// }else{
+			// 	return none;
+			// }
+			// if(!target) return none;
+
+			// const xtags = effect.exclusiveTags?.map(tag => getExclusiveTag(tag).addReset(target.setValue("false"))) ?? [];
+
+			// const ping = `pings.actionEditor_${ctx.addTrueUuidIdent(effect.id)}`;
+			// fns.push(`function ${ping}(nextState)\n`);
+			// for(const tag of xtags) {
+			// 	fns.push(lua`    ${tag}\n`);
+			// }
+			// fns.push(`    ${target.setValue()}\n`);
+			// const onToggled: Lua[] = [];
+			// fns.push(onToggled);
+			// fns.push(`end\n`);
+
+			// return {
+			// 	callEffect(state) {
+			// 		return ``;
+			// 	},
+			// 	state: {
+			// 		get: `false`,
+			// 		onChange: () => {},
+			// 	},
+			// };
 		}else if (effect.kind === "switchPage" && effect.actionWheel != null) {
 			const actionWheel = ctx.getUuidIdent(effect.actionWheel);
 			if (!actionWheel) {
@@ -421,7 +480,7 @@ export function generateLuaInner(avatar: Avatar) {
 				return renderIdToVarMap.get(cond.render)!;
 			if (cond.render === "playerIsFlying") {
 				// fly detection
-				mainVars.push(`playerIsFlying = false
+				predeclare.push(`playerIsFlying = false
 do
   local wasFlying = false
   function pings.setPlayerIsFlying(value)
@@ -467,12 +526,9 @@ end
 
 		const cond = addCondition(setting.activationCondition);
 		if (setting.kind === "hide_element") {
-			const elem = getModelPart(
-				"models" +
-					stringifyParts([setting.element.model, ...setting.element.partPath]),
-			);
+			const elem = getModelPart(modelPartToStr(setting.element));
 			renderContents.push(
-				`    if ${elem} then ${elem}:setVisible(${cond}) end\n`,
+				`    if ${elem} then ${elem}:setVisible(not (${cond})) end\n`,
 			);
 		} else {
 			addWarning(`TODO implement ${setting.kind}`);
